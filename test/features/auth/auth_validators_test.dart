@@ -2,6 +2,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/utils/auth_validators.dart';
 
 void main() {
+  group('AuthValidators - Full Name Validation', () {
+    test('returns error when full name is null or empty', () {
+      expect(AuthValidators.validateFullName(null), 'Full name is required');
+      expect(AuthValidators.validateFullName(''), 'Full name is required');
+      expect(AuthValidators.validateFullName('   '), 'Full name is required');
+    });
+
+    test('returns error when full name is less than 2 characters', () {
+      expect(
+        AuthValidators.validateFullName('A'),
+        'Full name must be at least 2 characters',
+      );
+    });
+
+    test('returns null for valid full name', () {
+      expect(AuthValidators.validateFullName('John Doe'), null);
+    });
+  });
+
   group('AuthValidators - Email Validation', () {
     test('returns error when email is null or empty', () {
       expect(AuthValidators.validateEmail(null), 'Email is required');
@@ -77,6 +96,16 @@ void main() {
         AuthValidators.validateConfirmPassword('password123', 'password123'),
         null,
       );
+    });
+  });
+
+  group('AuthValidators - Password Strength Calculation', () {
+    test('calculates score based on complexity', () {
+      expect(AuthValidators.calculatePasswordStrength(''), 0);
+      expect(AuthValidators.calculatePasswordStrength('12345'), 1);
+      expect(AuthValidators.calculatePasswordStrength('123456'), 1);
+      expect(AuthValidators.calculatePasswordStrength('Pass12'), 2);
+      expect(AuthValidators.calculatePasswordStrength('Password123!'), 3);
     });
   });
 }

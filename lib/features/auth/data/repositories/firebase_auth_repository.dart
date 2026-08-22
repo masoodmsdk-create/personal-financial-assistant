@@ -23,11 +23,16 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<UserCredential> createUserWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
-    return _authService.createUserWithEmailAndPassword(email.trim(), password);
+  Future<UserCredential> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    return _authService.createUserWithEmailAndPassword(
+      email.trim(),
+      password,
+      displayName: displayName?.trim(),
+    );
   }
 
   @override
@@ -40,3 +45,4 @@ class FirebaseAuthRepository implements AuthRepository {
     return _authService.sendPasswordResetEmail(email.trim());
   }
 }
+

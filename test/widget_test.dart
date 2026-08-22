@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_financial_assistant/core/constants/app_constants.dart';
 import 'package:personal_financial_assistant/features/auth/domain/repositories/auth_repository.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
@@ -25,10 +26,11 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<UserCredential> createUserWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
+  Future<UserCredential> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
     throw UnimplementedError();
   }
 
@@ -36,7 +38,9 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> signOut() async {}
 
   @override
-  Future<void> sendPasswordResetEmail(String email) async {}
+  Future<void> sendPasswordResetEmail(String email) async {
+    throw UnimplementedError();
+  }
 }
 
 void main() {
@@ -54,9 +58,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text(AppConstants.appName), findsOneWidget);
+    expect(find.text(AppConstants.tagline), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
-    expect(find.text('Register'), findsOneWidget);
+    expect(find.text('Create account'), findsOneWidget);
     expect(find.byType(TextFormField), findsNWidgets(2));
   });
 }

@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_financial_assistant/core/constants/app_constants.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/dashboard_screen.dart';
 
@@ -19,6 +21,18 @@ class _AppShellState extends ConsumerState<AppShell> {
     _PlaceholderTab(title: 'Transactions', icon: Icons.receipt_long_rounded),
     _PlaceholderTab(title: 'Settings', icon: Icons.settings_rounded),
   ];
+
+  String _getDisplayName(User? user) {
+    final displayName = user?.displayName;
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      return displayName.trim();
+    }
+    final email = user?.email;
+    if (email != null && email.isNotEmpty) {
+      return email.split('@').first;
+    }
+    return 'User';
+  }
 
   Future<void> _confirmSignOut() async {
     final shouldSignOut = await showDialog<bool>(
@@ -47,15 +61,15 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final userEmail = user?.email ?? 'User';
+    final displayName = _getDisplayName(user);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Financial Assistant'),
+        title: Text(AppConstants.appName),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Sign Out ($userEmail)',
+            tooltip: 'Sign Out ($displayName)',
             onPressed: _confirmSignOut,
           ),
         ],

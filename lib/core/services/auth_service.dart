@@ -29,13 +29,19 @@ class AuthService {
 
   Future<UserCredential> createUserWithEmailAndPassword(
     String email,
-    String password,
-  ) async {
+    String password, {
+    String? displayName,
+  }) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      if (displayName != null && displayName.isNotEmpty) {
+        await credential.user?.updateDisplayName(displayName);
+        await credential.user?.reload();
+      }
+      return credential;
     } on FirebaseAuthException catch (e) {
       throw _mapAuthException(e);
     }

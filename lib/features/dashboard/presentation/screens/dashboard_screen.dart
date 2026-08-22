@@ -6,12 +6,54 @@ import 'package:personal_financial_assistant/features/auth/presentation/provider
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  String _getTimeBasedGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
+  }
+
+  String _getDisplayName(User? user) {
+    final displayName = user?.displayName;
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      return displayName.trim();
+    }
+    final email = user?.email;
+    if (email != null && email.isNotEmpty) {
+      final namePart = email.split('@').first;
+      return namePart
+          .split('.')
+          .map(
+            (part) => part.isNotEmpty
+                ? part[0].toUpperCase() + part.substring(1)
+                : '',
+          )
+          .join(' ');
+    }
+    return 'Welcome';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final userEmail =
-        user?.email ?? FirebaseAuth.instance.currentUser?.email ?? 'User';
+    final displayName = _getDisplayName(user);
+    final greeting = _getTimeBasedGreeting();
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final initial = displayName.isNotEmpty
+        ? displayName
+              .trim()
+              .split(' ')
+              .map((e) => e[0])
+              .take(2)
+              .join()
+              .toUpperCase()
+        : 'U';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -20,18 +62,18 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           // User Welcome Card
           Card(
-            color: theme.colorScheme.primaryContainer,
+            color: colorScheme.primaryContainer,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: colorScheme.primary,
                     child: Text(
-                      userEmail.isNotEmpty ? userEmail[0].toUpperCase() : 'U',
+                      initial,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onPrimary,
+                        color: colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -42,19 +84,19 @@ class DashboardScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Welcome back!',
+                          '$greeting, $displayName 👋',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
+                            color: colorScheme.onPrimaryContainer,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          userEmail,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
+                          "Here's your financial snapshot.",
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -77,7 +119,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
               Chip(
                 label: const Text('Placeholder Data'),
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                backgroundColor: colorScheme.surfaceContainerHighest,
                 avatar: const Icon(Icons.info_outline, size: 16),
               ),
             ],
@@ -158,7 +200,7 @@ class DashboardScreen extends ConsumerWidget {
                 final item = placeholders[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     child: const Icon(Icons.receipt_long_outlined, size: 20),
                   ),
                   title: Text(item['name']!),

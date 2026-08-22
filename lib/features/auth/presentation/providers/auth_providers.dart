@@ -31,12 +31,17 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<bool> register({
+    required String fullName,
     required String email,
     required String password,
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-      () => _repository.createUserWithEmailAndPassword(email, password),
+      () => _repository.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+        displayName: fullName,
+      ),
     );
     return !state.hasError;
   }
