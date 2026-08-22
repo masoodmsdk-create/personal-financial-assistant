@@ -24,20 +24,23 @@ Build a Personal Financial Assistant for:
 - Set the Android application ID to `com.masoodmsdk.personalfinance`.
 - Resolved Flutter dependencies.
 - Ran formatting verification, static analysis, and the generated widget test successfully.
+- Configured Firebase Core for Android and Web in Firebase project `msd-financial-assistant`.
+- Added generated Firebase client configuration and initialized Firebase before the Flutter application starts.
 
 ## In Progress
 
-Flutter project foundation is complete. Firebase and application features have not been configured or implemented.
+Flutter project and Firebase Core foundation are complete. Authentication, Firestore, Storage, Cloud Functions, and financial features have not been configured or implemented.
 
 ## Next Work
 
-Verify Android and Web build completion in the local development environment, then obtain approval before Git/GitHub or Firebase work.
+Obtain approval before configuring Authentication or Firestore.
 
 ## Known Issues
 
 - `flutter doctor` reports Android SDK license status as unknown.
 - Android and Web build attempts began but did not return a completion status or leave artifacts in this execution environment; neither target is marked build-verified.
 - The documented Dart executable path `D:\Personal assistant\flutter\bin\dart.exe` is absent. The installed SDK's bundled Dart executable is `D:\Personal assistant\flutter\bin\cache\dart-sdk\bin\dart.exe`.
+- A Web build was attempted after Firebase Core setup but did not return a completion result or create an artifact in this execution environment.
 
 ## Planned
 

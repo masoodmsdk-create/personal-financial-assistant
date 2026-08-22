@@ -7,7 +7,7 @@
 - [x] Initialize Flutter
 - [ ] Configure Git
 - [ ] Configure GitHub
-- [ ] Configure Firebase
+- [x] Configure Firebase Core for Android and Web
 - [x] Create initial documentation
 - [ ] Establish security rules
 
