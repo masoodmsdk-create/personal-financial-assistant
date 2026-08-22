@@ -13,12 +13,12 @@
 
 ## Phase 1 — Authentication
 
-- [ ] Registration
-- [ ] Login
-- [ ] Logout
-- [ ] Password reset
-- [ ] Authentication state
-- [ ] User profile
+- [x] Registration
+- [x] Login
+- [x] Logout
+- [x] Password reset
+- [x] Authentication state
+- [x] User profile
 
 ## Phase 2 — Core Finance
 

@@ -1,30 +1,62 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_financial_assistant/features/auth/domain/repositories/auth_repository.dart';
+import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
+import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
 
-import 'package:personal_financial_assistant/main.dart';
+class FakeAuthRepository implements AuthRepository {
+  final User? _user;
+  FakeAuthRepository([this._user]);
+
+  @override
+  User? get currentUser => _user;
+
+  @override
+  Stream<User?> get authStateChanges => Stream.value(_user);
+
+  @override
+  Future<UserCredential> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<UserCredential> createUserWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> signOut() async {}
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {}
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('LoginScreen displays title, input fields, and action buttons', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        ],
+        child: const MaterialApp(home: LoginScreen()),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Register'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(2));
   });
 }
