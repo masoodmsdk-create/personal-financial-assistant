@@ -3,11 +3,12 @@
 ## Current Stage
 
 - **Phase 0 — Foundation & Accounting Core**: COMPLETED.
-- **Phase 1 — Smart Financial Entry (Foundation)**: COMPLETED.
+- **Phase 1 — Workspace Context & Financial Blueprint**: COMPLETED.
 - **Phase 2 — Loan & Debt Intelligence Module**: COMPLETED.
-- **Phase 3 — Category Budgets & Variance**: UPCOMING.
-- **Phase 4 — Net Worth & Unified Balance Sheet**: UPCOMING.
-- **Phase 5 — Financial Intelligence & Goal Trade-Offs**: IN PROGRESS (Deterministic Loan Insights completed; Goal Trade-Off Engine upcoming).
+- **Phase 3A — Financial Plans & Progress**: COMPLETED.
+- **Phase 3B — Home / Financial Command Center**: COMPLETED.
+- **Phase 4 — Category Budgets & Variance**: UPCOMING.
+- **Phase 5 — Financial Intelligence & Goal Trade-Offs**: UPCOMING.
 - **Phase 6 — Ask FINAURA (Conversational Assistant Layer)**: UPCOMING.
 
 ---
@@ -84,17 +85,25 @@ Build a Personal Financial Assistant for:
   - `BlueprintPersistenceService`: Atomic confirmed mapping into existing domain models (`PlannedExpense`, `Loan`, `Account`, `Goal`, `Transaction`) without parallel schemas or silent persistence.
   - `FinancialSetupScreen` (/financial-setup) with interactive Q&A clarification chips, live financial picture breakdown, and explicit confirmation dialog.
   - Full integration into `DashboardScreen` and `SettingsScreen`.
+- **Financial Plans & Progress Tracking (Phase 3A Master Deliverable)**:
+  - Core Progress Paradigm: `PLAN → ACTUAL → PROJECTION → VARIANCE → EXPLANATION`.
+  - `PlanProgressService` & `PlanProgressStatus` pure deterministic domain engine.
+  - Explainable Loan Progress tracking: Outstanding principal, monthly EMI, EMIs remaining, Target closure vs Projected closure, Dynamic recovery on extra prepayment, Neutral factual explanations (*"Your recorded extra prepayment is below the current plan."*).
+  - Explainable Goal Progress tracking: Current vs Target amount, Progress percentage bar, Target date vs Projected date, Contribution pace ($/mo), Neutral factual explanations.
+  - `FinancialPlansDashboardSection` integrated cleanly on `DashboardScreen` with portfolio summary pills, prioritized cards (top 1–3 loans/goals based on attention, upcoming dates, and workspace context), and quick navigation actions (`/loans`, `/goals`).
 - **Automated Verification**:
   - Static Analysis: `dart analyze` (0 issues found).
-  - Test Suite: `flutter test` (148/148 tests passing).
+  - Test Suite: `flutter test` (151/151 tests passing).
   - Web Release Build: `flutter build web --release` (built cleanly).
 
 ---
 
 ## Next Strategic Work
 
-1. **Phase 3**: Category-level monthly Budgets, threshold warning indicators, and actual vs budget variances.
-2. **Phase 4**: Unified Net Worth & Balance Sheet calculation (Assets minus Liabilities).
-3. **Phase 5**: Goal vs Debt Prepayment trade-off engine.
-4. **Phase 6**: Ask FINAURA natural-language assistant layer.
+1. **Phase 3B**: Loan vs Goal Trade-Off Intelligence (Extra Cash Flow allocation, Loan Prepayment vs Goal Investment simulations).
+2. **Phase 4**: Category-level monthly Budgets, threshold warning indicators, and actual vs budget variances.
+3. **Phase 5**: Unified Net Worth & Balance Sheet calculation (Assets minus Liabilities).
+4. **Phase 6**: Broader Financial Intelligence (Emergency runway, discretionary risk alerts).
+5. **Phase 7**: Ask FINAURA natural-language assistant layer.
+
 

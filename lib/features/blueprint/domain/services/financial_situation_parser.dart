@@ -560,7 +560,6 @@ class FinancialSituationParser {
     return GoalType.savingsGoal;
   }
 
-
   String _inferCategoryName(String text) {
     if (text.contains('rent')) return 'Rent';
     if (text.contains('grocer')) return 'Groceries';

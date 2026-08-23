@@ -1,6 +1,49 @@
 # Changelog
 
+## 2026-08-23 (MSD FINAURA — Phase 3B: Home / Financial Command Center)
+
+- **Home Financial Command Center Redesign (`DashboardScreen`)**:
+  - Reorganized the entry screen into a unified, high-hierarchy Command Center answering: *Where do I stand financially?*, *How are my goals and loans progressing?*, and *What does FINAURA think I should know or act on?*
+  - **Section 1: Current Financial Situation (`FinancialSituationCard`)**:
+    - Live Metric Cards (Total Net Balance, Monthly Income, Monthly Expenses, Remaining Cash Flow).
+    - Compact Accounts Summary card showing active accounts count, total assets vs total liabilities, with direct navigation to `/accounts`.
+  - **Section 2 & 3: Goals & Loans Portfolio Summaries (`FinancialPlansDashboardSection`)**:
+    - Top 1–3 prioritized goals and loans with progress bars, EMIs, target vs projected dates, status chips, and direct deep links (`/loans/:loanId`, `/goals`).
+  - **Section 4: 🧠 FINAURA Suggests (`AssistantSuggestionsSection`)**:
+    - Deterministic, explainable, neutral, and factual assistant guidance derived strictly from confirmed user data.
+    - Color-coded severity chips and direct action buttons linking directly to the relevant loan, goal, budget, or review screen.
+  - **Section 5: 🔔 Upcoming (`UpcomingRemindersSection`)**:
+    - Scheduled EMIs and planned expenses due in the next 30 days with due date pills and direct item navigation.
+  - **Section 6: Recent Activity (`RecentActivitySection`)**:
+    - Compact list of 3–5 most recent transactions with signed MoneyText and `[View All]` action to `/transactions`.
+- **Deterministic Domain Engine (`CommandCenterService`)**:
+  - Pure Dart service generating suggestions, upcoming reminders, and accounts summary without new Firestore reads (0ms latency, ₹0 cost).
+- **Verification**: 167/167 tests passing (`flutter test`), 0 analyzer issues (`dart analyze`), clean formatting (`dart format .`), web release build successful (`flutter build web --release`).
+
+## 2026-08-23 (MSD FINAURA — Phase 3A: Financial Plans & Progress — Plan → Actual → Projection → Variance → Explanation)
+
+- **Core Progress Paradigm (`PlanProgressService`, `PlanProgressStatus`)**:
+  - Pure deterministic local Dart calculation engine (0ms, 100% offline, ₹0 cost).
+  - Evaluates financial plans through: $\text{PLAN} \rightarrow \text{ACTUAL} \rightarrow \text{PROJECTION} \rightarrow \text{VARIANCE} \rightarrow \text{EXPLANATION}$.
+  - Deterministic status model: `AHEAD`, `ON_TRACK`, `SLIGHTLY_BEHIND`, `BEHIND`, `AT_RISK`, `NO_TARGET`, `INSUFFICIENT_DATA`.
+- **Explainable Loan Progress**:
+  - Reuses `LoanForecastService` to project closure dates and remaining EMIs.
+  - Computes target vs projected variance in months.
+  - Dynamic recovery: automatically updates status to ahead/on-track as soon as the user records an extra prepayment (no permanent "failure" labels).
+  - Generates neutral factual explanations (*"Your recorded extra prepayment is below the current plan."* or *"Your current repayment pace projects closure approximately 4 months after your target."*).
+- **Explainable Goal Progress**:
+  - Calculates current amount vs target amount, percentage completion, target date vs projected completion date, and average monthly contribution pace.
+  - Generates neutral factual explanations (*"Your current contribution pace projects completion about 2 months after your target."*).
+- **Dashboard Financial Plans Section (`FinancialPlansDashboardSection`)**:
+  - Compact summary pill card for Loans Portfolio (Total Outstanding & Total Monthly EMI) and Goals Progress.
+  - Attention indicators highlighting plans that are behind or at risk.
+  - Compact `_LoanProgressCard` and `_GoalProgressCard` showing top 1–3 prioritized items (prioritized by attention needs, target dates, and workspace context).
+  - Quick action buttons linking directly to `/loans/:loanId`, `/loans`, and `/goals`.
+  - Fully responsive layout across 320px–1440px viewports with zero text truncation or clipping.
+- **Verification**: 151/151 tests passed (`flutter test`), 0 issues (`dart analyze`), clean formatting (`dart format .`), release web build succeeded (`flutter build web --release`).
+
 ## 2026-08-23 (MSD FINAURA — Phase 1: Workspace Context, Situation Understanding, Clarification Loop & Financial Blueprint)
+
 
 - **Workspace Purpose & Context Layer**:
   - `Workspace` model with `purpose`, `priorities`, `isDefault`, and predefined user priority taxonomy (`users/{userId}/workspaces/{workspaceId}`).

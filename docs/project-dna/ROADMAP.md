@@ -23,15 +23,10 @@
 
 ## Phase 1 — Financial Setup & Financial Blueprint
 - [x] Smart Financial Entry Assistant foundation (`SmartParserService`, `SmartEntryScreen`).
-- [ ] Multi-entity Natural Language Situation Understanding (Extracting Income, Debt Commitments, Living Expenses, Savings, and Goals from a single passage).
-- [ ] Conversational Clarification Engine (Targeted questions, intelligent batched confirmations, selectable chips, escape hatches: *"Skip for now"*, *"I'll add later"*).
-- [ ] Interactive Mutable Financial Blueprint Draft & Review screen before persistence.
-- [ ] Progressive Guided Setup: *"Tell FINAURA about your money"* onboarding flow.
-- [ ] Workspace boundary & data isolation (`workspaceId` indexing with default "Personal" workspace).
-- [ ] Workspace Purpose & Financial Context onboarding (lightweight purpose statement, editable under Workspace Settings, guiding Financial Intelligence).
-- [ ] Workspace Creation options: "Start Empty" and "Copy Setup" (copying structure without duplicating financial history).
-
-
+- [x] Multi-entity Natural Language Situation Understanding (`FinancialSituationParser`).
+- [x] Conversational Clarification Engine (Targeted questions, selectable chips, escape hatches: *"Skip for now"*, *"I'll add later"*).
+- [x] Interactive Mutable Financial Blueprint Draft & Review screen (`FinancialBlueprint`, `FinancialSetupScreen`) with safe explicit confirmation.
+- [x] Workspace Purpose & Context layer (`Workspace`, `CreateWorkspaceDialog`, `EditWorkspaceDialog`, `_WorkspaceContextCard`).
 
 ---
 
@@ -47,7 +42,24 @@
 
 ---
 
-## Phase 3 — Category Budgets & Variance
+## Phase 3A — Financial Plans & Progress (PLAN → ACTUAL → PROJECTION → VARIANCE → EXPLANATION)
+- [x] Core Progress & Variance Domain Engine (`PlanProgressService`, `PlanProgressStatus`).
+- [x] Explainable Loan Progress tracking (Outstanding, EMI, EMIs Remaining, Target Closure vs Projected Closure, Dynamic Prepayment Recovery).
+- [x] Explainable Goal Progress tracking (Current vs Target, Progress %, Target Date vs Projected Date, Average Contribution Pace).
+- [x] Neutral, factual financial explanations for all variance states.
+- [x] Consolidated Dashboard Financial Plans section (`FinancialPlansDashboardSection`) with summary pills, prioritized cards, and quick navigation.
+- [x] Context-aware prioritization based on Workspace Purpose and active attention triggers.
+
+---
+
+## Phase 3B — Loan vs Goal Trade-Off Intelligence (Next Priority)
+- [ ] Extra Cash Flow allocator (Loan Prepayment vs Goal Investment).
+- [ ] Multi-scenario strategy comparison (Loan-First vs Goal-First vs Balanced 50/50 vs Custom Split).
+- [ ] Net Worth, lifetime interest saved, and timeline comparison engine.
+
+---
+
+## Phase 4 — Category Budgets & Variance
 - [ ] Category-level monthly budget allocations.
 - [ ] Actual vs. Budget real-time tracking with progress indicators.
 - [ ] Threshold warning indicators (50%, 80%, 100% of budget reached).
@@ -56,16 +68,18 @@
 
 ---
 
-## Phase 4 — Net Worth & Unified Balance Sheet
+## Phase 5 — Net Worth & Unified Balance Sheet
 - [ ] Authoritative Net Worth Calculation ($\text{Assets} - \text{Liabilities}$).
-- [ ] Asset breakdown (Bank balances, Cash, Investments, Emergency reserves).
-- [ ] Liability breakdown (Credit card balances + Loan outstanding principals).
-- [ ] Historical Net Worth trajectory chart derived purely from confirmed transaction/loan records.
-- [ ] Zero manual totals; 100% derived from authoritative data.
+- [ ] Asset distribution breakdown (Cash, Bank, Investments, Real Estate).
+- [ ] Liability breakdown (Secured Loans, Unsecured Loans, Credit Card Debt).
+- [ ] Net Worth growth tracking over time.
 
 ---
 
-## Phase 5 — Financial Intelligence & Goal Trade-Offs
+## Phase 6 — Broader Financial Intelligence
+- [ ] Emergency Fund runway calculator (Liquid Assets / Monthly Living Expenses).
+- [ ] Savings rate trajectory analytics.
+- [ ] Discretionary spending risk alerts.
 - [x] Deterministic in-app insights engine (`FinancialInsightsService`, `DebtIntelligenceService`).
 - [ ] Advanced Goal Trade-Off Engine: Accelerating Loan Prepayments vs. Emergency Fund / Long-Term Savings.
 - [ ] Cash flow safety margin calculation (*"How much can I safely save or spend this month?"*).
@@ -74,9 +88,10 @@
 
 ---
 
-## Phase 6 — Ask FINAURA (Conversational Assistant Layer)
-- [ ] Conversational Natural-Language Interface layered on top of the deterministic domain engine.
-- [ ] Answering core user questions (*"Where did my money go?"*, *"Which loan costs me the most interest?"*, *"Can I afford this?"*).
+## Phase 7 — Ask FINAURA (Conversational Assistant Layer)
+- [ ] Natural language query answering grounded in local deterministic calculations.
+- [ ] Scenario exploration (*"Can I afford a ₹30,000 vacation next month?"*).
+- [ ] Conversational explainability of trade-offs, loan amortizations, and cash flow trends.
 - [ ] Generating calm, non-judgmental explanations based strictly on recorded user data.
 - [ ] Strict confirmation flow for any suggested record updates.
 - [ ] Android release packaging & Google Play publication.

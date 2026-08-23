@@ -229,7 +229,40 @@ Firebase (Cloud Firestore with local offline client cache enabled)
 
 ---
 
-## 8. FIRESTORE DATA MODEL & SECURITY
+## 8. FINANCIAL PLANS & PROGRESS (PLAN → ACTUAL → PROJECTION → VARIANCE → EXPLANATION)
+
+### The Core Progress Paradigm
+```text
+PLAN (User Target / Scheduled Milestone)
+  ↓
+ACTUAL (Recorded Payments / Contributions)
+  ↓
+PROJECTION (Estimated Payoff / Completion Date)
+  ↓
+VARIANCE (Difference Between Target & Projection)
+  ↓
+EXPLANATION (Neutral, Factual Financial Explanation)
+```
+
+### Deterministic Status Model
+- **`AHEAD`**: Current projected completion is before the target date ($\text{variance} \le -1\text{ month}$).
+- **`ON_TRACK`**: Current projected completion matches the target date ($\text{variance} = 0$).
+- **`SLIGHTLY_BEHIND`**: Deviation between 1–4 months. Explanation: *"Your recorded extra prepayment is below the current plan."* or *"Your current contribution pace projects completion about X months after your target."*
+- **`BEHIND`**: Deviation $> 4$ months.
+- **`AT_RISK`**: Target date has passed or $> 12$ months behind.
+- **`NO_TARGET`**: User has not set a target closure/completion date. Never marks ahead/behind without a target.
+- **`INSUFFICIENT_DATA`**: Critical parameters missing (e.g. balance or EMI) to project completion date.
+
+### Core Architectural Invariants
+1. **Dynamic Recovery**: Status recalculates dynamically with each extra prepayment or contribution (no permanent "failure" labels).
+2. **Explainability**: Always explain deviations using neutral factual financial terms.
+3. **Dashboard Integration**: Shows consolidated portfolio totals and top 1–3 prioritized cards (prioritized by attention needs, target dates, and workspace purpose context).
+4. **Foundation for Trade-Off Intelligence**: Directly prepares the platform for future Loan Prepayment vs. Goal Investment Trade-Offs (Phase 3B).
+
+---
+
+## 9. FIRESTORE DATA MODEL & SECURITY
+
 
 ```text
 users/{userId}
