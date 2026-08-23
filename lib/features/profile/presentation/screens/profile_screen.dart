@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -110,6 +111,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final currentDisplayName = user?.displayName ?? 'Not provided';
     final email = user?.email ?? 'Not provided';
@@ -118,85 +120,100 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Profile Avatar & Info Card
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
+        child: ResponsiveCenter(
+          maxWidth: 600,
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Profile Avatar & Overview Card
+              Card(
+                elevation: 0,
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Icon(
+                          Icons.person_rounded,
+                          size: 36,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currentDisplayName,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              email,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Text(
+                'Profile Information',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Full Name Edit Form Card
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 36,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                currentDisplayName,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                email,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                Text(
-                  'Profile Information',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Edit Display Name Form / Tile
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
                                 'Full Name',
                                 style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (!_isEditing)
-                                TextButton.icon(
+                            ),
+                            if (!_isEditing)
+                              Flexible(
+                                child: TextButton.icon(
                                   onPressed: () {
                                     setState(() {
                                       _nameController.text =
@@ -208,125 +225,249 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     Icons.edit_outlined,
                                     size: 18,
                                   ),
-                                  label: const Text('Edit'),
+                                  label: const Text('Edit Name'),
                                 ),
+                              ),
+                          ],
+                        ),
+                        if (_isEditing) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _nameController,
+                            enabled: !isLoading,
+                            decoration: const InputDecoration(
+                              labelText: 'Display Name',
+                              hintText: 'Enter your full name',
+                              prefixIcon: Icon(Icons.person_outline_rounded),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Display name cannot be empty';
+                              }
+                              if (value.trim().length > 50) {
+                                return 'Name cannot exceed 50 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _isEditing = false;
+                                        });
+                                      },
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton.icon(
+                                onPressed: isLoading ? null : _saveName,
+                                icon: isLoading
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.check_rounded, size: 18),
+                                label: const Text('Save Changes'),
+                              ),
                             ],
                           ),
-                          if (_isEditing) ...[
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _nameController,
-                              enabled: !isLoading,
-                              decoration: const InputDecoration(
-                                labelText: 'Display Name',
-                                hintText: 'Enter your full name',
-                                prefixIcon: Icon(Icons.person_outline_rounded),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Display name cannot be empty';
-                                }
-                                if (value.trim().length > 50) {
-                                  return 'Name cannot exceed 50 characters';
-                                }
-                                return null;
-                              },
+                        ] else ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            currentDisplayName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            _isEditing = false;
-                                          });
-                                        },
-                                  child: const Text('Cancel'),
-                                ),
-                                const SizedBox(width: 8),
-                                FilledButton(
-                                  onPressed: isLoading ? null : _saveName,
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text('Save Changes'),
-                                ),
-                              ],
-                            ),
-                          ] else ...[
-                            const SizedBox(height: 4),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Read-only Email Card
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.email_outlined,
+                        color: colorScheme.primary,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              currentDisplayName,
-                              style: theme.textTheme.titleMedium,
+                              'Email Address',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              email,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Read-only Email Tile
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.email_outlined),
-                    title: const Text('Email Address'),
-                    subtitle: Text(email),
-                    trailing: const Chip(
-                      label: Text('Read Only'),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                Text(
-                  'Account Security',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.fingerprint_rounded),
-                        title: const Text('User ID'),
-                        subtitle: Text(
-                          uid,
-                          style: const TextStyle(fontFamily: 'monospace'),
                         ),
                       ),
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Icons.lock_reset_rounded),
-                        title: const Text('Reset Password'),
-                        subtitle: const Text(
-                          'Send a password reset email to your registered email address.',
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                        trailing: OutlinedButton(
-                          onPressed: isLoading ? null : _sendPasswordReset,
-                          child: const Text('Reset'),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Read Only',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 24),
+              Text(
+                'Account Security',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Security & Password Reset Card
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User ID Row
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.fingerprint_rounded,
+                            color: colorScheme.primary,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'User ID',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  uid,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 28),
+
+                      // Password Reset Section
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.lock_reset_rounded,
+                            color: colorScheme.primary,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Password Reset',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Send a password reset email to your registered email address.',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: isLoading ? null : _sendPasswordReset,
+                          icon: const Icon(
+                            Icons.mail_outline_rounded,
+                            size: 18,
+                          ),
+                          label: const Text('Reset Password'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

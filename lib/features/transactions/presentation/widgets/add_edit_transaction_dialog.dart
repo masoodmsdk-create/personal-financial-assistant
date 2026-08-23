@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
+
 
 class AddEditTransactionDialog extends ConsumerStatefulWidget {
   final Transaction? transaction;
@@ -202,7 +204,6 @@ class _AddEditTransactionDialogState
   Widget build(BuildContext context) {
     final controllerState = ref.watch(transactionControllerProvider);
     final isLoading = controllerState.isLoading;
-    final theme = Theme.of(context);
     final isEditing = widget.transaction != null;
 
     final accountsAsync = ref.watch(accountsStreamProvider);
@@ -283,13 +284,23 @@ class _AddEditTransactionDialogState
                 // Fields for Income / Expense
                 if (_selectedType != TransactionType.transfer) ...[
                   // Category Dropdown
-                  categoriesAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text(
-                      'Failed to load categories',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    data: (categories) {
+                  Builder(
+                    builder: (context) {
+                      final isIncome = _selectedType == TransactionType.income;
+                      final targetCategoryType = isIncome
+                          ? CategoryType.income
+                          : CategoryType.expense;
+                      final fallbackCats = Category.generateDefaults('default')
+                          .where((c) => c.type == targetCategoryType)
+                          .toList();
+
+                      final loadedCategories = categoriesAsync.value;
+                      final categories =
+                          (loadedCategories != null &&
+                              loadedCategories.isNotEmpty)
+                          ? loadedCategories
+                          : fallbackCats;
+
                       final activeCategories = categories
                           .where((c) => c.active || c.id == _selectedCategoryId)
                           .toList();
@@ -323,16 +334,13 @@ class _AddEditTransactionDialogState
                       );
                     },
                   ),
+
                   const SizedBox(height: 16),
 
                   // Account Dropdown
-                  accountsAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text(
-                      'Failed to load accounts',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    data: (accounts) {
+                  Builder(
+                    builder: (context) {
+                      final accounts = accountsAsync.value ?? [];
                       final activeAccounts = accounts
                           .where((a) => a.active || a.id == _selectedAccountId)
                           .toList();
@@ -371,13 +379,9 @@ class _AddEditTransactionDialogState
 
                 // Fields for Transfer
                 if (_selectedType == TransactionType.transfer) ...[
-                  accountsAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text(
-                      'Failed to load accounts',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    data: (accounts) {
+                  Builder(
+                    builder: (context) {
+                      final accounts = accountsAsync.value ?? [];
                       final activeAccounts = accounts
                           .where(
                             (a) =>
@@ -462,6 +466,7 @@ class _AddEditTransactionDialogState
                       );
                     },
                   ),
+
                   const SizedBox(height: 16),
                 ],
 

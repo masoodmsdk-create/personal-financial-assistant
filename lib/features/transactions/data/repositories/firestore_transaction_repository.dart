@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/core/services/firestore_service.dart';
 import 'package:personal_financial_assistant/features/accounts/domain/repositories/account_repository.dart';
-import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/domain/repositories/category_repository.dart';
 import 'package:personal_financial_assistant/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -10,8 +9,6 @@ import 'package:personal_financial_assistant/features/transactions/transaction.d
 class FirestoreTransactionRepository implements TransactionRepository {
   final FirestoreService _firestoreService;
   final FirebaseAuth _firebaseAuth;
-  final CategoryRepository? _categoryRepository;
-  final AccountRepository? _accountRepository;
 
   static const String _collectionPath = 'transactions';
   static const int maxNoteLength = 200;
@@ -19,10 +16,11 @@ class FirestoreTransactionRepository implements TransactionRepository {
   FirestoreTransactionRepository({
     FirestoreService? firestoreService,
     FirebaseAuth? firebaseAuth,
-    this._categoryRepository,
-    this._accountRepository,
+    CategoryRepository? categoryRepository,
+    AccountRepository? accountRepository,
   }) : _firestoreService = firestoreService ?? FirestoreService(),
        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+
 
   String _requireCurrentUserId() {
     final uid = _firebaseAuth.currentUser?.uid;
@@ -59,30 +57,6 @@ class FirestoreTransactionRepository implements TransactionRepository {
             'Category is required for Income transaction',
           );
         }
-
-        if (_accountRepository != null) {
-          final accounts = await _accountRepository.getAccounts(currentUid);
-          final exists = accounts.any((a) => a.id == transaction.accountId);
-          if (!exists) {
-            throw const ValidationException('Selected account not found');
-          }
-        }
-
-        if (_categoryRepository != null) {
-          final categories = await _categoryRepository.getCategories(
-            currentUid,
-          );
-          final category = categories.firstWhere(
-            (c) => c.id == transaction.categoryId,
-            orElse: () =>
-                throw const ValidationException('Selected category not found'),
-          );
-          if (category.type != CategoryType.income) {
-            throw const ValidationException(
-              'Income transactions must reference an Income category',
-            );
-          }
-        }
         break;
 
       case TransactionType.expense:
@@ -95,30 +69,6 @@ class FirestoreTransactionRepository implements TransactionRepository {
           throw const ValidationException(
             'Category is required for Expense transaction',
           );
-        }
-
-        if (_accountRepository != null) {
-          final accounts = await _accountRepository.getAccounts(currentUid);
-          final exists = accounts.any((a) => a.id == transaction.accountId);
-          if (!exists) {
-            throw const ValidationException('Selected account not found');
-          }
-        }
-
-        if (_categoryRepository != null) {
-          final categories = await _categoryRepository.getCategories(
-            currentUid,
-          );
-          final category = categories.firstWhere(
-            (c) => c.id == transaction.categoryId,
-            orElse: () =>
-                throw const ValidationException('Selected category not found'),
-          );
-          if (category.type != CategoryType.expense) {
-            throw const ValidationException(
-              'Expense transactions must reference an Expense category',
-            );
-          }
         }
         break;
 
@@ -142,19 +92,6 @@ class FirestoreTransactionRepository implements TransactionRepository {
         }
         if (transaction.categoryId != null) {
           throw const ValidationException('Transfers cannot have a category');
-        }
-
-        if (_accountRepository != null) {
-          final accounts = await _accountRepository.getAccounts(currentUid);
-          final fromExists = accounts.any(
-            (a) => a.id == transaction.fromAccountId,
-          );
-          final toExists = accounts.any((a) => a.id == transaction.toAccountId);
-          if (!fromExists || !toExists) {
-            throw const ValidationException(
-              'One or both selected accounts for Transfer do not exist',
-            );
-          }
         }
         break;
     }

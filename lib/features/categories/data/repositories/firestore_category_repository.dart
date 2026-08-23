@@ -112,20 +112,11 @@ class FirestoreCategoryRepository implements CategoryRepository {
           collection: _collectionName,
           params: const QueryParams(orderBy: 'sortOrder', descending: false),
         )
-        .asyncMap((dataList) async {
+        .map((dataList) {
           if (dataList.isEmpty) {
-            await seedDefaultCategories(currentUid);
-            final freshDataList = await _firestoreService.queryCollection(
-              userId: currentUid,
-              collection: _collectionName,
-              params: const QueryParams(
-                orderBy: 'sortOrder',
-                descending: false,
-              ),
-            );
-            return freshDataList
-                .map((data) => Category.fromJson(data))
-                .toList();
+            // Trigger background seeding without stalling the stream
+            seedDefaultCategories(currentUid).ignore();
+            return Category.generateDefaults(currentUid);
           }
           return dataList.map((data) => Category.fromJson(data)).toList();
         });

@@ -19,7 +19,6 @@ class MonthlyReviewDashboardCard extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (err, stack) => const SizedBox.shrink(),
       data: (data) {
-
         final now = DateTime.now();
         final monthName = DateFormat('MMMM yyyy').format(now);
 

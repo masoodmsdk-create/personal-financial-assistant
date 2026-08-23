@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+import 'package:personal_financial_assistant/features/accounts/domain/models/account_type_definition.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/screens/accounts_screen.dart';
 
@@ -39,6 +40,9 @@ void main() {
         ProviderScope(
           overrides: [
             accountsStreamProvider.overrideWith((ref) => Stream.value([])),
+            accountTypesStreamProvider.overrideWith(
+              (ref) => Stream.value(AccountTypeDefinition.defaultTypes),
+            ),
             totalBalanceProvider.overrideWithValue(0.0),
           ],
           child: const MaterialApp(home: AccountsScreen()),
@@ -48,10 +52,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No Accounts Yet'), findsOneWidget);
-      expect(
-        find.text('Add Account'),
-        findsNWidgets(2),
-      ); // FAB + Empty state button
+      expect(find.text('Add Account'), findsNWidgets(2));
     },
   );
 
@@ -63,6 +64,9 @@ void main() {
         overrides: [
           accountsStreamProvider.overrideWith(
             (ref) => Stream.value(testAccounts),
+          ),
+          accountTypesStreamProvider.overrideWith(
+            (ref) => Stream.value(AccountTypeDefinition.defaultTypes),
           ),
           totalBalanceProvider.overrideWithValue(52500.00),
         ],

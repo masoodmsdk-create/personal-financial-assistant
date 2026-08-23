@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+import 'package:personal_financial_assistant/features/accounts/domain/models/account_type_definition.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 
 class AddEditAccountDialog extends ConsumerStatefulWidget {
@@ -18,18 +19,28 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
-  late AccountType _selectedType;
+  late String _selectedTypeId;
+  late AccountType _selectedEnum;
+  late AccountNature _selectedNature;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.account?.name ?? '');
+
     _balanceController = TextEditingController(
       text: widget.account != null
           ? widget.account!.effectiveBalance.toStringAsFixed(2)
           : '0.00',
     );
-    _selectedType = widget.account?.type ?? AccountType.bank;
+    _selectedTypeId =
+        widget.account?.accountTypeId ?? widget.account?.type.value ?? 'bank';
+    _selectedEnum = widget.account?.type ?? AccountType.bank;
+    _selectedNature =
+        widget.account?.nature ??
+        (widget.account?.isLiabilityAccount == true
+            ? AccountNature.liability
+            : AccountNature.asset);
   }
 
   @override
@@ -56,7 +67,9 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
           .updateAccount(
             account: widget.account!,
             name: name,
-            type: _selectedType,
+            type: _selectedEnum,
+            accountTypeId: _selectedTypeId,
+            nature: _selectedNature,
             openingBalance: balance,
           );
     } else {
@@ -64,7 +77,9 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
           .read(accountControllerProvider.notifier)
           .createAccount(
             name: name,
-            type: _selectedType,
+            type: _selectedEnum,
+            accountTypeId: _selectedTypeId,
+            nature: _selectedNature,
             openingBalance: balance,
           );
     }
@@ -103,12 +118,13 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
     final isLoading = controllerState.isLoading;
     final theme = Theme.of(context);
     final isEditing = widget.account != null;
+    final accountTypesAsync = ref.watch(accountTypesStreamProvider);
 
     return AlertDialog(
       title: Text(isEditing ? 'Edit Account' : 'Add Account'),
       content: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 440),
           child: Form(
             key: _formKey,
             child: Column(
@@ -143,40 +159,53 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: AccountType.values.map((type) {
-                    final selected = _selectedType == type;
-                    return ChoiceChip(
-                      label: Text(type.displayName),
-                      avatar: Icon(
-                        type.icon,
-                        size: 18,
-                        color: selected ? Colors.white : type.color,
-                      ),
-                      selected: selected,
-                      selectedColor: type.color,
-                      labelStyle: TextStyle(
-                        color: selected
-                            ? Colors.white
-                            : theme.colorScheme.onSurface,
-                        fontWeight: selected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                      onSelected: isLoading
-                          ? null
-                          : (val) {
-                              if (val) {
-                                setState(() {
-                                  _selectedType = type;
-                                });
-                              }
-                            },
+                Builder(
+                  builder: (context) {
+                    final typeDefs =
+                        accountTypesAsync.value ??
+                        AccountTypeDefinition.defaultTypes;
+                    final activeDefs = typeDefs.where((t) => t.active).toList();
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: activeDefs.map((tDef) {
+                        final selected = _selectedTypeId == tDef.id;
+                        return ChoiceChip(
+                          label: Text(tDef.name),
+                          avatar: Icon(
+                            tDef.icon,
+                            size: 18,
+                            color: selected ? Colors.white : tDef.color,
+                          ),
+                          selected: selected,
+                          selectedColor: tDef.color,
+                          labelStyle: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
+                            fontWeight: selected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                          onSelected: isLoading
+                              ? null
+                              : (val) {
+                                  if (val) {
+                                    setState(() {
+                                      _selectedTypeId = tDef.id;
+                                      _selectedEnum = AccountTypeX.fromString(
+                                        tDef.id,
+                                      );
+                                      _selectedNature = tDef.nature;
+                                    });
+                                  }
+                                },
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
+
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _balanceController,

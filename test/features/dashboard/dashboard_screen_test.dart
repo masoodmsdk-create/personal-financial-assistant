@@ -91,7 +91,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Financial Overview'), findsOneWidget);
-      expect(find.text('Total Balance'), findsOneWidget);
+      expect(find.text('Total Net Balance'), findsOneWidget);
+
       expect(find.text('Monthly Income'), findsOneWidget);
       expect(find.text('Monthly Expenses'), findsOneWidget);
       expect(find.text('Net Cash Flow'), findsWidgets);

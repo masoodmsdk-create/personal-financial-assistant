@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+import 'package:personal_financial_assistant/features/accounts/domain/models/account_type_definition.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/widgets/add_edit_account_dialog.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/widgets/balance_info_card.dart';
@@ -82,113 +84,154 @@ class AccountsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsAsync = ref.watch(accountsStreamProvider);
+    final accountTypesAsync = ref.watch(accountTypesStreamProvider);
     final totalBalance = ref.watch(totalBalanceProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final typeMap = <String, AccountTypeDefinition>{};
+    accountTypesAsync.whenData((types) {
+      for (final t in types) {
+        typeMap[t.id] = t;
+      }
+    });
 
     return Scaffold(
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const BalanceInfoCard(),
-                  const SizedBox(height: 16),
-                  EmptyStateWidget(
-                    icon: Icons.account_balance_outlined,
-                    title: 'No Accounts Yet',
-                    message: 'Add your bank accounts, cash, credit cards, or other accounts to start tracking your finances.',
-                    actionLabel: 'Add Account',
-                    onAction: () => _showAddAccountDialog(context),
-                  ),
-                ],
+              child: ResponsiveCenter(
+                maxWidth: 1000,
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 16.0,
+                  bottom: 100.0,
+                ),
+                child: Column(
+                  children: [
+                    const BalanceInfoCard(),
+                    const SizedBox(height: 16),
+                    EmptyStateWidget(
+                      icon: Icons.account_balance_outlined,
+                      title: 'No Accounts Yet',
+                      message: 'Add your bank accounts, cash, credit cards, or custom accounts to start tracking your finances.',
+                      actionLabel: 'Add Account',
+                      onAction: () => _showAddAccountDialog(context),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Total Accounts Summary Header
-                Card(
-                  color: colorScheme.primaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Net Balance',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            MoneyText(
-                              totalBalance,
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Chip(
-                          avatar: Icon(
-                            Icons.account_balance_wallet,
-                            size: 18,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                          label: Text(
-                            '${accounts.length} ${accounts.length == 1 ? 'Account' : 'Accounts'}',
-                            style: TextStyle(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                        ),
-                      ],
+            child: ResponsiveCenter(
+              maxWidth: 1000,
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: 100.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PageHeader(
+                    title: 'Accounts',
+                    subtitle: 'Manage bank accounts, cash, credit cards, and liabilities.',
+                    action: FilledButton.icon(
+                      onPressed: () => _showAddAccountDialog(context),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Account'),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
 
-                const BalanceInfoCard(),
-                const SizedBox(height: 24),
-
-                Text(
-                  'Your Accounts',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  // Total Accounts Summary Header
+                  Card(
+                    color: colorScheme.primaryContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Total Net Balance',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                MoneyText(
+                                  totalBalance,
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Chip(
+                            avatar: Icon(
+                              Icons.account_balance_wallet,
+                              size: 18,
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                            label: Text(
+                              '${accounts.length} ${accounts.length == 1 ? 'Account' : 'Accounts'}',
+                              style: TextStyle(
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: accounts.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final account = accounts[index];
-                    return _AccountTile(
-                      account: account,
-                      onEdit: () => _showEditAccountDialog(context, account),
-                      onDelete: () =>
-                          _confirmDeleteAccount(context, ref, account),
-                    );
-                  },
-                ),
-              ],
+                  const BalanceInfoCard(),
+                  const SizedBox(height: 24),
+
+                  Text(
+                    'Your Accounts',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: accounts.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final account = accounts[index];
+                      final typeDef = typeMap[account.accountTypeId];
+                      return _AccountTile(
+                        account: account,
+                        typeDef: typeDef,
+                        onEdit: () => _showEditAccountDialog(context, account),
+                        onDelete: () =>
+                            _confirmDeleteAccount(context, ref, account),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 80),
+                ],
+              ),
             ),
           );
         },
@@ -209,11 +252,13 @@ class AccountsScreen extends ConsumerWidget {
 
 class _AccountTile extends StatelessWidget {
   final Account account;
+  final AccountTypeDefinition? typeDef;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _AccountTile({
     required this.account,
+    this.typeDef,
     required this.onEdit,
     required this.onDelete,
   });
@@ -221,13 +266,15 @@ class _AccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final type = account.type;
+    final icon = typeDef?.icon ?? account.type.icon;
+    final color = typeDef?.color ?? account.type.color;
+    final typeName = typeDef?.name ?? account.type.displayName;
 
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: type.color.withValues(alpha: 0.15),
-          child: Icon(type.icon, color: type.color),
+          backgroundColor: color.withValues(alpha: 0.15),
+          child: Icon(icon, color: color),
         ),
         title: Text(
           account.name,
@@ -236,17 +283,18 @@ class _AccountTile extends StatelessWidget {
           ),
         ),
         subtitle: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: type.color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                type.displayName,
+                typeName,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: type.color,
+                  color: color,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -264,7 +312,7 @@ class _AccountTile extends StatelessWidget {
                   account.effectiveBalance,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: account.isCreditAccount
+                    color: account.isLiabilityAccount
                         ? theme.colorScheme.error
                         : theme.colorScheme.primary,
                   ),

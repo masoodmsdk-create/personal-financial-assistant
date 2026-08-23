@@ -3,17 +3,6 @@ import 'package:intl/intl.dart';
 class CurrencyFormatter {
   static final Map<String, NumberFormat> _formatters = {};
 
-  static NumberFormat _getFormatter(String currencyCode, String locale) {
-    final key = '$currencyCode-$locale';
-    return _formatters.putIfAbsent(key, () {
-      return NumberFormat.currency(
-        locale: locale,
-        symbol: _getCurrencySymbol(currencyCode),
-        decimalDigits: 2,
-      );
-    });
-  }
-
   static String _getCurrencySymbol(String currencyCode) {
     switch (currencyCode) {
       case 'INR':
@@ -33,8 +22,17 @@ class CurrencyFormatter {
     double amount, {
     String currencyCode = 'INR',
     String locale = 'en_IN',
+    bool showDecimals = false,
   }) {
-    final formatter = _getFormatter(currencyCode, locale);
+    final hasDecimals = showDecimals || (amount.abs() % 1 != 0);
+    final key = '$currencyCode-$locale-${hasDecimals ? 2 : 0}';
+    final formatter = _formatters.putIfAbsent(key, () {
+      return NumberFormat.currency(
+        locale: locale,
+        symbol: _getCurrencySymbol(currencyCode),
+        decimalDigits: hasDecimals ? 2 : 0,
+      );
+    });
     return formatter.format(amount);
   }
 

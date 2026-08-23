@@ -301,8 +301,14 @@ class _CategoryListView extends ConsumerWidget {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          padding: const EdgeInsets.only(
+            top: 8,
+            left: 16,
+            right: 16,
+            bottom: 88,
+          ),
           itemCount: filtered.length,
+
           itemBuilder: (context, index) {
             final category = filtered[index];
             final isArchived = !category.active;

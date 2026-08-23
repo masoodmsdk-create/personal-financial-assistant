@@ -83,9 +83,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Planned Expenses & Forecast'), findsOneWidget);
-      expect(find.text('Monthly Forecast'), findsOneWidget);
-      expect(find.text('Recurring Plans'), findsOneWidget);
+      expect(find.text('Planned Expenses'), findsOneWidget);
+      expect(find.text('Total Forecasted Expense'), findsOneWidget);
 
       expect(find.text('Total Forecasted Expense'), findsOneWidget);
       expect(find.text('₹ 28000.00'), findsOneWidget); // 25000 + 3000

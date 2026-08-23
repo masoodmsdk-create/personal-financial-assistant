@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
+import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/widgets/add_edit_planned_expense_dialog.dart';
@@ -151,19 +154,6 @@ class _PlannedExpensesScreenState extends ConsumerState<PlannedExpensesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Planned Expenses & Forecast'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.analytics_outlined), text: 'Monthly Forecast'),
-            Tab(
-              icon: Icon(Icons.event_repeat_rounded),
-              text: 'Recurring Plans',
-            ),
-          ],
-        ),
-      ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -272,172 +262,198 @@ class _MonthlyForecastTabView extends ConsumerWidget {
               ),
             ),
             data: (forecast) {
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  // Total Forecast Card
-                  Card(
-                    elevation: 0,
-                    color: theme.colorScheme.primaryContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+              return SingleChildScrollView(
+                child: ResponsiveCenter(
+                  maxWidth: 1000,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      PageHeader(
+                        title: 'Planned Expenses',
+                        subtitle: 'Plan recurring obligations and upcoming spending before they occur.',
+                        action: FilledButton.icon(
+                          onPressed: onAddPlan,
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add Plan'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Total Forecast Card
+                      Card(
+                        elevation: 0,
+                        color: theme.colorScheme.primaryContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.savings_outlined,
-                                color: theme.colorScheme.onPrimaryContainer,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.savings_outlined,
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Total Forecasted Expense',
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                  const Spacer(),
+                                  const FinancialStatusChip(
+                                    FinancialStatusType.forecast,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
+
+                              const SizedBox(height: 8),
                               Text(
-                                'Total Forecasted Expense',
-                                style: theme.textTheme.labelMedium?.copyWith(
+                                '₹ ${forecast.totalPlannedAmount.toStringAsFixed(2)}',
+                                style: theme.textTheme.headlineMedium?.copyWith(
                                   color: theme.colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Expected planned expenses for $monthName',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onPrimaryContainer
+                                      .withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '₹ ${forecast.totalPlannedAmount.toStringAsFixed(2)}',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Expected planned expenses for $monthName',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer
-                                  .withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                  Text(
-                    'Planned Expenses Breakdown',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  if (forecast.items.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.event_note_rounded,
-                              size: 48,
-                              color: theme.colorScheme.outline,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No planned expenses for $monthName',
-                              style: theme.textTheme.titleMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton.icon(
-                              onPressed: onAddPlan,
-                              icon: const Icon(Icons.add_rounded),
-                              label: const Text('Add Planned Expense'),
-                            ),
-                          ],
                         ),
                       ),
-                    )
-                  else
-                    ...forecast.items.map((item) {
-                      final categoryName =
-                          categoryMap[item.plan.categoryId] ?? 'Expense';
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: theme.colorScheme.primary
-                                .withValues(alpha: 0.1),
-                            child: Icon(
-                              item.plan.frequency.icon,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          title: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  item.plan.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Planned Expenses Breakdown',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      if (forecast.items.isEmpty)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.event_note_rounded,
+                                  size: 48,
+                                  color: theme.colorScheme.outline,
                                 ),
-                              ),
-                              if (item.hasOverride) ...[
-                                const SizedBox(width: 8),
-                                Chip(
-                                  label: const Text('Overridden'),
-                                  labelStyle: TextStyle(
-                                    fontSize: 10,
-                                    color: theme.colorScheme.tertiary,
-                                  ),
-                                  backgroundColor: theme
-                                      .colorScheme
-                                      .tertiaryContainer
-                                      .withValues(alpha: 0.6),
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No planned expenses for $monthName',
+                                  style: theme.textTheme.titleMedium,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  onPressed: onAddPlan,
+                                  icon: const Icon(Icons.add_rounded),
+                                  label: const Text('Add Planned Expense'),
                                 ),
                               ],
-                            ],
+                            ),
                           ),
-                          subtitle: Text(
-                            '$categoryName • ${item.plan.frequency.displayName}',
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '₹ ${item.effectiveAmount.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: item.hasOverride
-                                      ? theme.colorScheme.tertiary
-                                      : theme.colorScheme.onSurface,
+                        )
+                      else
+                        ...forecast.items.map((item) {
+                          final categoryName =
+                              categoryMap[item.plan.categoryId] ?? 'Expense';
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: theme.colorScheme.primary
+                                    .withValues(alpha: 0.1),
+                                child: Icon(
+                                  item.plan.frequency.icon,
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
-                              Text(
-                                item.hasOverride
-                                    ? 'Default: ₹${item.plan.defaultAmount.toStringAsFixed(2)}'
-                                    : 'Default amount',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.outline,
-                                  fontSize: 11,
-                                ),
+                              title: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      item.plan.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (item.hasOverride) ...[
+                                    const SizedBox(width: 8),
+                                    Chip(
+                                      label: const Text('Overridden'),
+                                      labelStyle: TextStyle(
+                                        fontSize: 10,
+                                        color: theme.colorScheme.tertiary,
+                                      ),
+                                      backgroundColor: theme
+                                          .colorScheme
+                                          .tertiaryContainer
+                                          .withValues(alpha: 0.6),
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ],
-                          ),
-                          onTap: () => onEditOverride(
-                            item,
-                            forecast.year,
-                            forecast.month,
-                          ),
-                        ),
-                      );
-                    }),
-                ],
+                              subtitle: Text(
+                                '$categoryName • ${item.plan.frequency.displayName}',
+                              ),
+                              trailing: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '₹ ${item.effectiveAmount.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: item.hasOverride
+                                          ? theme.colorScheme.tertiary
+                                          : theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Text(
+                                    item.hasOverride
+                                        ? 'Default: ₹${item.plan.defaultAmount.toStringAsFixed(2)}'
+                                        : 'Default amount',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.outline,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () => onEditOverride(
+                                item,
+                                forecast.year,
+                                forecast.month,
+                              ),
+                            ),
+                          );
+                        }),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
               );
             },
           ),
@@ -555,11 +571,14 @@ class _RecurringPlansTabView extends ConsumerWidget {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 16,
+                padding: const EdgeInsets.only(
+                  top: 8,
+                  left: 16,
+                  right: 16,
+                  bottom: 88,
                 ),
                 itemCount: filtered.length,
+
                 itemBuilder: (context, index) {
                   final plan = filtered[index];
                   final isArchived = !plan.active;

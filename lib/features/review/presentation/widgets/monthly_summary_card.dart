@@ -92,8 +92,9 @@ class MonthlySummaryCard extends StatelessWidget {
                   child: _SummaryTile(
                     label: 'Net Cash Flow',
                     value: currencyFormat.format(reviewData.netCashFlow),
-                    color:
-                        reviewData.netCashFlow >= 0 ? Colors.green : Colors.red,
+                    color: reviewData.netCashFlow >= 0
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ),
               ],

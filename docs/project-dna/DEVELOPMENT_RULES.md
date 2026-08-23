@@ -1,116 +1,66 @@
-# Development Rules
+# Development Rules & Principles
 
-## Golden Rule
-
+## 1. Golden Rule
 Do not build complexity that we do not currently need.
+The application begins with 5–10 users.
+Build cleanly, securely, and deterministically now; scale later.
 
-The application starts with 5–10 users.
+---
 
-Build cleanly and securely, but do not prematurely optimize for millions of
-users.
-
-## Before Coding
-
-Always:
-
-1. Inspect existing code.
-2. Read relevant Project DNA.
-3. Read relevant project skills.
-4. Understand existing architecture.
+## 2. Before Making Any Code Changes
+1. **Read `AGENTS.md` and `docs/project-dna/PROJECT_DNA.md` first.**
+2. Inspect only the files and models relevant to the specific task.
+3. Understand existing architecture before modifying it.
+4. **Never rewrite or recreate existing services, providers, or models.**
 5. Check whether the requested functionality already exists.
-6. Avoid duplicating functionality.
+6. Prefer the **SMALLEST SAFE CHANGE**.
 
-## Before Adding a Dependency
+---
 
-Ask:
+## 3. Financial & Accounting Rules
+1. All financial calculations must be implemented deterministically in Dart domain services (`FinancialAggregationService`, `LoanForecastService`, etc.).
+2. **Never use an AI model for financial calculations.**
+3. **Transfers are Net-Zero**: Moving money between accounts does not affect income, expense, or net cash flow.
+4. **Credit Card Accounting**: Expenses increase liability debt; payments from bank to credit card decrease bank asset and decrease debt without creating duplicate expenses.
+5. **Planned vs. Actual Invariant**: Planned expenses **NEVER** silently become actual transactions; actual transactions require explicit user action.
+6. All financial logic must have automated unit tests.
 
-- Is it actually necessary?
-- Is Flutter/Firebase already capable of doing this?
-- Is the package maintained?
-- Does it introduce security risk?
-- Does it introduce licensing concerns?
-- Does it introduce recurring cost?
-- Can we implement it simply ourselves?
+---
 
-Prefer fewer dependencies.
+## 4. Firebase Cost & Efficiency Rules (₹0 Spark Tier Target)
+1. **Never intentionally introduce paid cloud services, paid AI APIs, or link billing.**
+2. **Local Caching**: Maintain `FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true)` in `main.dart`.
+3. Query only necessary date ranges and collections.
+4. Do not poll Firestore or add redundant realtime listeners.
+5. **Deterministic Save**: Do not execute remote network reads (`getAccounts()`, `getCategories()`) inside save/update validation methods.
 
-## Financial Logic
+---
 
-Financial calculations must be implemented in application code.
+## 5. Security & Isolation Invariant
+1. All user financial data strictly resides under `users/{userId}/*`.
+2. `firestore.rules` must enforce `request.auth.uid == userId` for all subcollections.
+3. Never weaken security rules or allow cross-user access.
+4. Never log or commit secrets, credentials, or private tokens.
 
-Do not rely on an AI model to perform financial calculations.
+---
 
-All important calculations must have tests.
+## 6. UI & Responsive Guidelines
+1. Material 3 design system, responsive across `320px` to `1440px`.
+2. Main content must be centered and width-constrained (`ResponsiveCenter`).
+3. Always use `PageHeader` (breakpoint 600px) for titles; never allow page titles to vertically collapse into character-by-character columns.
+4. Dialogs must have instant in-memory fallbacks (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`) so dropdowns/chips render with 0ms delay.
+5. `AppShell` uses lazy tab mounting and `TickerMode`/`Offstage` to pause inactive tabs during user interactions.
 
-## Firebase
+---
 
-Before adding Firestore reads/writes, consider:
-
-- How often will this execute?
-- How many documents will it read?
-- Can the query be narrower?
-- Can data be cached?
-- Is a realtime listener actually necessary?
-
-Optimize for low Firebase usage.
-
-## Security
-
-Never trust the client.
-
-Firestore Security Rules must enforce authorization.
-
-Never assume hiding a UI element provides security.
-
-## User Experience
-
-Every important action should provide:
-
-- Loading state
-- Success state
-- Error state
-
-Never leave the user wondering whether a transaction was saved.
-
-## Destructive Actions
-
-Before:
-
-- deleting financial data
-- changing account balances
-- deleting accounts
-- deleting loans
-- deleting investments
-
-provide appropriate confirmation.
-
-## Git
-
-Make small, logical commits.
-
-Do not mix unrelated changes in one commit.
-
-Never commit secrets.
-
-## Documentation
-
-When a major architectural or financial rule changes:
-
-1. Update Project DNA.
-2. Update the relevant skill.
-3. Add/update tests.
-4. Update CHANGELOG.
-
-## Completion
-
-A feature is not complete merely because the UI exists.
-
-A feature is complete when:
-
-- UI works
-- Business logic works
-- Data persists correctly
-- Security is correct
-- Error handling exists
-- Tests pass
-- Documentation is updated
+## 7. Milestone Verification Workflow
+1. **DO NOT run `flutter test` or `flutter build web --release` after every small change.**
+2. During active development, prioritize inspection, local reasoning, and targeted checks.
+3. At the end of a milestone, run the complete verification suite ONCE:
+   ```bash
+   dart format .
+   dart analyze
+   flutter test
+   flutter build web --release
+   ```
+4. **DO NOT commit or push to Git unless explicitly instructed by the user.**

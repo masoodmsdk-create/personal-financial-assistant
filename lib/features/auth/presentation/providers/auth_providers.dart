@@ -19,8 +19,9 @@ final currentUserProvider = Provider<User?>((ref) {
 
 class AuthController extends StateNotifier<AsyncValue<void>> {
   final AuthRepository _repository;
+  final Ref _ref;
 
-  AuthController(this._repository) : super(const AsyncData(null));
+  AuthController(this._repository, this._ref) : super(const AsyncData(null));
 
   Future<bool> signIn({required String email, required String password}) async {
     state = const AsyncLoading();
@@ -64,11 +65,15 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     state = await AsyncValue.guard(
       () => _repository.updateDisplayName(displayName),
     );
-    return !state.hasError;
+    final success = !state.hasError;
+    if (success) {
+      _ref.invalidate(authStateChangesProvider);
+    }
+    return success;
   }
 }
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<void>>((ref) {
-      return AuthController(ref.watch(authRepositoryProvider));
+      return AuthController(ref.watch(authRepositoryProvider), ref);
     });

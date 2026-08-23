@@ -44,6 +44,116 @@ class MoneyText extends StatelessWidget {
   }
 }
 
+enum FinancialStatusType {
+  actual('ACTUAL', Colors.teal),
+  planned('PLANNED', Colors.blue),
+  forecast('FORECAST', Colors.purple),
+  estimated('ESTIMATED', Colors.orange);
+
+  final String label;
+  final Color color;
+  const FinancialStatusType(this.label, this.color);
+}
+
+class FinancialStatusChip extends StatelessWidget {
+  final FinancialStatusType type;
+  const FinancialStatusChip(this.type, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: type.color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: type.color.withValues(alpha: 0.3),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        type.label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: type.color,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+class PageHeader extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Widget? action;
+
+  const PageHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.action,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final titleWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle!,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 600;
+
+          if (isWide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: titleWidget),
+                if (action != null) ...[const SizedBox(width: 16), action!],
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleWidget,
+              if (action != null) ...[
+                const SizedBox(height: 12),
+                Align(alignment: Alignment.centerLeft, child: action!),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class MoneyTextCompact extends StatelessWidget {
   final double amount;
   final String? currencyCode;

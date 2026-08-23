@@ -6,7 +6,11 @@ import 'package:personal_financial_assistant/features/auth/presentation/screens/
 import 'package:personal_financial_assistant/features/auth/presentation/screens/register_screen.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/screens/categories_screen.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/app_shell.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/screens/account_types_screen.dart';
+import 'package:personal_financial_assistant/features/goals/presentation/screens/goals_screen.dart';
+
 import 'package:personal_financial_assistant/features/legal/presentation/screens/financial_disclaimer_screen.dart';
+
 import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
@@ -100,9 +104,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoansScreen(),
       ),
       GoRoute(
+        path: '/goals',
+        name: 'goals',
+        builder: (context, state) => const GoalsScreen(),
+      ),
+      GoRoute(
         path: '/monthly-review',
         name: 'monthly-review',
         builder: (context, state) => const MonthlyReviewScreen(),
+      ),
+      GoRoute(
+        path: '/account-types',
+        name: 'account-types',
+        builder: (context, state) => const AccountTypesScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

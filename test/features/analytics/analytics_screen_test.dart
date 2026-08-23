@@ -132,7 +132,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Financial Analytics'), findsOneWidget);
+      expect(find.text('Analytics & Trends'), findsOneWidget);
+
       expect(find.text('Weekly'), findsOneWidget);
       expect(find.text('Monthly'), findsOneWidget);
       expect(find.text('Yearly'), findsOneWidget);
@@ -215,7 +216,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Financial Analytics'), findsOneWidget);
+      expect(find.text('Analytics & Trends'), findsOneWidget);
+
       expect(find.textContaining('No transactions recorded'), findsOneWidget);
     },
   );

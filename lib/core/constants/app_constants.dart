@@ -1,6 +1,6 @@
 class AppConstants {
-  static const String appName = "MSD's Financial Assistant";
-  static const String tagline = 'Your money. Your goals. Your future.';
+  static const String appName = 'MSD FINAURA';
+  static const String tagline = 'Your Money. Your Goals. Our Assistant.';
   static const String defaultCurrency = 'INR';
   static const String defaultLocale = 'en_IN';
   static const int defaultPageSize = 20;

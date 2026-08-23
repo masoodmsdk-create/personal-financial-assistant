@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/analytics/presentation/providers/analytics_providers.dart';
 import 'package:personal_financial_assistant/features/analytics/presentation/widgets/category_breakdown_card.dart';
@@ -29,225 +32,230 @@ class AnalyticsScreen extends ConsumerWidget {
     final calculatedBalances = ref.watch(calculatedAccountBalancesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Financial Analytics'),
-        centerTitle: false,
-      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Period Selector
-            const PeriodSelectorWidget(),
-            const SizedBox(height: 16),
+        child: ResponsiveCenter(
+          maxWidth: 1000,
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const PageHeader(
+                title: 'Analytics & Trends',
+                subtitle: 'Explore your spending patterns, cash flow, and monthly trends.',
+              ),
 
-            // Executive Summary Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _SummaryCard(
-                    title: 'Income',
-                    amount: currencyFormat.format(summary.totalIncome),
-                    color: const Color(0xFF2E7D32),
-                    icon: Icons.arrow_downward_rounded,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _SummaryCard(
-                    title: 'Expense',
-                    amount: currencyFormat.format(summary.totalExpense),
-                    color: const Color(0xFFD32F2F),
-                    icon: Icons.arrow_upward_rounded,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _SummaryCard(
-                    title: 'Net Cash Flow',
-                    amount: currencyFormat.format(summary.netCashFlow),
-                    color: colorScheme.primary,
-                    icon: Icons.swap_vert_rounded,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+              // Period Selector
+              const PeriodSelectorWidget(),
+              const SizedBox(height: 16),
 
-            // Planned vs Actual Card
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: colorScheme.outline.withValues(alpha: 0.2),
+              // Executive Summary Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _SummaryCard(
+                      title: 'Income',
+                      amount: currencyFormat.format(summary.totalIncome),
+                      color: const Color(0xFF2E7D32),
+                      icon: Icons.arrow_downward_rounded,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SummaryCard(
+                      title: 'Expense',
+                      amount: currencyFormat.format(summary.totalExpense),
+                      color: const Color(0xFFD32F2F),
+                      icon: Icons.arrow_upward_rounded,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SummaryCard(
+                      title: 'Net Cash Flow',
+                      amount: currencyFormat.format(summary.netCashFlow),
+                      color: colorScheme.primary,
+                      icon: Icons.swap_vert_rounded,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Planned vs Actual Card
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Planned vs Actual (Monthly)',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _PlannedMetric(
+                            label: 'Planned',
+                            amount: currencyFormat.format(
+                              plannedVsActual.totalPlannedAmount,
+                            ),
+                          ),
+                          _PlannedMetric(
+                            label: 'Actual',
+                            amount: currencyFormat.format(
+                              plannedVsActual.totalActualExpense,
+                            ),
+                          ),
+                          _PlannedMetric(
+                            label:
+                                plannedVsActual.totalActualExpense >
+                                    plannedVsActual.totalPlannedAmount
+                                ? 'Above Plan'
+                                : 'Difference',
+                            amount: currencyFormat.format(
+                              (plannedVsActual.totalPlannedAmount -
+                                      plannedVsActual.totalActualExpense)
+                                  .abs(),
+                            ),
+                            isWarning:
+                                plannedVsActual.totalActualExpense >
+                                plannedVsActual.totalPlannedAmount,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Planned vs Actual (Monthly)',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+              const SizedBox(height: 16),
+
+              // Things to Review Section
+              const ThingsToReviewCard(),
+              const SizedBox(height: 16),
+
+              // Income vs Expense Chart Card
+              const IncomeExpenseChartCard(),
+              const SizedBox(height: 16),
+
+              // Category Breakdown Cards
+              CategoryBreakdownCard(
+                title: 'Expense Categories',
+                items: expenseBreakdown,
+                type: CategoryType.expense,
+              ),
+              const SizedBox(height: 16),
+
+              CategoryBreakdownCard(
+                title: 'Income Categories',
+                items: incomeBreakdown,
+                type: CategoryType.income,
+              ),
+              const SizedBox(height: 16),
+
+              // Account & Credit Card Breakdown Card
+              accountsAsync.when(
+                data: (accounts) {
+                  if (accounts.isEmpty) return const SizedBox.shrink();
+
+                  return Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.2),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _PlannedMetric(
-                          label: 'Planned',
-                          amount: currencyFormat.format(
-                            plannedVsActual.totalPlannedAmount,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Account Balances & Liabilities',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        _PlannedMetric(
-                          label: 'Actual',
-                          amount: currencyFormat.format(
-                            plannedVsActual.totalActualExpense,
+                          const SizedBox(height: 12),
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: accounts.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 16),
+                            itemBuilder: (context, index) {
+                              final acc = accounts[index];
+                              final bal =
+                                  calculatedBalances[acc.id] ??
+                                  acc.openingBalance;
+                              final isCredit =
+                                  acc.type == AccountType.creditCard;
+
+                              return Row(
+                                children: [
+                                  Icon(acc.type.icon, color: acc.type.color),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          acc.name,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        Text(
+                                          isCredit
+                                              ? 'Credit Card Outstanding'
+                                              : acc.type.displayName,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: isCredit
+                                                    ? colorScheme.error
+                                                    : colorScheme
+                                                          .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    currencyFormat.format(bal),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: isCredit
+                                          ? colorScheme.error
+                                          : colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                        ),
-                        _PlannedMetric(
-                          label:
-                              plannedVsActual.totalActualExpense >
-                                  plannedVsActual.totalPlannedAmount
-                              ? 'Above Plan'
-                              : 'Difference',
-                          amount: currencyFormat.format(
-                            (plannedVsActual.totalPlannedAmount -
-                                    plannedVsActual.totalActualExpense)
-                                .abs(),
-                          ),
-                          isWarning:
-                              plannedVsActual.totalActualExpense >
-                              plannedVsActual.totalPlannedAmount,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Things to Review Section
-            const ThingsToReviewCard(),
-            const SizedBox(height: 16),
-
-            // Income vs Expense Chart Card
-            const IncomeExpenseChartCard(),
-            const SizedBox(height: 16),
-
-            // Category Breakdown Cards
-            CategoryBreakdownCard(
-              title: 'Expense Categories',
-              items: expenseBreakdown,
-              type: CategoryType.expense,
-            ),
-            const SizedBox(height: 16),
-
-            CategoryBreakdownCard(
-              title: 'Income Categories',
-              items: incomeBreakdown,
-              type: CategoryType.income,
-            ),
-            const SizedBox(height: 16),
-
-            // Account & Credit Card Breakdown Card
-            accountsAsync.when(
-              data: (accounts) {
-                if (accounts.isEmpty) return const SizedBox.shrink();
-
-                return Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Account Balances & Liabilities',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: accounts.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 16),
-                          itemBuilder: (context, index) {
-                            final acc = accounts[index];
-                            final bal =
-                                calculatedBalances[acc.id] ??
-                                acc.openingBalance;
-                            final isCredit = acc.type == AccountType.creditCard;
-
-                            return Row(
-                              children: [
-                                Icon(acc.type.icon, color: acc.type.color),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        acc.name,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                      Text(
-                                        isCredit
-                                            ? 'Credit Card Outstanding'
-                                            : acc.type.displayName,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                              color: isCredit
-                                                  ? colorScheme.error
-                                                  : colorScheme
-                                                        .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  currencyFormat.format(bal),
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isCredit
-                                        ? colorScheme.error
-                                        : colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, _) => const SizedBox.shrink(),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,107 +1,59 @@
 # Product Roadmap
 
 ## Phase 0 — Foundation
-
 - [x] Inspect development environment
-- [ ] Install missing prerequisites
-- [x] Initialize Flutter
-- [ ] Configure Git
-- [ ] Configure GitHub
-- [x] Configure Firebase Core for Android and Web
-- [x] Create initial documentation
-- [x] Establish security rules
+- [x] Configure Flutter (Dart 3.13+, Material 3)
+- [x] Configure Firebase Core & Cloud Firestore for Android and Web
+- [x] Establish Firestore security rules (owner-isolated `users/{userId}/*`)
+- [x] Enable Firestore offline IndexedDB client caching
+- [x] Create project DNA & persistent developer context
 
 ## Phase 1 — Authentication
-
-- [x] Registration
-- [x] Login
-- [x] Logout
-- [x] Password reset
-- [x] Authentication state
-- [x] User profile & Profile edit
+- [x] Email/password registration with password strength meter
+- [x] Login & Logout
+- [x] Password reset trigger
+- [x] Reactive authentication state stream (`authStateChangesProvider`)
+- [x] User profile & Profile edit (Display Name editor)
+- [x] Declarative GoRouter navigation guards
 
 ## Phase 2 — Core Finance
+- [x] Dynamic Accounts & Account Types (`bank`, `cash`, `creditCard`, `wallet`, custom)
+- [x] Dynamic Categories Foundation (Income & Expense categories, system defaults, archiving)
+- [x] Planned Expenses & Monthly Forecast Engine (Recurring plans + monthly overrides)
+- [x] Transactions (Income, Expense, Transfer)
+- [x] Strict accounting invariants (Transfers are net-zero; Credit card debt accounting)
+- [x] Dynamic account balance calculation engine (`FinancialAggregationService`)
+- [x] Transaction search, filtering, and history
 
-- [x] Accounts
-- [x] Dynamic Categories Foundation
-- [x] Planned Expenses / Monthly Forecast Foundation
-- [x] Transactions
-- [x] Income
-- [x] Expenses
-- [x] Transfers
-- [x] Balance calculation
-- [x] Transaction history
-
-## Phase 3 — Dashboard & Analytics
-
-- [x] Financial overview
-- [x] Monthly income
-- [x] Monthly expenses
-- [x] Net cash flow
+## Phase 3 — Dashboard, Analytics & Review
+- [x] Financial overview & live summary metric cards
+- [x] Monthly income, monthly expenses, net cash flow
 - [x] Spending categories breakdown
-- [x] Charts (Income vs Expense bar chart)
+- [x] Income vs. Expense bar charts
 - [x] Period selection (Weekly, Monthly, Yearly)
-- [x] Safe in-app financial insights ("Things to Review")
-- [x] Recent transactions
-
+- [x] In-app financial insights ("Things to Review" local rule engine)
+- [x] Monthly Financial Review screen (Actual vs Planned, Forecast commitments, Loan/Goal progress)
+- [x] Responsive layout across 320px–1440px viewports (Adaptive shell, `PageHeader`, `ResponsiveCenter`)
+- [x] Fast user interaction & dialog responsiveness (0ms chip/dropdown fallbacks, lazy tab isolation)
 
 ## Phase 4 — Financial Planning
+- [ ] Category-level Budgets & threshold warning alerts
+- [x] Loans & Debt tracking
+- [x] PMT EMI & amortization schedules
+- [x] What-If loan prepayment simulation engine
+- [ ] Manual Investments tracking
+- [x] Financial Goals management (Savings, Debt, Emergency fund, Custom)
+- [ ] Unified Net Worth calculation (Total Assets - Total Liabilities)
 
-- [ ] Budgets
-- [x] Loans
-- [x] EMI calculation
-- [x] Loan amortization
-- [x] Prepayment simulation
-- [ ] Investments
-- [x] Goals
-- [ ] Net worth
+## Phase 5 — Assistant & Natural Language
+- [ ] Deterministic natural-language transaction entry
+- [ ] Financial Q&A assistant (Rule-based / Template-based answering from actual stored data)
+- [ ] Spending & budget variance summaries
+- [ ] Loan & goal progress recommendations
 
-
-
-## Phase 5 — Assistant
-
-- [ ] Natural-language transaction input
-- [ ] Intent recognition
-- [ ] Financial questions
-- [ ] Financial summaries
-- [ ] Spending analysis
-- [ ] Budget insights
-- [ ] Loan analysis
-- [ ] Goal analysis
-
-## Phase 6 — Intelligence
-
-- [ ] Financial recommendations
-- [ ] Cash-flow forecasting
-- [ ] Future projections
-- [ ] Scenario analysis
-- [ ] Optional AI integration
-
-## Phase 7 — Production
-
-- [ ] Security audit
-- [ ] Performance audit
-- [ ] Firestore cost audit
-- [ ] Automated testing
-- [ ] Crash reporting
-- [ ] Data export
-- [ ] Backup strategy
-- [ ] Android release build
-- [ ] Play Store preparation
-- [ ] Play Store publication
-
-## Future
-
-Potential future features:
-
-- Bank integrations
-- Automatic transaction imports
-- SMS transaction parsing
-- Receipt scanning
-- Bill reminders
-- Recurring transactions
-- Subscription tracking
-- Advanced investment tracking
-- Multi-currency support
-- Family/shared finances
-- Advanced AI assistant
+## Phase 6 — Intelligence & Production
+- [ ] Cash-flow forecasting & future projection models
+- [ ] Data export (JSON / CSV backup)
+- [ ] Comprehensive security and performance audit
+- [ ] Android release APK / AAB packaging
+- [ ] Google Play Store preparation & publication

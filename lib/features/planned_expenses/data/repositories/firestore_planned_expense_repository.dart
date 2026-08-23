@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/core/services/firestore_service.dart';
 import 'package:personal_financial_assistant/features/categories/domain/repositories/category_repository.dart';
-import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/domain/repositories/planned_expense_repository.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense_override.dart';
@@ -10,7 +9,6 @@ import 'package:personal_financial_assistant/features/planned_expenses/planned_e
 class FirestorePlannedExpenseRepository implements PlannedExpenseRepository {
   final FirestoreService _firestoreService;
   final FirebaseAuth _firebaseAuth;
-  final CategoryRepository? _categoryRepository;
 
   static const String _plansCollection = 'planned_expenses';
   static const String _overridesCollection = 'planned_expense_overrides';
@@ -19,9 +17,10 @@ class FirestorePlannedExpenseRepository implements PlannedExpenseRepository {
   FirestorePlannedExpenseRepository({
     FirestoreService? firestoreService,
     FirebaseAuth? firebaseAuth,
-    this._categoryRepository,
+    CategoryRepository? categoryRepository,
   }) : _firestoreService = firestoreService ?? FirestoreService(),
        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+
 
   String _requireCurrentUserId() {
     final uid = _firebaseAuth.currentUser?.uid;
@@ -50,22 +49,6 @@ class FirestorePlannedExpenseRepository implements PlannedExpenseRepository {
     final endDate = plan.endDate;
     if (endDate != null && endDate.isBefore(plan.startDate)) {
       throw const ValidationException('End date cannot be before start date');
-    }
-
-    final categoryRepo = _categoryRepository;
-    if (categoryRepo != null) {
-      final categories = await categoryRepo.getCategories(currentUid);
-      final category = categories.firstWhere(
-        (c) => c.id == plan.categoryId,
-        orElse: () =>
-            throw const ValidationException('Selected category not found'),
-      );
-
-      if (category.type != CategoryType.expense) {
-        throw const ValidationException(
-          'Planned expenses can only be assigned to Expense categories',
-        );
-      }
     }
   }
 

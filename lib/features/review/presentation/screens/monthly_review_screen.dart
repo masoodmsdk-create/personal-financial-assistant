@@ -13,6 +13,8 @@ import 'package:personal_financial_assistant/features/review/presentation/widget
 import 'package:personal_financial_assistant/features/review/presentation/widgets/goals_loan_progress_card.dart';
 import 'package:personal_financial_assistant/features/review/presentation/widgets/monthly_summary_card.dart';
 
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
+
 class MonthlyReviewScreen extends ConsumerWidget {
   const MonthlyReviewScreen({super.key});
 
@@ -27,10 +29,10 @@ class MonthlyReviewScreen extends ConsumerWidget {
     final formattedMonth = DateFormat('MMMM yyyy').format(selectedDate);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Monthly Financial Review')),
       body: Column(
         children: [
           // Month Navigation Bar
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: colorScheme.surfaceContainerLow,
@@ -77,62 +79,71 @@ class MonthlyReviewScreen extends ConsumerWidget {
                 }
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section 1: What Happened?
-                      _SectionHeader(title: '1. What Happened?'),
-                      MonthlySummaryCard(reviewData: data),
-                      const SizedBox(height: 16),
+                  child: ResponsiveCenter(
+                    maxWidth: 1000,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PageHeader(
+                          title: 'Monthly Review',
+                          subtitle: 'A complete monthly summary of actual cash flow, planned expenses, and forecast commitments.',
+                        ),
 
-                      if (!data.hasTransactions) ...[
-                        EmptyStateWidget(
-                          icon: Icons.receipt_long_outlined,
-                          title: 'No Transactions Recorded Yet',
-                          message:
-                              'Record your income and expenses for $formattedMonth to see your detailed category spending breakdown.',
-                        ),
+                        // Section 1: What Happened?
+                        _SectionHeader(title: '1. What Happened?'),
+
+                        MonthlySummaryCard(reviewData: data),
                         const SizedBox(height: 16),
-                      ] else ...[
-                        CategoryBreakdownCard(
-                          title: 'Expense Spending Share',
-                          items: data.expenseCategoryBreakdown,
-                          type: CategoryType.expense,
-                        ),
+
+                        if (!data.hasTransactions) ...[
+                          EmptyStateWidget(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'No Transactions Recorded Yet',
+                            message:
+                                'Record your income and expenses for $formattedMonth to see your detailed category spending breakdown.',
+                          ),
+                          const SizedBox(height: 16),
+                        ] else ...[
+                          CategoryBreakdownCard(
+                            title: 'Expense Spending Share',
+                            items: data.expenseCategoryBreakdown,
+                            type: CategoryType.expense,
+                          ),
+                          const SizedBox(height: 16),
+                          CategoryBreakdownCard(
+                            title: 'Income Sources Share',
+                            items: data.incomeCategoryBreakdown,
+                            type: CategoryType.income,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Section 2: Things to Review
+                        _SectionHeader(title: '2. Things to Review'),
+                        ThingsToReviewCard(customInsights: data.insights),
+
                         const SizedBox(height: 16),
-                        CategoryBreakdownCard(
-                          title: 'Income Sources Share',
-                          items: data.incomeCategoryBreakdown,
-                          type: CategoryType.income,
-                        ),
+
+                        // Section 3: What's Coming Next?
+                        _SectionHeader(title: '3. What\'s Coming Next?'),
+                        ComingUpForecastCard(forecast: data.upcomingForecast),
                         const SizedBox(height: 16),
+
+                        // Section 4: How are my goals & loans progressing?
+                        _SectionHeader(
+                          title: '4. How are my goals & loans progressing?',
+                        ),
+                        GoalsLoanProgressCard(
+                          goalSummaries: data.goalSummaries,
+                          loanSummaries: data.loanSummaries,
+                        ),
+                        if (missingLoanFields.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          ImproveForecastCard(missingFields: missingLoanFields),
+                        ],
                       ],
-
-                      // Section 2: Things to Review
-                      _SectionHeader(title: '2. Things to Review'),
-                      ThingsToReviewCard(customInsights: data.insights),
-
-                      const SizedBox(height: 16),
-
-                      // Section 3: What's Coming Next?
-                      _SectionHeader(title: '3. What\'s Coming Next?'),
-                      ComingUpForecastCard(forecast: data.upcomingForecast),
-                      const SizedBox(height: 16),
-
-                      // Section 4: How are my goals & loans progressing?
-                      _SectionHeader(
-                        title: '4. How are my goals & loans progressing?',
-                      ),
-                      GoalsLoanProgressCard(
-                        goalSummaries: data.goalSummaries,
-                        loanSummaries: data.loanSummaries,
-                      ),
-                      if (missingLoanFields.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        ImproveForecastCard(missingFields: missingLoanFields),
-                      ],
-                    ],
+                    ),
                   ),
                 );
               },

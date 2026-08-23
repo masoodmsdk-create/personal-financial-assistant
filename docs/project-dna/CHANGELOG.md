@@ -1,6 +1,51 @@
 # Changelog
 
-## 2026-08-23 (Latest — Monthly Financial Review & Unified Financial Overview)
+## 2026-08-23 (Latest — Project DNA Consolidation & Future Agent Context)
+
+- Created authoritative master [`docs/project-dna/PROJECT_DNA.md`](file:///d:/Personal%20assistant/personal_financial_assistant/docs/project-dna/PROJECT_DNA.md) consolidating product identity, real technology stack, architecture layers, feature map, financial domain accounting invariants, loan/goal engines, performance guardrails, and developer workflow.
+- Streamlined [`AGENTS.md`](file:///d:/Personal%20assistant/personal_financial_assistant/AGENTS.md) as a concise master rulebook directing future agents directly to `PROJECT_DNA.md` to prevent repetitive codebase scanning.
+- Synchronized and updated [`PROJECT_STATUS.md`](file:///d:/Personal%20assistant/personal_financial_assistant/docs/project-dna/PROJECT_STATUS.md), [`ROADMAP.md`](file:///d:/Personal%20assistant/personal_financial_assistant/docs/project-dna/ROADMAP.md), and [`DEVELOPMENT_RULES.md`](file:///d:/Personal%20assistant/personal_financial_assistant/docs/project-dna/DEVELOPMENT_RULES.md).
+
+## 2026-08-23 (Critical Interaction Responsiveness & Firestore Offline Persistence Pass)
+
+- **Cloud Firestore Offline Client Persistence**: Enabled `FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED)` in [`main.dart`](file:///d:/Personal%20assistant/personal_financial_assistant/lib/main.dart) to cache all Firestore documents in browser IndexedDB, eliminating remote network handshake stalls on initial stream loads and writes.
+- **Repository Streamlining**:
+  - `FirestoreCategoryRepository.watchCategories()`: Removed blocking `asyncMap` batch write side-effects, enabling direct stream mapping with fallback to `Category.generateDefaults` and non-blocking background seeding.
+  - `FirestoreTransactionRepository._validateTransaction()` & `FirestorePlannedExpenseRepository._validatePlan()`: Removed redundant remote network calls to `getAccounts()` and `getCategories()` during save operations. Validations are now local, immediate, and deterministic.
+- **Instant Dropdown & Chip Fallbacks**: Added immediate in-memory fallbacks (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`) across all dialogs to guarantee 0ms rendering latency.
+- **AppShell Tab Isolation**: Enhanced `AppShell` with lazy page mounting (`_visitedIndices`) and `TickerMode`/`Offstage` wrappers to keep inactive tabs paused during active user interactions.
+- **Verification**: 119/119 tests passed (`flutter test`), 0 issues (`dart analyze`), clean formatting (`dart format .`), release web build succeeded (`flutter build web --release`).
+
+## 2026-08-23 (Responsive Title & Character Collapse Fix)
+
+- Resolved vertical single-character text collapse across all screens by replacing unconstrained flex layouts with responsive `PageHeader` (breakpoint 600px).
+- Enforced full-width layout constraints in `ResponsiveCenter` (`width: double.infinity`) to prevent child container shrink-wrapping.
+- Added bottom padding for Floating Action Buttons across list views.
+
+
+- Completed application-wide UI/UX, responsiveness, and layout stabilization pass:
+  - **Profile Screen Overhaul**: Resolved single-character text column collapse (`R\ne\ns\ne\nt P\na\ns\ns\nw\no\nr\nd`) by removing action buttons from constrained `ListTile.trailing` slots and introducing responsive card sections with explicit **Save Changes**, **Cancel**, and **Reset Password** buttons. Added `TextOverflow.ellipsis` to User ID text for narrow 320px viewports.
+  - **Core Responsive Framework**: Created reusable `ResponsiveCenter` widget (`maxWidth: 1000` on main screens, `600` on forms/profile, `500` on dialogs) ensuring centered, optimal line-lengths on desktop web without distortion.
+  - **Responsive Shell**: Enhanced `AppShell` with a `NavigationRail` on wide viewports (≥ 720px) while preserving bottom `NavigationBar` on mobile viewports (< 720px).
+  - **Dynamic Dashboard Grid**: Updated `DashboardScreen` metric card grid to dynamically adapt: 4 columns (> 900px), 2 columns (500–900px), 1 column (< 500px).
+  - **Financial Goals Management**: Added dedicated `GoalsScreen` & `AddEditGoalDialog` allowing users to create, edit, track, and delete savings targets, debt payoff plans, and emergency reserves.
+  - **Routing & Settings**: Added `/goals` GoRoute to [`lib/core/routing/app_router.dart`](file:///d:/Personal%20assistant/personal_financial_assistant/lib/core/routing/app_router.dart) and Financial Goals tile to [`lib/features/settings/presentation/screens/settings_screen.dart`](file:///d:/Personal%20assistant/personal_financial_assistant/lib/features/settings/presentation/screens/settings_screen.dart).
+  - **Verification & Testing**: Added regression tests (`profile_screen_test.dart` and `goals_screen_test.dart`). 114/114 tests passed (`flutter test`), 0 issues (`dart analyze`), clean formatting (`dart format .`), release web build succeeded (`flutter build web --release`).
+
+## 2026-08-23 (Branding Update: MSD FINAURA)
+
+
+- Updated application product branding across source code and web metadata:
+  - **App Title**: `MSD FINAURA`
+  - **Tagline**: `"Your Money. Your Goals. Our Assistant."`
+  - **App Constants**: Centralized in [`lib/core/constants/app_constants.dart`](file:///d:/Personal%20assistant/personal_financial_assistant/lib/core/constants/app_constants.dart).
+  - **Web Browser Title**: Updated `<title>MSD FINAURA</title>` and meta description in [`web/index.html`](file:///d:/Personal%20assistant/personal_financial_assistant/web/index.html).
+  - **PWA Manifest**: Updated `"name": "MSD FINAURA"` and `"short_name": "FINAURA"` in [`web/manifest.json`](file:///d:/Personal%20assistant/personal_financial_assistant/web/manifest.json).
+  - **UI Integration**: Consistent display across `LoginScreen`, `RegisterScreen`, `AppShell`, `DashboardScreen`, `SettingsScreen`, and Legal screens.
+  - **Verification**: `dart analyze` (0 errors), `flutter test` (110/110 passed), `flutter build web --release` (succeeded).
+
+## 2026-08-23 (Monthly Financial Review & Unified Financial Overview)
+
 
 - Implemented **Monthly Financial Review & Unified Financial Overview (MSD FINAURA)**:
   - `Goal` domain model (`id`, `userId`, `name`, `type`, `targetAmount`, `currentAmount`, `targetDate`, `linkedLoanId`, `linkedAccountId`, `notes`, `active`, `createdAt`, `updatedAt`).

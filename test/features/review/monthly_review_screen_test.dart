@@ -115,7 +115,8 @@ void main() {
         await tester.pumpWidget(createWidgetToTest());
         await tester.pumpAndSettle();
 
-        expect(find.text('Monthly Financial Review'), findsOneWidget);
+        expect(find.text('Monthly Review'), findsOneWidget);
+
         expect(find.text('Monthly Financial Summary'), findsOneWidget);
         expect(find.text('1. What Happened?'), findsOneWidget);
         expect(find.text('2. Things to Review'), findsOneWidget);

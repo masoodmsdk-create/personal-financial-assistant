@@ -135,10 +135,9 @@ class ComingUpForecastCard extends StatelessWidget {
                         currencyFormat.format(forecast.expectedNetPosition),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color:
-                              forecast.expectedNetPosition >= 0
-                                  ? Colors.green
-                                  : Colors.red,
+                          color: forecast.expectedNetPosition >= 0
+                              ? Colors.green
+                              : Colors.red,
                         ),
                       ),
                     ],

@@ -49,7 +49,8 @@ void main() {
         await tester.pumpWidget(createWidgetToTest());
         await tester.pumpAndSettle();
 
-        expect(find.text('Loans & Forecasts'), findsOneWidget);
+        expect(find.text('Loans & EMI'), findsOneWidget);
+
         expect(find.text('Total Outstanding Debt'), findsOneWidget);
         expect(find.text('HDFC Home Loan'), findsWidgets);
         expect(find.text('What-If Scenario Simulator'), findsOneWidget);

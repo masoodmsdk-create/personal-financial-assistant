@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
 
 class AddEditPlannedExpenseDialog extends ConsumerStatefulWidget {
@@ -166,7 +168,6 @@ class _AddEditPlannedExpenseDialogState
   Widget build(BuildContext context) {
     final controllerState = ref.watch(plannedExpenseControllerProvider);
     final isLoading = controllerState.isLoading;
-    final theme = Theme.of(context);
     final isEditing = widget.plan != null;
 
     final expenseCategoriesAsync = ref.watch(expenseCategoriesProvider);
@@ -205,17 +206,21 @@ class _AddEditPlannedExpenseDialogState
                 ),
                 const SizedBox(height: 16),
 
-                // Category Dropdown (strictly expense categories)
-                expenseCategoriesAsync.when(
-                  loading: () => const LinearProgressIndicator(),
-                  error: (err, _) => Text(
-                    'Failed to load categories',
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  data: (categories) {
+                Builder(
+                  builder: (context) {
+                    final fallbackCats = Category.generateDefaults('default')
+                        .where((c) => c.type == CategoryType.expense)
+                        .toList();
+                    final loadedCategories = expenseCategoriesAsync.value;
+                    final categories =
+                        (loadedCategories != null &&
+                            loadedCategories.isNotEmpty)
+                        ? loadedCategories
+                        : fallbackCats;
                     final activeExpenseCategories = categories
                         .where((c) => c.active)
                         .toList();
+
 
                     if (_selectedCategoryId == null &&
                         activeExpenseCategories.isNotEmpty) {
@@ -246,6 +251,7 @@ class _AddEditPlannedExpenseDialogState
                     );
                   },
                 ),
+
                 const SizedBox(height: 16),
 
                 // Default Amount
