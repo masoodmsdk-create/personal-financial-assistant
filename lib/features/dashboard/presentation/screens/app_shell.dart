@@ -6,6 +6,7 @@ import 'package:personal_financial_assistant/features/auth/presentation/provider
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 import 'package:personal_financial_assistant/features/accounts/presentation/screens/accounts_screen.dart';
+import 'package:personal_financial_assistant/features/analytics/presentation/screens/analytics_screen.dart';
 import 'package:personal_financial_assistant/features/settings/presentation/screens/settings_screen.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/screens/transactions_screen.dart';
 
@@ -23,6 +24,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     DashboardScreen(),
     AccountsScreen(),
     TransactionsScreen(),
+    AnalyticsScreen(),
     SettingsScreen(),
   ];
 
@@ -101,6 +103,11 @@ class _AppShellState extends ConsumerState<AppShell> {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Transactions',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
+            label: 'Analytics',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

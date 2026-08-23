@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Phase 2 — Core Finance: Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, and Financial Aggregation Engine complete.
+Phase 3 — Dashboard & Analytics: Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, Financial Aggregation Engine, Charts, and Safe In-App Insights complete.
 
 ## Current Target
 
@@ -26,7 +26,7 @@ Build a Personal Financial Assistant for:
 - Integrated `GoRouter` declarative routing with automatic authentication state redirection and loading screen resolution.
 - Polished Material 3 `LoginScreen` ("MSD's Financial Assistant", tagline, email/password login, visibility toggle, forgot password dialog, privacy shield badge).
 - Polished Material 3 `RegisterScreen` (Full Name, email, password, confirm password, password strength indicator bar, password requirements checklist).
-- Created Material 3 `AppShell` with bottom navigation bar and account sign-out dialog.
+- Created Material 3 `AppShell` with bottom navigation bar (Dashboard, Analytics, Transactions, Accounts, Forecast, Settings) and account sign-out dialog.
 - **Implemented ACCOUNTS Feature**:
   - `Account` model with JSON serialization, dynamic balance calculations, and `AccountType` extensions (`bank`, `cash`, `creditCard`, `wallet`, `other`).
   - `FirestoreAccountRepository` storing user accounts under isolated path `users/{userId}/accounts/{accountId}` backed by `FirestoreService`.
@@ -56,27 +56,31 @@ Build a Personal Financial Assistant for:
   - `Transaction` domain model with types `income`, `expense`, and `transfer`.
   - Strict accounting rules: Transfers have NO `categoryId` and do NOT affect Income, Expense, or Net Cash Flow.
   - Extended `firestore.rules` for isolated user collection path `users/{userId}/transactions/{transactionId}`.
-  - `FirestoreTransactionRepository` with user scoping and validation (amount > 0, date required, note max 200, category type matching for income/expense, transfer account distinction).
-  - `FinancialAggregationService`: Pure deterministic engine calculating `totalIncome`, `totalExpense`, `netCashFlow` (`Income - Expense`), `totalTransfers`, `expenseByCategory`, `incomeByCategory`, dynamic `accountBalances` (`openingBalance + income - expense + transferIn - transferOut`), `totalNetBalance` (applying credit card negative net balance convention), `aggregateByPeriod` (Weekly / Monthly / Yearly buckets by transaction date), and `calculatePlannedVsActual`.
-  - Riverpod providers (`transactionRepositoryProvider`, `transactionsStreamProvider`, `transactionFilterProvider`, `filteredTransactionsProvider`, `calculatedAccountBalancesProvider`, `calculatedTotalBalanceProvider`, `monthlyFinancialSummaryProvider`, `plannedVsActualProvider`, `transactionControllerProvider`).
-  - Material 3 `TransactionsScreen` replacing placeholder in `AppShell` with date-grouped transaction list, type filter chips (`All`, `Income`, `Expense`, `Transfer`), summary banner metrics, and `AddEditTransactionDialog`.
-  - Updated `DashboardScreen` displaying live dynamic total balance, current month income, current month expenses, current month net cash flow, and real recent transactions list.
+  - `FirestoreTransactionRepository` with user scoping and validation.
+  - `FinancialAggregationService`: Pure deterministic engine calculating `totalIncome`, `totalExpense`, `netCashFlow`, `totalTransfers`, `expenseByCategory`, `incomeByCategory`, dynamic `accountBalances`, `totalNetBalance` (applying credit card negative liability convention), `aggregateByPeriod`, and `calculatePlannedVsActual`.
+- **Implemented ANALYTICS, CHARTS & FINANCIAL INSIGHTS**:
+  - Domain model `FinancialInsight` with types `missingPlannedExpense`, `overPlanExpense`, `underPlanExpense`, `upcomingPlannedExpense` and severities `info`, `warning`, `critical`.
+  - `FinancialInsightsService`: Local safe deterministic in-app insights generator without external AI API costs.
+  - `CategoryBreakdownItem` and `calculateCategoryBreakdown` in `FinancialAggregationService` supporting dynamic categories (custom & archived).
+  - Riverpod analytics providers (`selectedAnalyticsPeriodModeProvider`, `selectedAnalyticsDateProvider`, `periodDateRangeProvider`, `periodTransactionsProvider`, `periodSummaryProvider`, `expenseCategoryBreakdownProvider`, `incomeCategoryBreakdownProvider`, `periodPlannedVsActualProvider`, `financialInsightsProvider`).
+  - UI Components: `PeriodSelectorWidget` (Weekly, Monthly, Yearly), `IncomeExpenseChartCard` (Custom Material 3 Bar Chart), `CategoryBreakdownCard` (Visual progress bars & percentages), `ThingsToReviewCard` (Actionable financial warnings & suggestions), and `AnalyticsScreen`.
+  - Updated `AppShell` with Analytics tab and `DashboardScreen` with Things to Review & trend chart.
 - **Note on Exclusions**:
-  - Bank statement import (PDF/CSV/OCR), automatic bank sync, AI transaction parsing, push notifications, and brokerage APIs are NOT implemented.
-  - Charts and Goals are NOT yet implemented (scheduled for next milestone).
+  - Bank statement import (PDF/CSV/OCR), automatic bank sync, AI transaction parsing, paid external AI APIs, and push notifications are NOT implemented.
   - Account `currentBalance` is NOT stored in Firestore (calculated dynamically).
   - Planned expenses are NOT automatically converted to actual transactions.
-- Unit & Widget tests: 70/70 tests passed (`flutter test`).
+- Unit & Widget tests: 85/85 tests passed (`flutter test`).
 - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
 - Built Web distribution bundle (`flutter build web` — succeeded).
 
 ## In Progress
 
-Core Finance (Accounts, Categories, Profile, Planned Expenses, Transactions, Aggregation Engine) complete. Next milestone: Charts & Financial Planning Visualizations.
+Phase 3 Analytics and Dashboard complete. Next milestone: Phase 4 — Financial Planning (Budgets, Loans & EMI, Investments, Goals, Assets/Liabilities/Net Worth).
 
 ## Next Work
 
-Implement Financial Visualization & Charting (Category expense distribution, Monthly income vs expense trends, Cash flow charts).
+Implement Financial Planning Foundation (Budgets & Loan Amortization / Prepayment Simulator).
+
 
 
 

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/analytics/presentation/widgets/income_expense_chart.dart';
+import 'package:personal_financial_assistant/features/analytics/presentation/widgets/things_to_review_card.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
@@ -132,7 +134,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Overview Header
           Row(
@@ -192,7 +194,15 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+
+          // Things to Review Section (In-App Insights)
+          const ThingsToReviewCard(),
+          const SizedBox(height: 20),
+
+          // Income vs Expense Chart Card
+          const IncomeExpenseChartCard(),
+          const SizedBox(height: 20),
 
           // Recent Transactions Section Header
           Text(

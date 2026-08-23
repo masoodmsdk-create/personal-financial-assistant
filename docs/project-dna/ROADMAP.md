@@ -32,16 +32,18 @@
 - [x] Balance calculation
 - [x] Transaction history
 
-## Phase 3 — Dashboard
+## Phase 3 — Dashboard & Analytics
 
-- [ ] Financial overview
-- [ ] Monthly income
-- [ ] Monthly expenses
-- [ ] Savings
-- [ ] Savings rate
-- [ ] Spending categories
-- [ ] Charts
-- [ ] Recent transactions
+- [x] Financial overview
+- [x] Monthly income
+- [x] Monthly expenses
+- [x] Net cash flow
+- [x] Spending categories breakdown
+- [x] Charts (Income vs Expense bar chart)
+- [x] Period selection (Weekly, Monthly, Yearly)
+- [x] Safe in-app financial insights ("Things to Review")
+- [x] Recent transactions
+
 
 ## Phase 4 — Financial Planning
 

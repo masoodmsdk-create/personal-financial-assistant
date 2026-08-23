@@ -1,6 +1,26 @@
 # Changelog
 
+## 2026-08-23 (Latest)
+
+- Implemented **Analytics, Charts & Financial Insights**:
+  - `FinancialInsight` domain model (`InsightType`, `InsightSeverity`, title, description, categoryId, amount, suggestedAction).
+  - `FinancialInsightsService`: Local safe deterministic in-app insights generator without external AI API costs (identifies missing planned expenses, over-plan spending, under-plan savings, upcoming commitments).
+  - Extended `FinancialAggregationService` with `CategoryBreakdownItem` and `calculateCategoryBreakdown` supporting custom and archived categories without double counting.
+  - Riverpod analytics providers (`selectedAnalyticsPeriodModeProvider`, `selectedAnalyticsDateProvider`, `periodDateRangeProvider`, `periodTransactionsProvider`, `periodSummaryProvider`, `expenseCategoryBreakdownProvider`, `incomeCategoryBreakdownProvider`, `periodPlannedVsActualProvider`, `financialInsightsProvider`).
+  - Material 3 Visual Components:
+    - `PeriodSelectorWidget`: Segmented button controlling Weekly, Monthly, and Yearly aggregation scope with date range label and date navigation.
+    - `IncomeExpenseChartCard`: Custom Material 3 dual bar chart showing comparative income vs expense across periods.
+    - `CategoryBreakdownCard`: Category breakdown with color-coded progress bars and percentage share.
+    - `ThingsToReviewCard`: Interactive actionable financial review warnings and suggestions card.
+    - `AnalyticsScreen`: Dedicated analytics screen integrating all components, planned vs actual comparison, account balance & credit card liability overview, and empty state support.
+  - Integration: Added Analytics tab to `AppShell` bottom navigation and integrated `ThingsToReviewCard` & `IncomeExpenseChartCard` into `DashboardScreen`.
+  - Exclusions Maintained: No external AI APIs used, no paid infrastructure introduced, no duplicate calculations in UI widgets, no automatic transaction creation from planned expenses.
+  - Unit & Widget tests: 85/85 tests passed (`flutter test`).
+  - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
+  - Built Web distribution bundle (`flutter build web` — succeeded).
+
 ## 2026-08-23
+
 
 - Implemented **Transactions & Financial Aggregation Engine**:
   - `Transaction` domain model with types `income`, `expense`, and `transfer`.

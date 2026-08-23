@@ -1,6 +1,8 @@
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense_override.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
@@ -305,4 +307,63 @@ class FinancialAggregationService {
       remainingPlannedAmount: totalPlanned - totalActualExpense,
     );
   }
+
+  static List<CategoryBreakdownItem> calculateCategoryBreakdown({
+    required List<Transaction> transactions,
+    required List<Category> categories,
+    required CategoryType categoryType,
+  }) {
+    final targetType = categoryType == CategoryType.income
+        ? TransactionType.income
+        : TransactionType.expense;
+
+    final categoryMap = {for (final c in categories) c.id: c};
+    final Map<String, double> totalsByCatId = {};
+
+    double totalSum = 0.0;
+    for (final t in transactions) {
+      if (t.type == targetType && t.categoryId != null) {
+        totalsByCatId[t.categoryId!] =
+            (totalsByCatId[t.categoryId!] ?? 0.0) + t.amount;
+        totalSum += t.amount;
+      }
+    }
+
+    if (totalSum == 0.0) return [];
+
+    final List<CategoryBreakdownItem> items = [];
+    totalsByCatId.forEach((catId, amount) {
+      final category = categoryMap[catId];
+      final name = category?.name ?? 'Uncategorized';
+      final percentage = (amount / totalSum) * 100.0;
+      items.add(
+        CategoryBreakdownItem(
+          categoryId: catId,
+          categoryName: name,
+          category: category,
+          amount: amount,
+          percentage: percentage,
+        ),
+      );
+    });
+
+    items.sort((a, b) => b.amount.compareTo(a.amount));
+    return items;
+  }
+}
+
+class CategoryBreakdownItem {
+  final String categoryId;
+  final String categoryName;
+  final Category? category;
+  final double amount;
+  final double percentage;
+
+  const CategoryBreakdownItem({
+    required this.categoryId,
+    required this.categoryName,
+    this.category,
+    required this.amount,
+    required this.percentage,
+  });
 }
