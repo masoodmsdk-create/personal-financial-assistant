@@ -1,28 +1,35 @@
-# Project Status
+# Project Status — MSD FINAURA
 
 ## Current Stage
 
-Phase 4 — Financial Planning: Core Finance, Accounts & Types, Dynamic Categories, Planned Expenses & Monthly Overrides, Transactions & Accounting Engine, Loan Forecast & What-If Prepayment Simulator, Goals Management, Analytics & Charts, Monthly Financial Review, Responsive UI Across All Viewports (320px–1440px), Interaction Responsiveness Optimization, and Firestore Offline Client Persistence complete.
+- **Phase 0 — Foundation & Accounting Core**: COMPLETED.
+- **Phase 1 — Smart Financial Entry (Foundation)**: COMPLETED.
+- **Phase 2 — Loan & Debt Intelligence Module**: COMPLETED.
+- **Phase 3 — Category Budgets & Variance**: UPCOMING.
+- **Phase 4 — Net Worth & Unified Balance Sheet**: UPCOMING.
+- **Phase 5 — Financial Intelligence & Goal Trade-Offs**: IN PROGRESS (Deterministic Loan Insights completed; Goal Trade-Off Engine upcoming).
+- **Phase 6 — Ask FINAURA (Conversational Assistant Layer)**: UPCOMING.
+
+---
 
 ## Current Target
 
 Build a Personal Financial Assistant for:
-
-- Personal use
+- Personal use (expanding to family/business workspaces)
 - 5–10 initial users
-- Android first
-- Web support
-- Firebase backend
-- Flutter application
-- ₹0 recurring cost target (Firebase Spark tier)
+- Android first + Web release
+- Firebase backend (strict Spark tier ₹0 cost)
+- Flutter + Riverpod architecture
 
-## Completed
+---
 
-- **Core Infrastructure & Environment**:
+## Completed Milestones
+
+- **Core Infrastructure & Performance**:
   - Flutter 3.x with Dart 3.13+, Material 3 design system.
-  - Configured Firebase Core, Firebase Auth, Cloud Firestore with offline IndexedDB/disk persistence enabled (`Settings(persistenceEnabled: true)`).
-  - GoRouter declarative routing with automatic authentication guards across all 13 routes.
-  - ₹0 operating cost architecture (Spark tier).
+  - Configured Firebase Core, Firebase Auth, Cloud Firestore with offline IndexedDB persistence enabled (`Settings(persistenceEnabled: true)`).
+  - GoRouter declarative routing with automatic authentication guards across all 14 routes.
+  - ₹0 operating cost architecture (Spark tier compliance).
 - **Authentication**:
   - `LoginScreen`, `RegisterScreen`, password visibility toggle, password strength meter, password reset dialog, terms/privacy consent checkboxes.
   - Riverpod auth providers (`authControllerProvider`, `currentUserProvider`, `authStateChangesProvider`).
@@ -45,10 +52,15 @@ Build a Personal Financial Assistant for:
   - `FinancialAggregationService`: Pure deterministic engine calculating total income, total expense, net cash flow, dynamic account balances, total net balance, and category breakdowns.
   - `FirestoreTransactionRepository` with streamlined validation.
   - `TransactionsScreen`, `AddEditTransactionDialog` (with instant category in-memory fallback).
-- **Loan Forecast & What-If Prepayment Engine**:
-  - `Loan` model with progressively optional fields.
-  - `LoanForecastService`: Deterministic PMT EMI, tenure, closure date, amortization schedule, and 5 What-If prepayment scenarios (`extraMonthly`, `annualPrepayment`, `lumpSum`, `increasedEmi`, `interestRateChange`).
-  - `LoansScreen`, `AddEditLoanDialog`.
+- **Smart Financial Entry Assistant**:
+  - `SmartParserService`: Pure local deterministic regex/ontology parser for natural language transactions.
+  - `SmartEntryScreen`: Interactive draft cards, instant category/account mapping, date pickers, batch persistence.
+- **Loan Management & Debt Intelligence**:
+  - `DebtIntelligenceService`: Comprehensive portfolio debt aggregation, weighted interest rate, DTI ratio, and Rate Drag vs. Absolute Rupee Drain distinction engine.
+  - Multi-Strategy Debt Prioritizer: **Avalanche**, **Snowball**, **Cash Flow Relief**, and **Max Interest Savings** with explainable trade-offs.
+  - Refinancing & Rate Reduction Analyzer with break-even tenure calculation.
+  - Dedicated `LoanDetailScreen`: Cost Breakdown, What-If Simulator, Full Amortization, and Cash Flow/Goal Impact.
+  - Upgraded `LoansScreen` with portfolio banner, strategy selector, and actionable debt insights.
 - **Goals Management**:
   - `Goal` model (`savingsGoal`, `debtGoal`, `emergencyFund`, `customGoal`).
   - `FirestoreGoalRepository`, `GoalsScreen`, `AddEditGoalDialog`.
@@ -62,39 +74,17 @@ Build a Personal Financial Assistant for:
   - `PageHeader` (breakpoint 600px) eliminating vertical single-character text collapse across all viewports.
   - `ResponsiveCenter` enforcing full-width constraints to prevent shrink-wrapping.
   - `AppShell` with adaptive `NavigationRail` ($\ge 720\text{px}$) and `NavigationBar` ($< 720\text{px}$).
-- **Interaction Responsiveness & Firestore Persistence**:
-  - Enabled Firestore IndexedDB persistence in `main.dart`.
-  - Lazy tab mounting and `TickerMode`/`Offstage` isolation in `AppShell` to pause inactive tabs during user input.
-  - Instant in-memory fallbacks for choice chips and dropdowns across all dialogs.
-  - Removed redundant remote network reads from repository validation methods.
 - **Automated Verification**:
-  - Static Analysis: `dart analyze` (0 errors, 0 warnings).
-  - Test Suite: `flutter test` (119/119 tests passing).
+  - Static Analysis: `dart analyze` (0 issues found).
+  - Test Suite: `flutter test` (137/137 tests passing).
   - Web Release Build: `flutter build web --release` (built cleanly).
 
-## In Progress
+---
 
-- Phase 4 Completion: Budgets, Net Worth calculation & Asset/Liability tracking.
+## Next Strategic Work
 
-## Next Work
-
-- Implement Budgets module (category-level monthly budgets, actual vs budget thresholds, warning indicators).
-- Implement Net Worth dashboard card (Assets vs Liabilities breakdown).
-
-## Known Issues
-
-- None blocking release or local development.
-- Android builds require local Android SDK/NDK configuration (Web release builds cleanly).
-
-## Current Users
-
-- Initial target: 5–10 users.
-
-## Current Production Status
-
-- Beta testing on Firebase Hosting: `https://msd-financial-assistant.web.app`
-
-## Important Rule
-
-Update this document whenever a major milestone is completed.
-Do not mark a feature as completed unless it has been implemented and tested.
+1. **Phase 1 Evolution**: Multi-entity Situation Understanding & Financial Blueprint Onboarding Flow (*"Tell FINAURA about your money"*).
+2. **Phase 3**: Category-level monthly Budgets, threshold warning indicators, and actual vs budget variances.
+3. **Phase 4**: Unified Net Worth & Balance Sheet calculation (Assets minus Liabilities).
+4. **Phase 5**: Goal vs Debt Prepayment trade-off engine.
+5. **Phase 6**: Ask FINAURA natural-language assistant layer.

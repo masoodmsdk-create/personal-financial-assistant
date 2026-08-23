@@ -13,10 +13,13 @@ import 'package:personal_financial_assistant/features/legal/presentation/screens
 
 import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
+import 'package:personal_financial_assistant/features/loans/presentation/screens/loan_detail_screen.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
+
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
 import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
 import 'package:personal_financial_assistant/features/review/presentation/screens/monthly_review_screen.dart';
+import 'package:personal_financial_assistant/features/smart_entry/presentation/screens/smart_entry_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -104,6 +107,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoansScreen(),
       ),
       GoRoute(
+        path: '/loans/:loanId',
+        name: 'loan-detail',
+        builder: (context, state) {
+          final loanId = state.pathParameters['loanId'] ?? '';
+          return LoanDetailScreen(loanId: loanId);
+        },
+      ),
+
+      GoRoute(
         path: '/goals',
         name: 'goals',
         builder: (context, state) => const GoalsScreen(),
@@ -118,7 +130,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'account-types',
         builder: (context, state) => const AccountTypesScreen(),
       ),
+      GoRoute(
+        path: '/smart-entry',
+        name: 'smart-entry',
+        builder: (context, state) => const SmartEntryScreen(),
+      ),
     ],
+
     errorBuilder: (context, state) =>
         Scaffold(body: Center(child: Text('Page not found: ${state.error}'))),
   );

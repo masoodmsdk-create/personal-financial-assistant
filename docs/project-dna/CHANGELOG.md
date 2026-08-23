@@ -1,6 +1,48 @@
 # Changelog
 
-## 2026-08-23 (Latest — Project DNA Consolidation & Future Agent Context)
+## 2026-08-23 (MSD FINAURA — Loans Management & Debt Intelligence Module)
+
+- **Comprehensive Debt Portfolio Analytics (`DebtIntelligenceService`)**:
+  - Pure deterministic local calculation engine (0ms, 100% offline, ₹0 cost).
+  - Calculates portfolio-wide metrics: Total Outstanding Debt, Monthly Commitments, Estimated Total Remaining Interest, Active Obligations Count, Weighted Average Interest Rate, and Debt-to-Income (DTI) ratio.
+  - Generates clear distinctions between **Highest Interest Rate** (rate drag) and **Highest Absolute Interest Cost** (rupee drain).
+- **Multi-Strategy Debt Prioritization Engine**:
+  - Implemented 4 distinct strategies: **Avalanche** (Highest Rate First), **Snowball** (Smallest Balance First), **Cash Flow Relief** (Highest Monthly EMI Freed), and **Max Interest Savings** (Highest Absolute Rupee Interest).
+  - Provides clear mathematical rationale and transparent trade-off explanations for each strategy.
+- **Refinancing & Rate Reduction Analyzer**:
+  - Simulates rate drops, switching fees, and prepayment charges to calculate gross interest savings, net savings, and break-even tenure in months.
+- **Dedicated Progressive Loan Detail Screen (`LoanDetailScreen`)**:
+  - Tab 1: **Cost & Breakdown** (Two-color Principal vs Interest proportion bar, Next 12-month payment trajectory, loan settings & lender details).
+  - Tab 2: **What-If Prepayment Simulator** (Extra monthly, lump sum, annual prepayment, increased EMI, target closure date, and refinancing).
+  - Tab 3: **Full Amortization Schedule** (Month-by-month payment schedule with principal and interest components).
+  - Tab 4: **Cash Flow & Goals Impact** (Debt burden on living expenses, trade-offs with emergency fund and savings goals).
+- **Upgraded Loans Overview Screen (`LoansScreen`)**:
+  - Portfolio Debt Burden card with weighted average interest rate.
+  - Interactive Debt Prioritization strategy switcher with ranked loan payoff order.
+  - Deterministic Loan Insights list highlighting high-rate warnings, rate vs cost nuances, DTI alerts, and missing data hints.
+  - Rich loan cards with quick action popup menu and direct route to `LoanDetailScreen`.
+- **Router & Dialog Enhancements**:
+  - Registered `/loans/:loanId` route in `app_router.dart`.
+  - Added optional progressive inputs (`lenderName`, `processingFee`, `prepaymentCharges`) to `AddEditLoanDialog`.
+- **Verification**: 137/137 tests passed (`flutter test`), 0 issues (`dart analyze`), clean formatting (`dart format .`), release web build succeeded (`flutter build web --release`).
+
+
+- **Smart Financial Entry Assistant**: Added natural-language free-form text input interface allowing users to type or paste transactions in arbitrary format (e.g., *"Paid 450 for lunch on HDFC card yesterday"*, *"Salary 75000 credited to SBI today"*, *"Transferred 5000 from SBI to HDFC"*).
+- **Pure Local Deterministic NLP Parser (`SmartParserService`)**: 100% offline, ₹0 cost Dart parser extracting amounts, units (k/L), dates (today/yesterday/relative), transaction types (income/expense/transfer), accounts (name & token-based fuzzy matching), and semantic category mapping across all standard heads.
+- **Interactive Review & Bulk Record UI (`SmartEntryScreen`)**: Live editable transaction draft cards with instant category and account dropdowns, date pickers, single-item commit, and 1-click batch recording.
+- **Navigation Integration**: Added `/smart-entry` route in `app_router.dart`, Smart Assistant banner on `DashboardScreen`, and "Smart Entry" action button on `TransactionsScreen`.
+- **Verification**: 126/126 tests passed (`flutter test`), 0 issues (`dart analyze`), clean formatting (`dart format .`), release web build succeeded (`flutter build web --release`).
+
+## 2026-08-23 (Global Non-Blocking Firestore Timeouts, Cache-First List Rendering & RepaintBoundary Canvas Isolation)
+
+
+- **Global Safety Timeouts**: Added 4-second non-blocking safety timeouts to `FirestoreService.setData()`, `deleteData()`, `getData()`, `queryCollection()`, and `batchWrite()` so web mutations commit immediately to browser IndexedDB without waiting indefinitely for server WebChannel acknowledgments.
+- **Cache-First Stream UI Rendering**: Added `skipLoadingOnReload: true` and `skipLoadingOnRefresh: true` across all stream builders (`DashboardScreen`, `TransactionsScreen`, `AccountsScreen`, `PlannedExpensesScreen`, `LoansScreen`, `GoalsScreen`), eliminating full-screen loading spinners during tab navigation and record updates.
+- **Web Canvas Repaint Isolation**: Wrapped heavy charts, review cards, and dashboard metric grids in `RepaintBoundary` (`DashboardScreen`, `AnalyticsScreen`), cutting down rasterization repaints during scrolling and updates on Flutter Web.
+- **Verification**: All 119/119 tests passed, 0 issues on `dart analyze`, and release web bundle built successfully (`flutter build web --release`).
+
+## 2026-08-23 (Project DNA Consolidation & Future Agent Context)
+
 
 - Created authoritative master [`docs/project-dna/PROJECT_DNA.md`](file:///d:/Personal%20assistant/personal_financial_assistant/docs/project-dna/PROJECT_DNA.md) consolidating product identity, real technology stack, architecture layers, feature map, financial domain accounting invariants, loan/goal engines, performance guardrails, and developer workflow.
 - Streamlined [`AGENTS.md`](file:///d:/Personal%20assistant/personal_financial_assistant/AGENTS.md) as a concise master rulebook directing future agents directly to `PROJECT_DNA.md` to prevent repetitive codebase scanning.

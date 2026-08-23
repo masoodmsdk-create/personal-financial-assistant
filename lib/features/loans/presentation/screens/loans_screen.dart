@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
+import 'package:personal_financial_assistant/features/loans/domain/models/debt_intelligence.dart';
+import 'package:personal_financial_assistant/features/loans/domain/services/loan_forecast_service.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
-
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
+import 'package:personal_financial_assistant/features/loans/presentation/screens/loan_detail_screen.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/widgets/add_edit_loan_dialog.dart';
-import 'package:personal_financial_assistant/features/loans/presentation/widgets/improve_forecast_card.dart';
-import 'package:personal_financial_assistant/features/loans/presentation/widgets/what_if_scenario_card.dart';
 
 class LoansScreen extends ConsumerWidget {
   const LoansScreen({super.key});
@@ -58,16 +58,23 @@ class LoansScreen extends ConsumerWidget {
     );
   }
 
+  void _navigateToDetail(BuildContext context, String loanId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => LoanDetailScreen(loanId: loanId)),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-
     final colorScheme = theme.colorScheme;
     final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
 
     final loansAsync = ref.watch(loansStreamProvider);
-    final selectedLoan = ref.watch(selectedLoanProvider);
-    final forecast = ref.watch(loanForecastProvider);
+    final portfolio = ref.watch(debtPortfolioSummaryProvider);
+    final prioritization = ref.watch(debtPrioritizationProvider);
+    final insights = ref.watch(loanInsightsProvider);
+    final activeStrategy = ref.watch(selectedDebtStrategyProvider);
 
     return Scaffold(
       body: loansAsync.when(
@@ -75,7 +82,6 @@ class LoansScreen extends ConsumerWidget {
         skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error loading loans: $err')),
-
         data: (loans) {
           final activeLoans = loans.where((l) => l.active).toList();
 
@@ -87,8 +93,8 @@ class LoansScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     PageHeader(
-                      title: 'Loans & EMI',
-                      subtitle: 'Track outstanding loans, interest schedules, and prepayment scenarios.',
+                      title: 'Loans & Debt Intelligence',
+                      subtitle: 'Track total debt burden, interest costs, prioritization strategies, and prepayment forecasts.',
                       action: FilledButton.icon(
                         onPressed: () => _showAddLoanDialog(context),
                         icon: const Icon(Icons.add_rounded),
@@ -99,7 +105,7 @@ class LoansScreen extends ConsumerWidget {
                     EmptyStateWidget(
                       icon: Icons.account_balance_outlined,
                       title: 'No Loans Added Yet',
-                      message: 'Add your home loan, car loan, or credit card debt to forecast repayment timelines and test what-if scenarios.',
+                      message: 'Add your home loan, personal loan, car loan, or credit card debt to forecast repayment timelines, optimize debt payoff order, and test what-if scenarios.',
                       actionLabel: 'Add Your First Loan',
                       onAction: () => _showAddLoanDialog(context),
                     ),
@@ -109,16 +115,6 @@ class LoansScreen extends ConsumerWidget {
             );
           }
 
-          final totalDebt = activeLoans.fold<double>(
-            0.0,
-            (sum, l) => sum + (l.outstandingPrincipal ?? 0.0),
-          );
-
-          final totalEmi = activeLoans.fold<double>(
-            0.0,
-            (sum, l) => sum + (l.emiAmount ?? 0.0),
-          );
-
           return SingleChildScrollView(
             child: ResponsiveCenter(
               maxWidth: 1000,
@@ -127,8 +123,8 @@ class LoansScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   PageHeader(
-                    title: 'Loans & EMI',
-                    subtitle: 'Track outstanding loans, interest schedules, and prepayment scenarios.',
+                    title: 'Loans & Debt Intelligence',
+                    subtitle: 'Track total debt burden, interest costs, prioritization strategies, and prepayment forecasts.',
                     action: FilledButton.icon(
                       onPressed: () => _showAddLoanDialog(context),
                       icon: const Icon(Icons.add_rounded),
@@ -137,9 +133,9 @@ class LoansScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Overall Portfolio Debt Banner Card
+                  // Overall Portfolio Debt Metrics Grid Card
                   Card(
-                    color: colorScheme.errorContainer.withValues(alpha: 0.3),
+                    color: colorScheme.errorContainer.withValues(alpha: 0.25),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -149,59 +145,85 @@ class LoansScreen extends ConsumerWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.error.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.account_balance_outlined,
-                              color: colorScheme.error,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Total Outstanding Debt',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: colorScheme.onErrorContainer,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  currencyFormat.format(totalDebt),
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onErrorContainer,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          Row(
                             children: [
-                              Text(
-                                'Monthly Commitments',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onErrorContainer,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.error.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.account_balance_outlined,
+                                  color: colorScheme.error,
+                                  size: 26,
                                 ),
                               ),
-                              Text(
-                                currencyFormat.format(totalEmi),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onErrorContainer,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Portfolio Debt Burden',
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.onErrorContainer,
+                                          ),
+                                    ),
+                                    Text(
+                                      '${portfolio.activeLoansCount} Active Debt Obligation(s)${portfolio.weightedAverageInterestRate != null ? ' • Weighted Rate: ${portfolio.weightedAverageInterestRate}%' : ''}',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onErrorContainer
+                                                .withValues(alpha: 0.8),
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ),
+                            ],
+                          ),
+                          const Divider(height: 24),
+                          Wrap(
+                            spacing: 24,
+                            runSpacing: 16,
+                            alignment: WrapAlignment.spaceBetween,
+                            children: [
+                              _SummaryTile(
+                                label: 'Total Outstanding Debt',
+                                value: currencyFormat.format(
+                                  portfolio.totalOutstandingDebt,
+                                ),
+                                color: colorScheme.onErrorContainer,
+                              ),
+                              _SummaryTile(
+                                label: 'Monthly Commitments',
+                                value: currencyFormat.format(
+                                  portfolio.totalMonthlyEmi,
+                                ),
+                                color: colorScheme.onErrorContainer,
+                              ),
+                              _SummaryTile(
+                                label: 'Est. Remaining Interest',
+                                value: currencyFormat.format(
+                                  portfolio.estimatedTotalRemainingInterest,
+                                ),
+                                color: Colors.orange.shade800,
+                              ),
+                              if (portfolio.debtToIncomeRatio != null)
+                                _SummaryTile(
+                                  label: 'EMI / Income Ratio',
+                                  value: '${portfolio.debtToIncomeRatio}%',
+                                  color: portfolio.debtToIncomeRatio! > 40
+                                      ? Colors.red
+                                      : Colors.green.shade800,
+                                ),
                             ],
                           ),
                         ],
@@ -210,52 +232,113 @@ class LoansScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Loan Selector Chips / Dropdown
-                  Text(
-                    'Select Loan to Forecast',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: activeLoans.map((loan) {
-                        final isSelected = selectedLoan?.id == loan.id;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: FilterChip(
-                            avatar: Icon(
-                              loan.type.icon,
-                              size: 18,
-                              color: isSelected
-                                  ? colorScheme.onPrimaryContainer
-                                  : loan.type.color,
-                            ),
-                            label: Text(loan.name),
-                            selected: isSelected,
-                            onSelected: (_) {
-                              ref.read(selectedLoanIdProvider.notifier).state =
-                                  loan.id;
-                            },
+                  // High-Value Insights Section
+                  if (insights.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 18,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Debt Intelligence & Nuances',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    ...insights.take(3).map((insight) {
+                      Color bg;
+                      Color text;
+                      IconData ic;
+                      if (insight.severity == LoanInsightSeverity.warning) {
+                        bg = colorScheme.errorContainer.withValues(alpha: 0.4);
+                        text = colorScheme.onErrorContainer;
+                        ic = Icons.warning_amber_rounded;
+                      } else if (insight.severity ==
+                          LoanInsightSeverity.opportunity) {
+                        bg = colorScheme.primaryContainer.withValues(
+                          alpha: 0.4,
+                        );
+                        text = colorScheme.onPrimaryContainer;
+                        ic = Icons.lightbulb_outline_rounded;
+                      } else {
+                        bg = colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        );
+                        text = colorScheme.onSurfaceVariant;
+                        ic = Icons.info_outline;
+                      }
 
-                  if (selectedLoan != null) ...[
-                    // Selected Loan Overview Header Card
+                      return Card(
+                        elevation: 0,
+                        color: bg,
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(ic, size: 20, color: text),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      insight.title,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: text,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      insight.message,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: text.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (insight.loanId != null)
+                                TextButton(
+                                  onPressed: () => _navigateToDetail(
+                                    context,
+                                    insight.loanId!,
+                                  ),
+                                  child: const Text(
+                                    'View Loan',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Debt Prioritization Strategy Section
+                  if (activeLoans.length > 1) ...[
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
                           color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.5,
+                            alpha: 0.4,
                           ),
                         ),
                       ),
@@ -266,263 +349,398 @@ class LoansScreen extends ConsumerWidget {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: selectedLoan.type.color.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    selectedLoan.type.icon,
-                                    color: selectedLoan.type.color,
-                                  ),
+                                Icon(
+                                  Icons.sort_rounded,
+                                  size: 20,
+                                  color: colorScheme.primary,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        selectedLoan.name,
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                      Text(
-                                        '${selectedLoan.type.displayName} • ${selectedLoan.interestRateType.displayName}',
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Debt Prioritization Strategy',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                ),
-                                PopupMenuButton<String>(
-                                  onSelected: (val) {
-                                    if (val == 'edit') {
-                                      _showEditLoanDialog(
-                                        context,
-                                        selectedLoan,
-                                      );
-                                    } else if (val == 'delete') {
-                                      _confirmDeleteLoan(
-                                        context,
-                                        ref,
-                                        selectedLoan,
-                                      );
-                                    }
-                                  },
-                                  itemBuilder: (context) => const [
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.edit_outlined, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('Edit Details'),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.delete_outline,
-                                            size: 18,
-                                            color: Colors.red,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Delete Loan',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),
-                            const Divider(height: 24),
-
-                            // Loan Metrics Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _MetricTile(
-                                  label: 'Outstanding Balance',
-                                  value: selectedLoan.hasOutstandingPrincipal
-                                      ? currencyFormat.format(
-                                          selectedLoan.outstandingPrincipal,
-                                        )
-                                      : 'Not specified',
-                                ),
-                                _MetricTile(
-                                  label: 'Interest Rate',
-                                  value: selectedLoan.hasInterestRate
-                                      ? '${selectedLoan.interestRate}%'
-                                      : 'Not specified',
-                                ),
-                                _MetricTile(
-                                  label: 'Current EMI',
-                                  value: selectedLoan.hasEmiAmount
-                                      ? currencyFormat.format(
-                                          selectedLoan.emiAmount,
-                                        )
-                                      : 'Not specified',
-                                ),
-                              ],
-                            ),
-                            if (forecast != null && forecast.hasTenure) ...[
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _MetricTile(
-                                    label: 'Est. Remaining Tenure',
-                                    value:
-                                        '${forecast.estimatedRemainingTenureMonths} months',
-                                  ),
-                                  _MetricTile(
-                                    label: 'Est. Payoff Date',
-                                    value: forecast.estimatedClosureDate != null
-                                        ? DateFormat('MMM yyyy').format(
-                                            forecast.estimatedClosureDate!,
-                                          )
-                                        : 'N/A',
-                                  ),
-                                  _MetricTile(
-                                    label: 'Est. Total Interest',
-                                    value: forecast.hasInterest
-                                        ? currencyFormat.format(
-                                            forecast.estimatedRemainingInterest,
-                                          )
-                                        : 'N/A',
-                                  ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
                             Text(
-                              forecast?.note ?? 'Forecast based on the information currently provided.',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontStyle: FontStyle.italic,
+                              'Compare how different payoff strategies optimize your debt timeline.',
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
+                            const SizedBox(height: 12),
+
+                            // Strategy Chips
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: DebtStrategyType.values.map((strat) {
+                                  final isSelected = activeStrategy == strat;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: ChoiceChip(
+                                      avatar: Icon(strat.icon, size: 16),
+                                      label: Text(strat.shortName),
+                                      selected: isSelected,
+                                      onSelected: (_) {
+                                        ref
+                                                .read(
+                                                  selectedDebtStrategyProvider
+                                                      .notifier,
+                                                )
+                                                .state =
+                                            strat;
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Strategy Description Banner
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: colorScheme.outlineVariant.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    prioritization.strategyName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    prioritization.strategyDescription,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Trade-off: ${prioritization.tradeOffExplanation}',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontStyle: FontStyle.italic,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Prioritized Loan Order List
+                            ...prioritization.prioritizedLoans.map((item) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () =>
+                                      _navigateToDetail(context, item.loan.id),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6.0,
+                                      horizontal: 4.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 12,
+                                          backgroundColor:
+                                              colorScheme.primaryContainer,
+                                          child: Text(
+                                            '#${item.rank}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Icon(
+                                          item.loan.type.icon,
+                                          size: 16,
+                                          color: item.loan.type.color,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.loan.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              Text(
+                                                item.rationale,
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
+                                                      fontSize: 11,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          currencyFormat.format(
+                                            item.monthlyEmiFreed,
+                                          ),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.chevron_right,
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
+                  ],
 
-                    // Progressive Info Card ("Improve this forecast")
-                    if (forecast != null &&
-                        forecast.missingFields.isNotEmpty) ...[
-                      ImproveForecastCard(
-                        missingFields: forecast.missingFields,
-                        onAddMissingInfo: () =>
-                            _showEditLoanDialog(context, selectedLoan),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                  // Loan Cards List Header
+                  Text(
+                    'Your Loans (${activeLoans.length})',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
 
-                    // What-If Scenario Simulator
-                    const WhatIfScenarioCard(),
-                    const SizedBox(height: 20),
+                  // Loan Cards Grid / List
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: activeLoans.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final loan = activeLoans[index];
+                      final forecast = LoanForecastService.calculateForecast(
+                        loan,
+                      );
 
-                    // Amortization Schedule Preview
-                    if (forecast != null && forecast.schedule.isNotEmpty) ...[
-                      Card(
+                      return Card(
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                           side: BorderSide(
-                            color: colorScheme.outlineVariant.withValues(
-                              alpha: 0.5,
+                            color: loan.type.color.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _navigateToDetail(context, loan.id),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: loan.type.color.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        loan.type.icon,
+                                        color: loan.type.color,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            loan.name,
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                          Text(
+                                            '${loan.type.displayName} • ${loan.interestRateType.displayName}${loan.lenderName != null ? ' • ${loan.lenderName}' : ''}',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuButton<String>(
+                                      onSelected: (val) {
+                                        if (val == 'detail') {
+                                          _navigateToDetail(context, loan.id);
+                                        } else if (val == 'edit') {
+                                          _showEditLoanDialog(context, loan);
+                                        } else if (val == 'delete') {
+                                          _confirmDeleteLoan(
+                                            context,
+                                            ref,
+                                            loan,
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (context) => const [
+                                        PopupMenuItem(
+                                          value: 'detail',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.analytics_outlined,
+                                                size: 18,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text('View Full Intelligence'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.edit_outlined,
+                                                size: 18,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text('Edit Details'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.delete_outline,
+                                                size: 18,
+                                                color: Colors.red,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Delete Loan',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 20),
+
+                                // Metric columns
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _SummaryTile(
+                                      label: 'Outstanding Principal',
+                                      value: loan.hasOutstandingPrincipal
+                                          ? currencyFormat.format(
+                                              loan.outstandingPrincipal,
+                                            )
+                                          : 'Not set',
+                                    ),
+                                    _SummaryTile(
+                                      label: 'Interest Rate',
+                                      value: loan.hasInterestRate
+                                          ? '${loan.interestRate}%'
+                                          : 'Not set',
+                                    ),
+                                    _SummaryTile(
+                                      label: 'Monthly EMI',
+                                      value: loan.hasEmiAmount
+                                          ? currencyFormat.format(
+                                              loan.emiAmount,
+                                            )
+                                          : (forecast.effectiveEmi != null
+                                                ? '~${currencyFormat.format(forecast.effectiveEmi)}'
+                                                : 'Not set'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _SummaryTile(
+                                      label: 'Est. Remaining Interest',
+                                      value: forecast.hasInterest
+                                          ? currencyFormat.format(
+                                              forecast
+                                                  .estimatedRemainingInterest,
+                                            )
+                                          : 'N/A',
+                                      color: Colors.orange.shade800,
+                                    ),
+                                    _SummaryTile(
+                                      label: 'Est. Payoff Date',
+                                      value:
+                                          forecast.estimatedClosureDate != null
+                                          ? DateFormat('MMM yyyy').format(
+                                              forecast.estimatedClosureDate!,
+                                            )
+                                          : 'N/A',
+                                    ),
+                                    FilledButton.tonal(
+                                      onPressed: () =>
+                                          _navigateToDetail(context, loan.id),
+                                      child: const Text('View Forecast'),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        child: ExpansionTile(
-                          title: Text(
-                            'Estimated Amortization Preview',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'Showing first ${forecast.schedule.take(12).length} months preview',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                columnSpacing: 18,
-                                columns: const [
-                                  DataColumn(label: Text('Month')),
-                                  DataColumn(label: Text('Date')),
-                                  DataColumn(label: Text('Payment')),
-                                  DataColumn(label: Text('Principal')),
-                                  DataColumn(label: Text('Interest')),
-                                  DataColumn(label: Text('Balance')),
-                                ],
-                                rows: forecast.schedule.take(12).map((row) {
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Text('#${row.monthNumber}')),
-                                      DataCell(
-                                        Text(
-                                          DateFormat('MMM yyyy')
-                                              .format(row.date),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Text(
-                                          currencyFormat.format(row.payment),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Text(
-                                          currencyFormat.format(
-                                            row.principalComponent,
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Text(
-                                          currencyFormat.format(
-                                            row.interestComponent,
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Text(
-                                          currencyFormat.format(
-                                            row.remainingBalance,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
+                      );
+                    },
+                  ),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -534,11 +752,12 @@ class LoansScreen extends ConsumerWidget {
   }
 }
 
-class _MetricTile extends StatelessWidget {
+class _SummaryTile extends StatelessWidget {
   final String label;
   final String value;
+  final Color? color;
 
-  const _MetricTile({required this.label, required this.value});
+  const _SummaryTile({required this.label, required this.value, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -559,6 +778,7 @@ class _MetricTile extends StatelessWidget {
           value,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
+            color: color,
           ),
         ),
       ],

@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
+
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/analytics/presentation/widgets/income_expense_chart.dart';
 import 'package:personal_financial_assistant/features/analytics/presentation/widgets/things_to_review_card.dart';
@@ -143,7 +145,75 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // Smart Assistant Natural Entry Card
+            Card(
+              elevation: 0,
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.45,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: colorScheme.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => context.push('/smart-entry'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 14.0,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.auto_awesome_rounded,
+                          color: colorScheme.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Smart Financial Assistant Entry',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Type free-form notes (e.g. "Lunch 450 on HDFC") to auto-record',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.tonalIcon(
+                        onPressed: () => context.push('/smart-entry'),
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                        label: const Text('Open'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Overview Header
             Row(
@@ -165,61 +235,63 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Financial Summary Cards (Grid)
-            GridView.count(
-              crossAxisCount: gridColumns,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: gridColumns == 1 ? 2.5 : 1.35,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _LiveMetricCard(
-                  title: 'Total Net Balance',
-                  amount: totalBalance,
-                  icon: Icons.account_balance_outlined,
-                  color: colorScheme.primary,
-                  subtitle: 'Assets - Liabilities',
-                  isPrimary: true,
-                ),
-                _LiveMetricCard(
-                  title: 'Monthly Income',
-                  amount: summary.totalIncome,
-                  icon: Icons.arrow_downward_outlined,
-                  color: Colors.teal,
-                  subtitle: 'Current Month',
-                ),
-                _LiveMetricCard(
-                  title: 'Monthly Expenses',
-                  amount: summary.totalExpense,
-                  icon: Icons.arrow_upward_outlined,
-                  color: Colors.redAccent,
-                  subtitle: 'Current Month',
-                ),
-                _LiveMetricCard(
-                  title: 'Net Cash Flow',
-                  amount: summary.netCashFlow,
-                  icon: Icons.savings_outlined,
-                  color: summary.netCashFlow >= 0
-                      ? Colors.teal
-                      : Colors.redAccent,
-                  subtitle: 'Income - Expense',
-                ),
-              ],
+            RepaintBoundary(
+              child: GridView.count(
+                crossAxisCount: gridColumns,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: gridColumns == 1 ? 2.5 : 1.35,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _LiveMetricCard(
+                    title: 'Total Net Balance',
+                    amount: totalBalance,
+                    icon: Icons.account_balance_outlined,
+                    color: colorScheme.primary,
+                    subtitle: 'Assets - Liabilities',
+                    isPrimary: true,
+                  ),
+                  _LiveMetricCard(
+                    title: 'Monthly Income',
+                    amount: summary.totalIncome,
+                    icon: Icons.arrow_downward_outlined,
+                    color: Colors.teal,
+                    subtitle: 'Current Month',
+                  ),
+                  _LiveMetricCard(
+                    title: 'Monthly Expenses',
+                    amount: summary.totalExpense,
+                    icon: Icons.arrow_upward_outlined,
+                    color: Colors.redAccent,
+                    subtitle: 'Current Month',
+                  ),
+                  _LiveMetricCard(
+                    title: 'Net Cash Flow',
+                    amount: summary.netCashFlow,
+                    icon: Icons.savings_outlined,
+                    color: summary.netCashFlow >= 0
+                        ? Colors.teal
+                        : Colors.redAccent,
+                    subtitle: 'Income - Expense',
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 20),
 
             // Monthly Financial Review Entry Card
-            const MonthlyReviewDashboardCard(),
+            const RepaintBoundary(child: MonthlyReviewDashboardCard()),
             const SizedBox(height: 20),
 
             // Things to Review Section (In-App Insights)
-            const ThingsToReviewCard(),
+            const RepaintBoundary(child: ThingsToReviewCard()),
 
             const SizedBox(height: 20),
 
             // Income vs Expense Chart Card
-            const IncomeExpenseChartCard(),
+            const RepaintBoundary(child: IncomeExpenseChartCard()),
             const SizedBox(height: 20),
 
             // Recent Transactions Section Header

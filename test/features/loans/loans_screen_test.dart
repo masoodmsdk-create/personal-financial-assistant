@@ -20,6 +20,17 @@ void main() {
       createdAt: now,
       updatedAt: now,
     ),
+    Loan(
+      id: 'loan_2',
+      userId: 'user_1',
+      name: 'ICICI Personal Loan',
+      type: LoanType.personalLoan,
+      outstandingPrincipal: 150000.0,
+      interestRate: 14.0,
+      emiAmount: 7500.0,
+      createdAt: now,
+      updatedAt: now,
+    ),
   ];
 
   Widget createWidgetToTest({List<Loan>? loans}) {
@@ -44,17 +55,21 @@ void main() {
     });
 
     testWidgets(
-      'Renders Loan Overview, What-If Simulator, and Amortization Tile when loans exist',
+      'Renders Portfolio Summary, Strategy Prioritization, and Loan Cards',
       (tester) async {
         await tester.pumpWidget(createWidgetToTest());
         await tester.pumpAndSettle();
 
-        expect(find.text('Loans & EMI'), findsOneWidget);
-
+        expect(find.text('Loans & Debt Intelligence'), findsOneWidget);
+        expect(find.text('Portfolio Debt Burden'), findsOneWidget);
         expect(find.text('Total Outstanding Debt'), findsOneWidget);
         expect(find.text('HDFC Home Loan'), findsWidgets);
-        expect(find.text('What-If Scenario Simulator'), findsOneWidget);
-        expect(find.text('Estimated Amortization Preview'), findsOneWidget);
+        expect(find.text('ICICI Personal Loan'), findsWidgets);
+
+        // Verify Debt Prioritization Strategy
+        expect(find.text('Debt Prioritization Strategy'), findsOneWidget);
+        expect(find.text('Avalanche'), findsOneWidget);
+        expect(find.text('Snowball'), findsOneWidget);
       },
     );
   });

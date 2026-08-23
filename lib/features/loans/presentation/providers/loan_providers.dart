@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_financial_assistant/features/analytics/presentation/providers/analytics_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
+import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
 import 'package:personal_financial_assistant/features/loans/data/repositories/firestore_loan_repository.dart';
+import 'package:personal_financial_assistant/features/loans/domain/models/debt_intelligence.dart';
 import 'package:personal_financial_assistant/features/loans/domain/models/loan_forecast.dart';
 import 'package:personal_financial_assistant/features/loans/domain/models/what_if_scenario.dart';
 import 'package:personal_financial_assistant/features/loans/domain/repositories/loan_repository.dart';
+import 'package:personal_financial_assistant/features/loans/domain/services/debt_intelligence_service.dart';
 import 'package:personal_financial_assistant/features/loans/domain/services/loan_forecast_service.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
 
@@ -39,6 +43,74 @@ final loanForecastProvider = Provider<LoanForecastResult?>((ref) {
   final loan = ref.watch(selectedLoanProvider);
   if (loan == null) return null;
   return LoanForecastService.calculateForecast(loan);
+});
+
+final loanForecastByIdProvider = Provider.family<LoanForecastResult?, String>((
+  ref,
+  loanId,
+) {
+  final loansAsync = ref.watch(loansStreamProvider);
+  final loans = loansAsync.value ?? [];
+  final loan = loans.where((l) => l.id == loanId).firstOrNull;
+  if (loan == null) return null;
+  return LoanForecastService.calculateForecast(loan);
+});
+
+final loanInterestAnalysisProvider =
+    Provider.family<LoanInterestAnalysis?, String>((ref, loanId) {
+      final loansAsync = ref.watch(loansStreamProvider);
+      final loans = loansAsync.value ?? [];
+      final loan = loans.where((l) => l.id == loanId).firstOrNull;
+      if (loan == null) return null;
+      final forecast = LoanForecastService.calculateForecast(loan);
+      return DebtIntelligenceService.analyzeLoanInterest(loan, forecast);
+    });
+
+/// Portfolio summary aggregating all user debts & calculating metrics
+final debtPortfolioSummaryProvider = Provider<DebtPortfolioSummary>((ref) {
+  final loansAsync = ref.watch(loansStreamProvider);
+  final loans = loansAsync.value ?? [];
+  final monthlySummary = ref.watch(periodSummaryProvider);
+
+  return DebtIntelligenceService.analyzePortfolio(
+    loans: loans,
+    recordedMonthlyIncome: monthlySummary.totalIncome > 0
+        ? monthlySummary.totalIncome
+        : null,
+  );
+});
+
+final selectedDebtStrategyProvider = StateProvider<DebtStrategyType>(
+  (ref) => DebtStrategyType.avalanche,
+);
+
+/// Debt Prioritization plan (Avalanche vs Snowball vs Cash Flow Relief)
+final debtPrioritizationProvider = Provider<DebtPrioritizationPlan>((ref) {
+  final loansAsync = ref.watch(loansStreamProvider);
+  final loans = loansAsync.value ?? [];
+  final strategy = ref.watch(selectedDebtStrategyProvider);
+
+  return DebtIntelligenceService.calculatePrioritization(
+    loans: loans,
+    strategy: strategy,
+  );
+});
+
+/// High-value deterministic loan insights
+final loanInsightsProvider = Provider<List<LoanInsight>>((ref) {
+  final loansAsync = ref.watch(loansStreamProvider);
+  final loans = loansAsync.value ?? [];
+  final monthlySummary = ref.watch(periodSummaryProvider);
+  final goalsAsync = ref.watch(goalsStreamProvider);
+  final goals = goalsAsync.value;
+
+  return DebtIntelligenceService.generateLoanInsights(
+    loans: loans,
+    recordedMonthlyIncome: monthlySummary.totalIncome > 0
+        ? monthlySummary.totalIncome
+        : null,
+    goals: goals,
+  );
 });
 
 final activeWhatIfTypeProvider = StateProvider<WhatIfType>(
@@ -86,6 +158,9 @@ class LoanController extends StateNotifier<AsyncValue<void>> {
     DateTime? nextEmiDate,
     DateTime? targetClosureDate,
     String? linkedAccountId,
+    String? lenderName,
+    double? processingFee,
+    double? prepaymentCharges,
     String? notes,
   }) async {
     final userId = _getCurrentUserId();
@@ -111,6 +186,9 @@ class LoanController extends StateNotifier<AsyncValue<void>> {
       nextEmiDate: nextEmiDate,
       targetClosureDate: targetClosureDate,
       linkedAccountId: linkedAccountId,
+      lenderName: lenderName,
+      processingFee: processingFee,
+      prepaymentCharges: prepaymentCharges,
       notes: notes,
       active: true,
       createdAt: now,

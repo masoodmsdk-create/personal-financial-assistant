@@ -126,6 +126,9 @@ class Loan implements Entity {
   final DateTime? nextEmiDate;
   final DateTime? targetClosureDate;
   final String? linkedAccountId;
+  final String? lenderName;
+  final double? processingFee;
+  final double? prepaymentCharges;
   final String? notes;
   final bool active;
   @override
@@ -148,6 +151,9 @@ class Loan implements Entity {
     this.nextEmiDate,
     this.targetClosureDate,
     this.linkedAccountId,
+    this.lenderName,
+    this.processingFee,
+    this.prepaymentCharges,
     this.notes,
     this.active = true,
     required this.createdAt,
@@ -181,6 +187,9 @@ class Loan implements Entity {
     DateTime? nextEmiDate,
     DateTime? targetClosureDate,
     String? linkedAccountId,
+    String? lenderName,
+    double? processingFee,
+    double? prepaymentCharges,
     String? notes,
     bool? active,
     DateTime? createdAt,
@@ -202,6 +211,9 @@ class Loan implements Entity {
       nextEmiDate: nextEmiDate ?? this.nextEmiDate,
       targetClosureDate: targetClosureDate ?? this.targetClosureDate,
       linkedAccountId: linkedAccountId ?? this.linkedAccountId,
+      lenderName: lenderName ?? this.lenderName,
+      processingFee: processingFee ?? this.processingFee,
+      prepaymentCharges: prepaymentCharges ?? this.prepaymentCharges,
       notes: notes ?? this.notes,
       active: active ?? this.active,
       createdAt: createdAt ?? this.createdAt,
@@ -225,6 +237,9 @@ class Loan implements Entity {
       'nextEmiDate': nextEmiDate?.toIso8601String(),
       'targetClosureDate': targetClosureDate?.toIso8601String(),
       'linkedAccountId': linkedAccountId,
+      'lenderName': lenderName,
+      'processingFee': processingFee,
+      'prepaymentCharges': prepaymentCharges,
       'notes': notes,
       'active': active,
       'createdAt': createdAt.toIso8601String(),
@@ -256,6 +271,9 @@ class Loan implements Entity {
           ? DateTime.parse(json['targetClosureDate'] as String)
           : null,
       linkedAccountId: json['linkedAccountId'] as String?,
+      lenderName: json['lenderName'] as String?,
+      processingFee: (json['processingFee'] as num?)?.toDouble(),
+      prepaymentCharges: (json['prepaymentCharges'] as num?)?.toDouble(),
       notes: json['notes'] as String?,
       active: json['active'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),

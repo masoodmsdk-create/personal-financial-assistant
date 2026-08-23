@@ -7,6 +7,7 @@ enum WhatIfType {
   increasedEmi,
   targetClosureDate,
   interestRateChange,
+  refinanceComparison,
 }
 
 extension WhatIfTypeX on WhatIfType {
@@ -24,6 +25,8 @@ extension WhatIfTypeX on WhatIfType {
         return 'Target Closure Date';
       case WhatIfType.interestRateChange:
         return 'Interest Rate Scenario';
+      case WhatIfType.refinanceComparison:
+        return 'Refinancing / Rate Reduction';
     }
   }
 }
@@ -35,6 +38,8 @@ class WhatIfScenarioParams {
   final double? newEmiAmount;
   final DateTime? desiredClosureDate;
   final double? scenarioInterestRate;
+  final double? scenarioProcessingFee;
+  final double? scenarioPrepaymentPenalty;
 
   const WhatIfScenarioParams({
     this.extraMonthlyAmount,
@@ -43,6 +48,8 @@ class WhatIfScenarioParams {
     this.newEmiAmount,
     this.desiredClosureDate,
     this.scenarioInterestRate,
+    this.scenarioProcessingFee,
+    this.scenarioPrepaymentPenalty,
   });
 }
 
@@ -55,6 +62,8 @@ class WhatIfScenarioResult {
   final int estimatedTimeSavedMonths;
   final double estimatedInterestSaved;
   final double? requiredAdditionalMonthlyPayment;
+  final double? netRefinanceSavings;
+  final int? breakEvenMonths;
   final String disclaimer;
 
   const WhatIfScenarioResult({
@@ -66,6 +75,8 @@ class WhatIfScenarioResult {
     required this.estimatedTimeSavedMonths,
     required this.estimatedInterestSaved,
     this.requiredAdditionalMonthlyPayment,
+    this.netRefinanceSavings,
+    this.breakEvenMonths,
     this.disclaimer = 'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
   });
 }

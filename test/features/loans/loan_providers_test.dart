@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_financial_assistant/features/loans/domain/models/debt_intelligence.dart';
 import 'package:personal_financial_assistant/features/loans/domain/models/what_if_scenario.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
@@ -65,6 +66,64 @@ void main() {
       expect(forecast?.outstandingPrincipal, 3500000.0);
       expect(forecast?.estimatedRemainingTenureMonths, greaterThan(0));
     });
+
+    test(
+      'debtPortfolioSummaryProvider computes aggregate portfolio metrics',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            loansStreamProvider.overrideWith((ref) => Stream.value(testLoans)),
+          ],
+        );
+
+        container.listen(loansStreamProvider, (_, _) {});
+        await Future<void>.delayed(Duration.zero);
+
+        final portfolio = container.read(debtPortfolioSummaryProvider);
+        expect(portfolio.totalLoansCount, 2);
+        expect(portfolio.totalOutstandingDebt, 4100000.0);
+        expect(portfolio.totalMonthlyEmi, 52000.0);
+        expect(portfolio.weightedAverageInterestRate, isNotNull);
+      },
+    );
+
+    test(
+      'debtPrioritizationProvider generates prioritized strategy order',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            loansStreamProvider.overrideWith((ref) => Stream.value(testLoans)),
+          ],
+        );
+
+        container.listen(loansStreamProvider, (_, _) {});
+        await Future<void>.delayed(Duration.zero);
+
+        final plan = container.read(debtPrioritizationProvider);
+        expect(plan.prioritizedLoans.length, 2);
+        expect(plan.strategy, DebtStrategyType.avalanche);
+        expect(plan.prioritizedLoans.first.loan.id, 'loan_2'); // 9.0% > 8.5%
+      },
+    );
+
+    test(
+      'loanInterestAnalysisProvider computes interest proportion for loan',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            loansStreamProvider.overrideWith((ref) => Stream.value(testLoans)),
+          ],
+        );
+
+        container.listen(loansStreamProvider, (_, _) {});
+        await Future<void>.delayed(Duration.zero);
+
+        final analysis = container.read(loanInterestAnalysisProvider('loan_1'));
+        expect(analysis, isNotNull);
+        expect(analysis?.totalRemainingPrincipal, 3500000.0);
+        expect(analysis?.interestPercentageOfRepayment, greaterThan(0.0));
+      },
+    );
 
     test(
       'whatIfScenarioResultProvider calculates scenario result dynamically',

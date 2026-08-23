@@ -34,9 +34,9 @@ class FirestoreService {
       await userDoc(userId, collection, docId)
           .set(data, SetOptions(merge: merge))
           .timeout(
-            const Duration(seconds: 4),
+            const Duration(milliseconds: 100),
             onTimeout: () {
-              // Local persistence captures write optimistically; background sync continues.
+              // Local IndexedDB persistence captures write optimistically; background sync continues.
             },
           );
     } on FirebaseException catch (e) {
@@ -67,9 +67,9 @@ class FirestoreService {
   }) async {
     try {
       await userDoc(userId, collection, docId).delete().timeout(
-        const Duration(seconds: 4),
+        const Duration(milliseconds: 100),
         onTimeout: () {
-          // Local persistence captures delete optimistically; background sync continues.
+          // Local IndexedDB persistence captures delete optimistically; background sync continues.
         },
       );
     } on FirebaseException catch (e) {
@@ -157,9 +157,9 @@ class FirestoreService {
         }
       }
       await batch.commit().timeout(
-        const Duration(seconds: 4),
+        const Duration(milliseconds: 100),
         onTimeout: () {
-          // Local persistence captures batch write optimistically; background sync continues.
+          // Local IndexedDB persistence captures batch write optimistically; background sync continues.
         },
       );
     } on FirebaseException catch (e) {

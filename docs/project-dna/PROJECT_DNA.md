@@ -2,26 +2,104 @@
 
 > **Persistent Architectural Memory & Future Agent Context**
 > 
-> *The actual codebase is ALWAYS the source of truth.*
+> *The actual Dart source code and config files are ALWAYS the source of truth.*
 
 ---
 
-## 1. PRODUCT IDENTITY & PHILOSOPHY
+## 1. PRODUCT IDENTITY & MASTER PHILOSOPHY
 
 - **Product Name**: MSD FINAURA
 - **Tagline**: *"Your Money. Your Goals. Our Assistant."*
-- **Purpose**: FINAURA is a personal financial assistant designed to help users organize, understand, forecast, and improve their finances using user-provided information.
-- **Core Philosophy**:
-  1. **User's Money, User's Goals**: The assistant assists, calculates, and guides; the user remains in complete control.
-  2. **Minimal Unnecessary Data Entry**: Never force users to repeatedly enter recurring information that can already be derived.
-  3. **Progressive Information Collection**: Forecasts and insights work with whatever data is currently available without blocking the user.
-  4. **Never Fabricate Data**: Never invent financial figures or accuracy percentages.
-  5. **Actual vs. Forecast Separation**: Clear visual and architectural distinction between confirmed historical transactions and future planned/forecast numbers.
-  6. **Explicit User Action Required**: Planned expenses **NEVER** silently become actual transactions; recording an actual transaction always requires an explicit user action.
+- **Product Vision**: FINAURA is **NOT** just another manual expense tracker. It is a **Personal Financial Understanding + Intelligence System** that enables users to describe their financial situation naturally, transforms that into structured, reviewable data, and delivers explainable, actionable financial intelligence.
+
+### The Master Product Interaction Flow
+```text
+USER TELLS FINAURA ABOUT THEIR MONEY
+                 ↓
+        FINAURA UNDERSTANDS
+                 ↓
+    FINAURA STRUCTURES (BLUEPRINT)
+                 ↓
+           USER REVIEWS
+                 ↓
+          USER CONFIRMS
+                 ↓
+   FINAURA CREATES / UPDATES DATA
+                 ↓
+    FINAURA ANALYZES PICTURE
+                 ↓
+     FINAURA EXPLAINS MEANING
+                 ↓
+      FINAURA HELPS DECIDE
+```
+
+### Core Product Principles
+1. **Reduce Manual Data Entry**: Shift progressively from tedious multi-step manual entry toward guided financial understanding (*"Tell me about your finances"*).
+2. **Never Trust Ambiguous Input Silently**:
+   - `Natural Language → Parser → Structured Draft → Validation → Review → Confirmation → Persistence`.
+   - Never silently modify or create financial records without explicit user confirmation.
+   - Always prefer *"Ask / clarify / review"* over guessing.
+3. **Deterministic Financial Engine First**:
+   - All accounting, cash flow, debt prioritization, loan amortization, what-if forecasts, budget tracking, goal progress, and net worth calculations run in pure, testable, 100% offline Dart domain services (0ms latency, ₹0 cost).
+   - **Never use an LLM or external AI API for financial calculations.**
+4. **AI as a Layer, NOT the Foundation**:
+   - The deterministic financial engine is the authoritative ground truth.
+   - AI/LLM layers exist solely for natural-language flexibility, conversational drafting, and conversational explanations.
+5. **No Data Fabrication & Calm Insight Style**:
+   - Never invent balances, transactions, interest rates, or fake precision (e.g. *"Financial health score: 87.4%"*).
+   - Always clearly label data sources: `ACTUAL`, `PLANNED`, `FORECAST`, `ESTIMATED`, `ILLUSTRATIVE`.
+6. **Actual vs. Forecast Separation**:
+   - Planned expenses and loan forecasts **NEVER** automatically create `Transaction` documents or mutate balances. Actual transactions require explicit user confirmation.
 
 ---
 
-## 2. REAL TECHNOLOGY STACK
+## 2. FINANCIAL UNDERSTANDING & FINANCIAL BLUEPRINT
+
+### Financial Situation Understanding
+Evolves from single-transaction parsing to multi-entity financial situation extraction:
+- **Input**: Free-form natural language describing an entire financial picture (e.g., *"Salary 1L, wife earns 60k, home loan EMI 45k, rent 20k, groceries 8k, emergency fund goal 5L"*).
+- **Extraction Heads**:
+  - **Income**: Primary salary, secondary income, freelance, investments.
+  - **Loans / Debt Commitments**: Home loan, personal loan, car loan, credit card EMI.
+  - **Recurring Expenses**: Rent, utilities, groceries, fuel.
+  - **Savings & Assets**: Existing bank balances, emergency savings.
+  - **Goals**: Target amounts and target timelines.
+- **Ambiguity Handling**: Unspecified lenders, accounts, or recurring flags are explicitly flagged for user clarification.
+
+### The Financial Blueprint Concept
+A **Financial Blueprint** is the intermediate structured draft representing the parsed financial picture **before** persistence.
+```text
+Financial Blueprint Draft
+├── Income Heads (₹1,60,000/mo)
+├── Debt Commitments (₹45,000/mo)
+├── Recurring Living Expenses (₹28,000/mo)
+├── Estimated Net Cash Flow (₹87,000/mo)
+├── Existing Savings Reserves (₹2,00,000)
+└── Active Goals (Emergency Fund ₹5,00,000)
+```
+The user reviews, edits discrepancies, clarifies questions, and clicks `[Confirm & Create Setup]`.
+
+---
+
+## 3. WORKSPACE ARCHITECTURE & DATA ISOLATION
+
+### Purpose
+Workspace is an architectural boundary for independent financial contexts (e.g., *Personal*, *Business*, *Rental Property*, *Family*, *Testing*).
+
+### Invariants & Rules
+1. **Invisible Simplicity**: Single-workspace users simply see "Personal" without needing to understand `workspaceId` or complex configuration.
+2. **Simple Field-Level Isolation**:
+   - Documents reside at `users/{userId}/{collection}/{documentId}` with an indexed `workspaceId` field.
+   - All financial queries must filter by `request.auth.uid == userId` and `workspaceId == activeWorkspaceId`.
+   - Strictly no cross-workspace financial leakage or balance mixing.
+3. **Workspace Creation ("Start Over" Mechanism)**:
+   - **Start Empty**: Creates a completely blank workspace with default categories.
+   - **Copy Setup**: Duplicates category trees, account types, planned expense templates, and goal definitions. **Never copies historical transactions, account balances, or loan repayment history.**
+   - Replaces destructive global "Reset Everything" features safely.
+
+---
+
+## 4. REAL TECHNOLOGY STACK
 
 *Verified against `pubspec.yaml`, `firebase.json`, and source code:*
 
@@ -40,165 +118,66 @@
 
 ---
 
-## 3. PROJECT ARCHITECTURE & LAYER INTERACTION
-
-The project follows a clean, feature-driven, layered architecture:
+## 5. PROJECT ARCHITECTURE & LAYER RESPONSIBILITIES
 
 ```text
-Presentation Layer (Screens, Widgets, Dialogs)
-       ↓ (watches/reads)
-Riverpod Providers / StateNotifiers (State management, Memoized aggregations)
-       ↓ (invokes)
-Domain Layer (Entities, Pure calculation services, Repository interfaces)
-       ↓ (implemented by)
+Presentation Layer (Screens, Widgets, Dialogs, Adaptive Shell)
+        ↓ (watches/reads)
+Riverpod Providers & Controllers (State management, Memoized aggregations)
+        ↓ (invokes)
+Deterministic Domain Layer (Pure Dart services, Entities, Value objects)
+        ↓ (implemented by)
 Data Layer (Firestore repositories, FirestoreService wrapper)
-       ↓ (persists to)
-Firebase (Cloud Firestore with local offline caching enabled)
+        ↓ (persists to)
+Firebase (Cloud Firestore with local offline client cache enabled)
 ```
 
-### Directory Structure
-```text
-lib/
-├── core/
-│   ├── constants/       # AppConstants, String labels
-│   ├── errors/          # AppException, AuthException, ValidationException, FirestoreException
-│   ├── models/          # Entity base interface
-│   ├── routing/         # GoRouter configuration & auth guards (app_router.dart)
-│   ├── services/        # FirestoreService base CRUD & batch write abstractions
-│   ├── theme/           # AppTheme (Light & Dark Material 3 theme definitions)
-│   ├── utils/           # Formatters, helpers
-│   └── widgets/         # FinancialWidgets (MoneyText, PageHeader, EmptyStateWidget, etc.), ResponsiveCenter
-├── features/
-│   ├── accounts/        # Account models, types, providers, dialogs, screens
-│   ├── analytics/       # Period aggregations, category breakdowns, chart widgets
-│   ├── auth/            # Auth models, controllers, login/register screens, consent
-│   ├── categories/      # Category entity, defaults generator, categories screen
-│   ├── dashboard/       # AppShell (adaptive navigation), DashboardScreen, overview cards
-│   ├── goals/           # Goal models, goal controller, dialogs, goals screen
-│   ├── legal/           # Privacy notice, Terms of service, Financial disclaimer
-│   ├── loans/           # Loan entity, LoanForecastService, What-If engine, loan dialogs, screens
-│   ├── planned_expenses/# PlannedExpense, overrides, monthly forecast, dialogs
-│   ├── profile/         # ProfileScreen, display name editor
-│   ├── review/          # MonthlyReviewService, MonthlyReviewScreen, review widgets
-│   ├── settings/        # SettingsScreen
-│   └── transactions/    # Transaction model, FinancialAggregationService, dialogs, screen
-├── firebase_options.dart # Auto-generated FlutterFire options
-└── main.dart            # App entry point, Firebase init & Firestore cache settings
-```
-
----
-
-## 4. FEATURE MAP & RESPONSIBILITIES
-
-| Feature | Key Domain Models | Key Services & Repositories | Key Providers / Controllers | Key Screens / Dialogs |
-| :--- | :--- | :--- | :--- | :--- |
-| **Auth** | `User` (Firebase) | `FirebaseAuthRepository` | `authControllerProvider`, `currentUserProvider`, `authStateChangesProvider` | `LoginScreen`, `RegisterScreen` |
-| **Accounts** | `Account`, `AccountTypeDefinition`, `AccountNature` | `FirestoreAccountRepository`, `FirestoreAccountTypeRepository` | `accountsStreamProvider`, `accountTypesStreamProvider`, `accountControllerProvider` | `AccountsScreen`, `AddEditAccountDialog`, `AccountTypesScreen` |
-| **Transactions** | `Transaction`, `TransactionType` | `FirestoreTransactionRepository`, `FinancialAggregationService` | `transactionsStreamProvider`, `transactionFilterProvider`, `transactionControllerProvider` | `TransactionsScreen`, `AddEditTransactionDialog` |
-| **Categories** | `Category`, `CategoryType` | `FirestoreCategoryRepository` | `categoriesStreamProvider`, `incomeCategoriesProvider`, `expenseCategoriesProvider` | `CategoriesScreen`, `AddEditCategoryDialog` |
-| **Planned Expenses** | `PlannedExpense`, `PlannedExpenseOverride`, `RecurrenceFrequency` | `FirestorePlannedExpenseRepository` | `plannedExpensesStreamProvider`, `monthlyOverridesStreamProvider`, `monthlyForecastProvider` | `PlannedExpensesScreen`, `AddEditPlannedExpenseDialog`, `MonthlyOverrideDialog` |
-| **Loans** | `Loan`, `LoanType`, `InterestRateType`, `LoanForecastResult`, `WhatIfScenarioResult` | `FirestoreLoanRepository`, `LoanForecastService` | `loansStreamProvider`, `selectedLoanProvider`, `loanForecastProvider`, `whatIfScenarioResultProvider` | `LoansScreen`, `AddEditLoanDialog` |
-| **Goals** | `Goal`, `GoalType` | `FirestoreGoalRepository` | `goalsStreamProvider`, `goalControllerProvider` | `GoalsScreen`, `AddEditGoalDialog` |
-| **Dashboard** | `MonthlySummaryData` | `FinancialAggregationService` | `calculatedTotalBalanceProvider`, `monthlyFinancialSummaryProvider` | `AppShell`, `DashboardScreen` |
-| **Analytics** | `CategoryBreakdownItem`, `PeriodFinancialSummary`, `FinancialInsight` | `FinancialAggregationService`, `FinancialInsightsService` | `periodSummaryProvider`, `expenseCategoryBreakdownProvider`, `financialInsightsProvider` | `AnalyticsScreen` |
-| **Monthly Review** | `MonthlyReviewData`, `CashFlowSummary`, `LoanForecastSummaryItem` | `FinancialReviewService` | `selectedReviewDateProvider`, `monthlyReviewDataProvider` | `MonthlyReviewScreen` |
-| **Profile & Settings** | User Profile metadata | `FirebaseAuthRepository` | `profileControllerProvider` | `ProfileScreen`, `SettingsScreen` |
-
----
-
-## 5. FINANCIAL DOMAIN & ACCOUNTING INVARIANTS
-
-### Core Definitions
-- **Income**: Total sum of incoming transactions assigned to an Income category.
-- **Expense**: Total sum of outgoing transactions assigned to an Expense category.
-- **Net Cash Flow**: `Total Income - Total Expense`.
-- **Transfers**: Moving money between two accounts (`From Account → To Account`).
-  - **Transfer Invariant**: Transfers **NEVER** create income or expense and have **ZERO** effect on Net Cash Flow.
-- **Transaction Date**: Always use `transaction.date` for monthly/period aggregation. Never substitute `createdAt`.
-
-### Dynamic Balance Calculation (No Stored Balance Fields)
-Account balances are **NOT** stored as static mutable fields in Firestore. They are computed deterministically in memory via `FinancialAggregationService`:
-
-$$\text{Asset Account Balance} = \text{Opening Balance} + \text{Income} - \text{Expense} - \text{Transfers Out} + \text{Transfers In}$$
-
-$$\text{Credit Card (Liability) Balance} = \text{Opening Balance} + \text{Expense} - \text{Income} - \text{Transfers In} + \text{Transfers Out}$$
-
-$$\text{Total Net Balance} = \sum \text{Asset Balances} - \sum \text{Credit Card / Liability Balances}$$
-
-### Credit Card Accounting Rules
-- Credit card expenses increase credit card debt (liability).
-- A transfer from `Bank Account → Credit Card`:
-  - Decreases Bank asset balance.
-  - Decreases Credit Card debt.
-  - Does **NOT** create an expense or income.
-  - Does **NOT** alter Net Cash Flow.
-
----
-
-## 6. TRANSACTION & CATEGORY CONSTRAINTS
-
-### Transaction Constraints
-- **Income**: Requires `accountId`, `categoryId` (must belong to an Income category).
-- **Expense**: Requires `accountId`, `categoryId` (must belong to an Expense category).
-- **Transfer**: Requires `fromAccountId`, `toAccountId` (`fromAccountId != toAccountId`). `categoryId` **MUST be null**.
-- **Amount**: Must be strictly positive ($> 0$).
-
-### Category Constraints
-- Categories are divided into `CategoryType.income` and `CategoryType.expense`.
-- System defaults are generated via `Category.generateDefaults(userId)` if Firestore is empty.
-- Archived categories cannot be selected for new transactions, but historical transactions retain their references.
-
----
-
-## 7. PLANNED EXPENSES & PROGRESSIVE FORECASTING
-
-- **Recurring Planned Expenses**: Configured with `defaultAmount`, `frequency`, `startDate`, `endDate`, and `categoryId`.
-- **Monthly Overrides**: Recorded in `users/{userId}/planned_expense_overrides/{overrideId}` for a specific `(year, month)`. Overrides modify only the targeted month and leave default recurring amounts intact for future months.
-- **CRITICAL INVARIANT**: Planned expenses **NEVER** automatically create `Transaction` documents.
-- **Progressive Information Philosophy**:
-  - Forecasts run with whatever data is provided.
-  - Never fabricate missing fields. If a user hasn't entered an interest rate or tenure, calculate what is possible and present actionable guidance (e.g., *"Adding your interest rate will unlock amortization breakdown"*).
-
----
-
-## 8. LOAN ARCHITECTURE & WHAT-IF ENGINE
-
-`LoanForecastService` provides deterministic loan amortization and scenario simulation:
-- **Calculations**: Monthly EMI, interest component, principal component, remaining tenure, estimated closure date, total interest payable.
-- **What-If Scenarios**:
-  1. `extraMonthly`: Simulates additional recurring monthly prepayment.
-  2. `annualPrepayment`: Simulates yearly lump sum payment.
-  3. `lumpSum`: Simulates immediate one-off principal reduction.
-  4. `increasedEmi`: Simulates higher monthly commitment.
-  5. `interestRateChange`: Simulates market rate increases/decreases.
-- **Presentation Rule**: All scenario outputs are explicitly labeled as *Estimated / Illustrative Forecasts*.
-
----
-
-## 9. FINANCIAL SERVICES RESPONSIBILITY MATRIX
-
+### Authoritative Domain Services Matrix
 | Service Name | Source Location | Responsibility |
 | :--- | :--- | :--- |
 | `FinancialAggregationService` | `lib/features/transactions/domain/services/` | Computes income/expense totals, net cash flow, category breakdowns, period aggregations, dynamic account balances, and planned vs. actual differences. |
-| `FinancialInsightsService` | `lib/features/analytics/domain/services/` | Evaluates rule-based in-app financial insights ("Things to Review") such as top spending category, cash flow alerts, and budget variance. |
-| `FinancialReviewService` | `lib/features/review/domain/services/` | Compiles comprehensive monthly review packages comparing actual transactions, forecast obligations, loan commitments, and goal savings. |
-| `LoanForecastService` | `lib/features/loans/domain/services/` | Computes standard amortization schedules, closure forecasts, and What-If prepayment simulations. |
-
-> **Rule**: Never create duplicate financial calculation services. Reuse or extend these core services.
-
----
-
-## 10. RIVERPOD STATE & PROVIDER ARCHITECTURE
-
-- **Firestore Stream Providers**: Auto-scoped to `currentUserProvider.uid` (`accountsStreamProvider`, `transactionsStreamProvider`, `categoriesStreamProvider`, etc.).
-- **Pure Derived Aggregations**: Memoized providers (`calculatedAccountBalancesProvider`, `calculatedTotalBalanceProvider`, `monthlyFinancialSummaryProvider`, `periodSummaryProvider`). They only recompute when underlying collections change.
-- **Form & Controller State**: Managed via `StateNotifierProvider` (e.g., `transactionControllerProvider`, `accountControllerProvider`). Dialogs and text inputs use local controllers to prevent parent page rebuilds.
+| `DebtIntelligenceService` | `lib/features/loans/domain/services/` | Portfolio debt analytics, Avalanche vs Snowball vs Cash Flow prioritization, refinancing cost-benefit, and deterministic loan insights. |
+| `LoanForecastService` | `lib/features/loans/domain/services/` | Standard PMT EMI, tenure, closure date, amortization schedule, and 6 What-If prepayment simulations. |
+| `FinancialInsightsService` | `lib/features/analytics/domain/services/` | Rule-based financial insights ("Things to Review") evaluating spending spikes, cash-flow margin, and category variances. |
+| `FinancialReviewService` | `lib/features/review/domain/services/` | Compiles comprehensive monthly review packages uniting actual transactions, planned forecasts, debt obligations, and goal savings. |
+| `SmartParserService` | `lib/features/smart_entry/domain/services/` | Pure Dart local deterministic regex & ontology parser extracting amounts, dates, types, categories, accounts, and loan notes. |
 
 ---
 
-## 11. FIRESTORE DATA MODEL & SECURITY
+## 6. FINANCIAL DOMAIN & ACCOUNTING INVARIANTS
 
-### User-Scoped Collection Hierarchy
+### Core Accounting Rules
+1. **Income**: Total sum of incoming transactions assigned to an Income category.
+2. **Expense**: Total sum of outgoing transactions assigned to an Expense category.
+3. **Net Cash Flow**: `Total Income - Total Expense`.
+4. **Transfers are Net-Zero**: Moving money between two accounts (`From Account → To Account`) never creates income or expense and has **ZERO** impact on Net Cash Flow. `categoryId` must be null.
+5. **Credit Card Debt Accounting**:
+   - Expenses increase Credit Card liability.
+   - Transfer from Bank $\rightarrow$ Credit Card decreases bank asset and decreases credit card liability without creating duplicate expenses.
+6. **Dynamic Account Balances (No Stored Balance Fields)**:
+   - Account balances are dynamically computed in memory by `FinancialAggregationService`.
+   - $\text{Asset Balance} = \text{Opening Balance} + \text{Income} - \text{Expense} - \text{Transfers Out} + \text{Transfers In}$.
+   - $\text{Liability Balance} = \text{Opening Balance} + \text{Expense} - \text{Income} - \text{Transfers In} + \text{Transfers Out}$.
+7. **Unified Net Worth**:
+   - $\text{Net Worth} = \sum \text{Authoritative Asset Balances} - \sum \text{Authoritative Liabilities (Credit Cards + Loan Principals)}$.
+
+---
+
+## 7. LOAN INTELLIGENCE & DEBT PRIORITIZATION
+
+- **Progressive Fields**: `name`, `type`, `outstandingPrincipal`, `interestRate`, `interestRateType`, `emiAmount`, `remainingTenureMonths`, `lenderName`, `processingFee`, `prepaymentCharges`.
+- **Debt Prioritization Strategies**:
+  1. **Avalanche (Highest Rate First)**: Mathematically minimizes lifetime interest paid.
+  2. **Snowball (Smallest Balance First)**: Delivers fast psychological momentum and eliminates monthly commitment lines quickly.
+  3. **Cash Flow Relief**: Prioritizes highest monthly EMI freed relative to balance.
+  4. **Max Interest Savings**: Targets the largest absolute rupee interest drain.
+- **Nuance Engine**: Explicitly distinguishes between *Highest Interest Rate* (rate drag) and *Highest Absolute Interest Cost* (rupee drain).
+- **Refinancing Analyzer**: Evaluates rate reductions, deducting switching fees and prepayment penalties to calculate net savings and break-even tenure.
+
+---
+
+## 8. FIRESTORE DATA MODEL & SECURITY
+
 ```text
 users/{userId}
 ├── accounts/{accountId}
@@ -212,73 +191,20 @@ users/{userId}
 ```
 
 ### Security Rules Invariant
-`firestore.rules` enforces owner-only access:
 ```javascript
 match /users/{userId}/{document=**} {
   allow read, write: if request.auth != null && request.auth.uid == userId;
 }
 ```
-*Never weaken Firestore security rules or allow cross-user access.*
+*Strict user isolation enforced at database level. Never weaken rules.*
 
 ---
 
-## 12. DECLARATIVE ROUTING TABLE (`app_router.dart`)
+## 9. PERFORMANCE GUARDRAILS & ARCHITECTURAL RULES
 
-| Path | Route Name | Screen Component | Guard / Behavior |
-| :--- | :--- | :--- | :--- |
-| `/login` | `login` | `LoginScreen` | Redirects to `/dashboard` if authenticated |
-| `/register` | `register` | `RegisterScreen` | Redirects to `/dashboard` if authenticated |
-| `/dashboard` | `dashboard` | `AppShell` (Hosts top-level tabs) | Requires authenticated user |
-| `/monthly-review`| `monthly-review` | `MonthlyReviewScreen` | Requires authenticated user |
-| `/planned-expenses`| `planned-expenses`| `PlannedExpensesScreen` | Requires authenticated user |
-| `/loans` | `loans` | `LoansScreen` | Requires authenticated user |
-| `/goals` | `goals` | `GoalsScreen` | Requires authenticated user |
-| `/categories` | `categories` | `CategoriesScreen` | Requires authenticated user |
-| `/account-types` | `account-types` | `AccountTypesScreen` | Requires authenticated user |
-| `/profile` | `profile` | `ProfileScreen` | Requires authenticated user |
-| `/terms` | `terms` | `TermsOfServiceScreen` | Publicly accessible |
-| `/privacy` | `privacy` | `PrivacyNoticeScreen` | Publicly accessible |
-| `/disclaimer` | `disclaimer` | `FinancialDisclaimerScreen` | Publicly accessible |
-
----
-
-## 13. RESPONSIVE UI & VIEWPORT ARCHITECTURE
-
-- **Adaptive Shell (`AppShell`)**:
-  - $\ge 720\text{px}$: `NavigationRail` on the left.
-  - $< 720\text{px}$: `NavigationBar` on the bottom.
-- **Centered Layout (`ResponsiveCenter`)**: Constrains content width (max `1000px` to `1100px`) and ensures `width: double.infinity` to prevent shrink-wrapping.
-- **Header Pattern (`PageHeader`)**: Uses `LayoutBuilder` (breakpoint `600px`) to display title/subtitle and action side-by-side on wide screens and stacked on narrow screens.
-- **Verified Viewport Range**: Tested across `320px`, `375px`, `430px`, `768px`, `1024px`, and `1440px`.
-
----
-
-## 14. PERFORMANCE GUARDRAILS & LESSONS LEARNED
-
-1. **Firestore Client Persistence**: Always preserve `Settings(persistenceEnabled: true)` in `main.dart` so streams resolve from local IndexedDB cache without waiting for remote network handshakes.
-2. **Deterministic Save Operations**: Save and update methods must validate fields locally without executing redundant remote queries (`getAccounts()` or `getCategories()`).
-3. **Instant Dropdown & Chip Fallbacks**: Always provide immediate in-memory fallbacks (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`) in dialogs so choice chips and dropdowns render with 0ms delay.
-4. **AppShell Tab Isolation**: Inactive tabs are lazily mounted and wrapped in `TickerMode(enabled: isSelected)` and `Offstage(offstage: !isSelected)` to pause inactive charts and rebuild passes.
-5. **No Keystroke Rebuild Cascades**: Text inputs must use local `TextEditingController` state and never trigger global aggregations on every keystroke.
-6. **No Title Truncation / Vertical Text Collapse**: Never place flexible title text inside unconstrained horizontal flex widgets. Always use `PageHeader`.
-
----
-
-## 15. DEVELOPER & FUTURE AGENT WORKFLOW
-
-Follow this exact workflow for all future coding tasks:
-
-```text
-STEP 1: Read AGENTS.md (Master Rules & Workflow).
-STEP 2: Read docs/project-dna/PROJECT_DNA.md (Architecture & Domain invariants).
-STEP 3: Read only the relevant feature models, providers, and screens.
-STEP 4: Implement the smallest safe, targeted change.
-STEP 5: Do NOT run full test suites or web release builds after every minor edit.
-STEP 6: Run full verification ONCE at milestone completion:
-        1. dart format .
-        2. dart analyze
-        3. flutter test
-        4. flutter build web --release
-STEP 7: Leave all changes uncommitted in the working tree for user review.
-```
-
+1. **Firestore Client Persistence**: Must remain enabled (`Settings(persistenceEnabled: true)`) in `main.dart` for instant cache reads.
+2. **0ms Save Validation**: Save and update methods validate in memory without executing remote network queries.
+3. **Instant Dropdown & Chip Fallbacks**: In-memory defaults (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`) prevent loading delays in dialogs.
+4. **AppShell Tab Isolation**: Inactive tabs are lazily mounted and paused via `TickerMode`/`Offstage`.
+5. **No Full-Screen Loading Spinners**: Stream builders use `skipLoadingOnReload: true` and `skipLoadingOnRefresh: true`.
+6. **Responsive UI Guardrails**: All pages use `PageHeader` (breakpoint 600px) and `ResponsiveCenter` (`width: double.infinity`) to prevent single-character text collapse across 320px–1440px viewports.

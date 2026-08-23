@@ -141,25 +141,29 @@ class AnalyticsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Things to Review Section
-              const ThingsToReviewCard(),
+              const RepaintBoundary(child: ThingsToReviewCard()),
               const SizedBox(height: 16),
 
               // Income vs Expense Chart Card
-              const IncomeExpenseChartCard(),
+              const RepaintBoundary(child: IncomeExpenseChartCard()),
               const SizedBox(height: 16),
 
               // Category Breakdown Cards
-              CategoryBreakdownCard(
-                title: 'Expense Categories',
-                items: expenseBreakdown,
-                type: CategoryType.expense,
+              RepaintBoundary(
+                child: CategoryBreakdownCard(
+                  title: 'Expense Categories',
+                  items: expenseBreakdown,
+                  type: CategoryType.expense,
+                ),
               ),
               const SizedBox(height: 16),
 
-              CategoryBreakdownCard(
-                title: 'Income Categories',
-                items: incomeBreakdown,
-                type: CategoryType.income,
+              RepaintBoundary(
+                child: CategoryBreakdownCard(
+                  title: 'Income Categories',
+                  items: incomeBreakdown,
+                  type: CategoryType.income,
+                ),
               ),
               const SizedBox(height: 16),
 

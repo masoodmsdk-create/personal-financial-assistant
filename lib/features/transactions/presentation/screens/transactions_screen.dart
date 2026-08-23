@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
+
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
@@ -132,10 +134,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             PageHeader(
               title: 'Transactions',
               subtitle: 'Track all income, expense, and transfer records.',
-              action: FilledButton.icon(
-                onPressed: _showAddTransactionDialog,
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Add Transaction'),
+              action: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.tonalIcon(
+                    onPressed: () => context.push('/smart-entry'),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                    label: const Text('Smart Entry'),
+                  ),
+                  FilledButton.icon(
+                    onPressed: _showAddTransactionDialog,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Transaction'),
+                  ),
+                ],
               ),
             ),
 

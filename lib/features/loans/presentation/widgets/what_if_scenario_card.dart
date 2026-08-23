@@ -17,6 +17,8 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
   late TextEditingController _lumpSumController;
   late TextEditingController _newEmiController;
   late TextEditingController _customRateController;
+  late TextEditingController _refinanceRateController;
+  late TextEditingController _refinanceFeeController;
 
   @override
   void initState() {
@@ -26,6 +28,8 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
     _lumpSumController = TextEditingController(text: '100000');
     _newEmiController = TextEditingController(text: '60000');
     _customRateController = TextEditingController(text: '8.0');
+    _refinanceRateController = TextEditingController(text: '7.5');
+    _refinanceFeeController = TextEditingController(text: '2500');
   }
 
   @override
@@ -35,6 +39,8 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
     _lumpSumController.dispose();
     _newEmiController.dispose();
     _customRateController.dispose();
+    _refinanceRateController.dispose();
+    _refinanceFeeController.dispose();
     super.dispose();
   }
 
@@ -65,6 +71,16 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
         final val = double.tryParse(_customRateController.text) ?? 8.0;
         ref.read(activeWhatIfParamsProvider.notifier).state =
             WhatIfScenarioParams(scenarioInterestRate: val);
+        break;
+      case WhatIfType.refinanceComparison:
+        final rate = double.tryParse(_refinanceRateController.text) ?? 7.5;
+        final fee = double.tryParse(_refinanceFeeController.text) ?? 2500.0;
+        ref
+            .read(activeWhatIfParamsProvider.notifier)
+            .state = WhatIfScenarioParams(
+          scenarioInterestRate: rate,
+          scenarioProcessingFee: fee,
+        );
         break;
       case WhatIfType.targetClosureDate:
         final targetDate = DateTime.now().add(const Duration(days: 365 * 5));
@@ -114,7 +130,7 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Simulate prepayment strategies or interest rate changes without modifying actual loan data.',
+              'Simulate prepayment strategies, tenure reduction, or refinancing without modifying actual loan data.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -168,9 +184,12 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SavingsBadge(
-                      label: 'Estimated Interest Saved',
+                      label: activeType == WhatIfType.refinanceComparison
+                          ? 'Net Refinance Savings'
+                          : 'Estimated Interest Saved',
                       value: currencyFormat.format(
-                        result.estimatedInterestSaved,
+                        result.netRefinanceSavings ??
+                            result.estimatedInterestSaved,
                       ),
                       icon: Icons.savings_outlined,
                       color: Colors.green,
@@ -190,7 +209,6 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
                     color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                   ),
                 ),
-
                 child: Column(
                   children: [
                     Row(
@@ -253,6 +271,29 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
                             0.0,
                       ),
                     ),
+                    if (result.breakEvenMonths != null &&
+                        result.breakEvenMonths! > 0) ...[
+                      const Divider(height: 16),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline_rounded,
+                            size: 16,
+                            color: Colors.green.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Break-even tenure: ~${result.breakEvenMonths} months to recover estimated switching fees.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (result.requiredAdditionalMonthlyPayment != null &&
                         result.requiredAdditionalMonthlyPayment! > 0) ...[
                       const Divider(height: 16),
@@ -351,6 +392,38 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
           ),
           onChanged: (_) => _updateParams(type),
         );
+      case WhatIfType.refinanceComparison:
+        return Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _refinanceRateController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'New Rate (%)',
+                  suffixText: '%',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => _updateParams(type),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _refinanceFeeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Switching Fees (₹)',
+                  prefixText: '₹ ',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => _updateParams(type),
+              ),
+            ),
+          ],
+        );
       case WhatIfType.targetClosureDate:
         return Container(
           padding: const EdgeInsets.all(12),
@@ -363,7 +436,7 @@ class _WhatIfScenarioCardState extends ConsumerState<WhatIfScenarioCard> {
               const Icon(Icons.calendar_month_outlined),
               const SizedBox(width: 12),
               const Expanded(
-                child: Text('Simulated target closure date: 5 Years'),
+                child: Text('Simulated target closure: In 5 Years'),
               ),
               ElevatedButton(
                 onPressed: () => _updateParams(type),

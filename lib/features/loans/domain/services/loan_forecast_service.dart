@@ -328,6 +328,14 @@ class LoanForecastService {
         );
         break;
 
+      case WhatIfType.refinanceComparison:
+        final newRate =
+            params.scenarioInterestRate ?? ((loan.interestRate ?? 8.5) - 0.5);
+        scenarioLoan = loan.copyWith(interestRate: newRate);
+        scenarioName = 'Refinance to ${newRate.toStringAsFixed(1)}%';
+        scenarioForecast = calculateForecast(scenarioLoan, asOfDate: now);
+        break;
+
       case WhatIfType.targetClosureDate:
         final desiredDate =
             params.desiredClosureDate ??
@@ -375,6 +383,25 @@ class LoanForecastService {
           (scenarioForecast.estimatedRemainingInterest ?? 0.0),
     );
 
+    double? netRefinance;
+    int? breakEven;
+    if (scenarioType == WhatIfType.refinanceComparison) {
+      final switchingCost =
+          (params.scenarioProcessingFee ?? loan.processingFee ?? 0.0) +
+          (params.scenarioPrepaymentPenalty ?? loan.prepaymentCharges ?? 0.0);
+      netRefinance = interestSaved - switchingCost;
+      final p = loan.outstandingPrincipal ?? loan.originalPrincipal ?? 0.0;
+      final monthlyCurrentI = p * ((loan.interestRate ?? 0.0) / 1200.0);
+      final monthlyScenarioI =
+          p *
+          ((params.scenarioInterestRate ?? (loan.interestRate ?? 0.0)) /
+              1200.0);
+      final monthlyDiff = monthlyCurrentI - monthlyScenarioI;
+      if (switchingCost > 0 && monthlyDiff > 0) {
+        breakEven = (switchingCost / monthlyDiff).ceil();
+      }
+    }
+
     return WhatIfScenarioResult(
       scenarioType: scenarioType,
       scenarioName: scenarioName,
@@ -386,6 +413,10 @@ class LoanForecastService {
       requiredAdditionalMonthlyPayment: requiredAdditionalPayment != null
           ? double.parse(requiredAdditionalPayment.toStringAsFixed(2))
           : null,
+      netRefinanceSavings: netRefinance != null
+          ? double.parse(netRefinance.toStringAsFixed(2))
+          : null,
+      breakEvenMonths: breakEven,
       disclaimer: 'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
     );
   }

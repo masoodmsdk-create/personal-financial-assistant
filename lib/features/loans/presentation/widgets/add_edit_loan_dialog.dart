@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
@@ -17,11 +18,14 @@ class AddEditLoanDialog extends ConsumerStatefulWidget {
 class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _lenderController;
   late TextEditingController _originalPrincipalController;
   late TextEditingController _outstandingPrincipalController;
   late TextEditingController _interestRateController;
   late TextEditingController _emiController;
   late TextEditingController _tenureController;
+  late TextEditingController _processingFeeController;
+  late TextEditingController _prepaymentChargesController;
   late TextEditingController _notesController;
 
   late LoanType _selectedType;
@@ -38,6 +42,7 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
     super.initState();
     final l = widget.loan;
     _nameController = TextEditingController(text: l?.name ?? '');
+    _lenderController = TextEditingController(text: l?.lenderName ?? '');
     _originalPrincipalController = TextEditingController(
       text: l?.originalPrincipal != null ? l!.originalPrincipal.toString() : '',
     );
@@ -57,6 +62,12 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
           ? l!.remainingTenureMonths.toString()
           : '',
     );
+    _processingFeeController = TextEditingController(
+      text: l?.processingFee != null ? l!.processingFee.toString() : '',
+    );
+    _prepaymentChargesController = TextEditingController(
+      text: l?.prepaymentCharges != null ? l!.prepaymentCharges.toString() : '',
+    );
     _notesController = TextEditingController(text: l?.notes ?? '');
 
     _selectedType = l?.type ?? LoanType.homeLoan;
@@ -73,11 +84,14 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
   @override
   void dispose() {
     _nameController.dispose();
+    _lenderController.dispose();
     _originalPrincipalController.dispose();
     _outstandingPrincipalController.dispose();
     _interestRateController.dispose();
     _emiController.dispose();
     _tenureController.dispose();
+    _processingFeeController.dispose();
+    _prepaymentChargesController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -86,11 +100,14 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
+    final lender = _lenderController.text.trim();
     final origP = double.tryParse(_originalPrincipalController.text.trim());
     final outP = double.tryParse(_outstandingPrincipalController.text.trim());
     final rate = double.tryParse(_interestRateController.text.trim());
     final emi = double.tryParse(_emiController.text.trim());
     final tenure = int.tryParse(_tenureController.text.trim());
+    final fee = double.tryParse(_processingFeeController.text.trim());
+    final penalty = double.tryParse(_prepaymentChargesController.text.trim());
     final notes = _notesController.text.trim();
 
     final controller = ref.read(loanControllerProvider.notifier);
@@ -109,6 +126,9 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
         startDate: _startDate,
         nextEmiDate: _nextEmiDate,
         linkedAccountId: _selectedAccountId,
+        lenderName: lender.isNotEmpty ? lender : null,
+        processingFee: fee,
+        prepaymentCharges: penalty,
         notes: notes.isNotEmpty ? notes : null,
       );
       success = await controller.updateLoan(updated);
@@ -125,6 +145,9 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
         startDate: _startDate,
         nextEmiDate: _nextEmiDate,
         linkedAccountId: _selectedAccountId,
+        lenderName: lender.isNotEmpty ? lender : null,
+        processingFee: fee,
+        prepaymentCharges: penalty,
         notes: notes.isNotEmpty ? notes : null,
       );
     }
@@ -168,6 +191,7 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                 const SizedBox(height: 16),
 
                 DropdownButtonFormField<LoanType>(
+                  isExpanded: true,
                   initialValue: _selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Loan Type *',
@@ -192,13 +216,23 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                 const SizedBox(height: 16),
 
                 TextFormField(
+                  controller: _lenderController,
+                  decoration: const InputDecoration(
+                    labelText: 'Lender / Bank Name (Optional)',
+                    hintText: 'e.g. HDFC Bank, SBI, ICICI',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
                   controller: _outstandingPrincipalController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Outstanding Principal (₹)',
-                    hintText: 'e.g. 4500000',
+                    hintText: 'Current balance owed',
                     prefixText: '₹ ',
                     border: OutlineInputBorder(),
                   ),
@@ -215,7 +249,7 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Interest Rate (%)',
-                          hintText: 'e.g. 8.5',
+                          hintText: 'Annual %',
                           suffixText: '%',
                           border: OutlineInputBorder(),
                         ),
@@ -223,15 +257,54 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
+                      child: DropdownButtonFormField<InterestRateType>(
+                        isExpanded: true,
+                        initialValue: _selectedInterestType,
+                        decoration: const InputDecoration(
+                          labelText: 'Rate Type',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: InterestRateType.values.map((type) {
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Text(type.displayName),
+                          );
+                        }).toList(),
+
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedInterestType = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
                       child: TextFormField(
                         controller: _emiController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         decoration: const InputDecoration(
-                          labelText: 'EMI Amount (₹)',
-                          hintText: 'e.g. 52000',
+                          labelText: 'Monthly EMI (₹)',
                           prefixText: '₹ ',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _tenureController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Remaining Months',
+                          hintText: 'Tenure',
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -240,32 +313,62 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() => _showAdvancedFields = !_showAdvancedFields);
-                  },
-                  icon: Icon(
-                    _showAdvancedFields ? Icons.expand_less : Icons.expand_more,
+                // Toggle Advanced Fields
+                InkWell(
+                  onTap: () => setState(
+                    () => _showAdvancedFields = !_showAdvancedFields,
                   ),
-                  label: Text(
-                    _showAdvancedFields
-                        ? 'Hide Optional Details'
-                        : 'Add More Details (Tenure, Accounts, Dates)',
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _showAdvancedFields
+                              ? Icons.arrow_drop_down
+                              : Icons.arrow_right,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        Text(
+                          _showAdvancedFields
+                              ? 'Hide Advanced Details'
+                              : 'Show Advanced Details (Fees, Dates, Account)',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
                 if (_showAdvancedFields) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _originalPrincipalController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Original Loan Principal (₹)',
+                      prefixText: '₹ ',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   Row(
                     children: [
                       Expanded(
                         child: TextFormField(
-                          controller: _originalPrincipalController,
+                          controller: _processingFeeController,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
                           decoration: const InputDecoration(
-                            labelText: 'Original Principal (₹)',
+                            labelText: 'Processing Fee (₹)',
+                            prefixText: '₹ ',
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -273,11 +376,13 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextFormField(
-                          controller: _tenureController,
-                          keyboardType: TextInputType.number,
+                          controller: _prepaymentChargesController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           decoration: const InputDecoration(
-                            labelText: 'Remaining Months',
-                            hintText: 'e.g. 180',
+                            labelText: 'Prepayment Charges (₹)',
+                            prefixText: '₹ ',
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -286,57 +391,68 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  DropdownButtonFormField<InterestRateType>(
-                    initialValue: _selectedInterestType,
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: _selectedAccountId,
                     decoration: const InputDecoration(
-                      labelText: 'Interest Rate Type',
+                      labelText: 'Linked EMI Account',
+                      hintText: 'Account from which EMI is debited',
                       border: OutlineInputBorder(),
                     ),
-                    items: InterestRateType.values.map((t) {
-                      return DropdownMenuItem(
-                        value: t,
-                        child: Text(t.displayName),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _selectedInterestType = val);
-                      }
-                    },
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('None / Unlinked'),
+                      ),
+                      ...accounts.map((acc) {
+                        return DropdownMenuItem(
+                          value: acc.id,
+                          child: Text(
+                            '${acc.name} (${acc.type.displayName})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) =>
+                        setState(() => _selectedAccountId = val),
                   ),
                   const SizedBox(height: 16),
 
-                  if (accounts.isNotEmpty) ...[
-                    DropdownButtonFormField<String?>(
-                      initialValue: _selectedAccountId,
-                      decoration: const InputDecoration(
-                        labelText: 'Linked Payment Account',
-                        border: OutlineInputBorder(),
-                      ),
-
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('None'),
-                        ),
-                        ...accounts.map(
-                          (a) => DropdownMenuItem(
-                            value: a.id,
-                            child: Text('${a.name} (${a.type.displayName})'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _nextEmiDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => _nextEmiDate = picked);
+                            }
+                          },
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(
+                            _nextEmiDate != null
+                                ? 'Next EMI: ${DateFormat('dd/MM/yy').format(_nextEmiDate!)}'
+                                : 'Next EMI Date',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
                           ),
                         ),
-                      ],
-                      onChanged: (val) =>
-                          setState(() => _selectedAccountId = val),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
 
                   TextFormField(
                     controller: _notesController,
                     maxLines: 2,
                     decoration: const InputDecoration(
-                      labelText: 'Notes',
+                      labelText: 'Notes / Remarks',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -351,15 +467,15 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
           onPressed: isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: isLoading ? null : _submit,
           child: isLoading
               ? const SizedBox(
-                  width: 18,
-                  height: 18,
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(_isEditing ? 'Save Changes' : 'Create Loan'),
+              : Text(_isEditing ? 'Save Changes' : 'Add Loan'),
         ),
       ],
     );

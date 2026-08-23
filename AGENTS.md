@@ -17,7 +17,8 @@ STEP 3: Inspect ONLY the specific files and models relevant to the task.
         → DO NOT repeatedly scan or re-analyze the entire repository.
 STEP 4: Implement the SMALLEST SAFE CHANGE.
         → DO NOT rewrite working modules or recreate existing services/providers/models.
-STEP 5: DO NOT run the complete test suite or web release build after every small change.
+STEP 5: Run targeted unit tests during active development.
+        → DO NOT run the complete test suite or web release build after every small change.
 STEP 6: At milestone completion, run full verification ONCE:
         1. dart format .
         2. dart analyze
@@ -35,13 +36,15 @@ STEP 7: Leave all changes uncommitted in the working tree.
    - The actual Dart source code and config files (`pubspec.yaml`, `firestore.rules`, etc.) are the ground truth.
    - Comprehensive persistent architectural memory resides in `docs/project-dna/PROJECT_DNA.md`.
 2. **Deterministic Financial Logic**:
-   - All accounting, balance aggregations, and loan simulations run in pure Dart services (`FinancialAggregationService`, `LoanForecastService`, etc.).
+   - All accounting, balance aggregations, debt prioritizations, and loan simulations run in pure Dart services (`FinancialAggregationService`, `DebtIntelligenceService`, `LoanForecastService`).
    - **Never use an AI model for financial calculations.**
    - Account balances are **dynamically computed** from transactions; they are not stored as static mutable fields in Firestore.
-3. **Accounting Invariants**:
+3. **Accounting & Interaction Invariants**:
    - **Transfers are Net-Zero**: Transfers between accounts never create income or expense and have zero impact on Net Cash Flow.
    - **Credit Card Accounting**: Expenses increase debt (liability); transfers from bank to credit card decrease debt without creating duplicate expenses.
-   - **Planned vs. Actual**: Planned expenses **NEVER** automatically create `Transaction` documents.
+   - **Planned vs. Actual**: Planned expenses and loan forecasts **NEVER** automatically create `Transaction` documents.
+   - **User Confirmation Required**: Never silently modify or create financial records without explicit user confirmation.
+   - **No Data Fabrication**: Never invent financial figures or fake precision metrics.
 4. **₹0 Operating Cost & Firebase Quotas**:
    - The application strictly targets the Firebase Spark tier (₹0 cost).
    - Never link billing, enable paid GCP APIs, or introduce paid external services.
