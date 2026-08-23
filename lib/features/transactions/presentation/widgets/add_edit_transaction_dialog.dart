@@ -9,7 +9,6 @@ import 'package:personal_financial_assistant/features/categories/presentation/pr
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
-
 class AddEditTransactionDialog extends ConsumerStatefulWidget {
   final Transaction? transaction;
 

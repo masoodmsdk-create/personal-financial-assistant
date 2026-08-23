@@ -221,7 +221,6 @@ class _AddEditPlannedExpenseDialogState
                         .where((c) => c.active)
                         .toList();
 
-
                     if (_selectedCategoryId == null &&
                         activeExpenseCategories.isNotEmpty) {
                       _selectedCategoryId = activeExpenseCategories.first.id;

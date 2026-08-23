@@ -21,7 +21,6 @@ class FirestorePlannedExpenseRepository implements PlannedExpenseRepository {
   }) : _firestoreService = firestoreService ?? FirestoreService(),
        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
-
   String _requireCurrentUserId() {
     final uid = _firebaseAuth.currentUser?.uid;
     if (uid == null || uid.isEmpty) {

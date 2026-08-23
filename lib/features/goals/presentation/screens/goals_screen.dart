@@ -86,6 +86,8 @@ class GoalsScreen extends ConsumerWidget {
 
     return Scaffold(
       body: goalsAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         data: (goals) {
           if (goals.isEmpty) {
             return SingleChildScrollView(

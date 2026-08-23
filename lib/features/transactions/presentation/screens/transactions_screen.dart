@@ -237,6 +237,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             // Transactions List
             Expanded(
               child: transactionsAsync.when(
+                skipLoadingOnReload: true,
+                skipLoadingOnRefresh: true,
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, _) => Center(
                   child: Padding(

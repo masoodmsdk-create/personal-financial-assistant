@@ -98,6 +98,8 @@ class AccountsScreen extends ConsumerWidget {
 
     return Scaffold(
       body: accountsAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         data: (accounts) {
           if (accounts.isEmpty) {
             return SingleChildScrollView(

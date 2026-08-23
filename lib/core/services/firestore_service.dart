@@ -31,11 +31,14 @@ class FirestoreService {
     bool merge = false,
   }) async {
     try {
-      await userDoc(
-        userId,
-        collection,
-        docId,
-      ).set(data, SetOptions(merge: merge));
+      await userDoc(userId, collection, docId)
+          .set(data, SetOptions(merge: merge))
+          .timeout(
+            const Duration(seconds: 4),
+            onTimeout: () {
+              // Local persistence captures write optimistically; background sync continues.
+            },
+          );
     } on FirebaseException catch (e) {
       throw _mapFirestoreException(e);
     }
@@ -47,7 +50,10 @@ class FirestoreService {
     required String docId,
   }) async {
     try {
-      final doc = await userDoc(userId, collection, docId).get();
+      final doc = await userDoc(userId, collection, docId).get().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () => throw const FirestoreException('Request timed out'),
+      );
       return doc.data();
     } on FirebaseException catch (e) {
       throw _mapFirestoreException(e);
@@ -60,7 +66,12 @@ class FirestoreService {
     required String docId,
   }) async {
     try {
-      await userDoc(userId, collection, docId).delete();
+      await userDoc(userId, collection, docId).delete().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () {
+          // Local persistence captures delete optimistically; background sync continues.
+        },
+      );
     } on FirebaseException catch (e) {
       throw _mapFirestoreException(e);
     }
@@ -88,7 +99,10 @@ class FirestoreService {
         query = query.limit(params.limit!);
       }
 
-      final snapshot = await query.get();
+      final snapshot = await query.get().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () => throw const FirestoreException('Query timed out'),
+      );
       return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
     } on FirebaseException catch (e) {
       throw _mapFirestoreException(e);
@@ -142,7 +156,12 @@ class FirestoreService {
             break;
         }
       }
-      await batch.commit();
+      await batch.commit().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () {
+          // Local persistence captures batch write optimistically; background sync continues.
+        },
+      );
     } on FirebaseException catch (e) {
       throw _mapFirestoreException(e);
     }

@@ -234,6 +234,8 @@ class DashboardScreen extends ConsumerWidget {
             // Real Recent Transactions List
             Card(
               child: transactionsAsync.when(
+                skipLoadingOnReload: true,
+                skipLoadingOnRefresh: true,
                 loading: () => const Padding(
                   padding: EdgeInsets.all(24.0),
                   child: Center(child: CircularProgressIndicator()),

@@ -71,8 +71,11 @@ class LoansScreen extends ConsumerWidget {
 
     return Scaffold(
       body: loansAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error loading loans: $err')),
+
         data: (loans) {
           final activeLoans = loans.where((l) => l.active).toList();
 

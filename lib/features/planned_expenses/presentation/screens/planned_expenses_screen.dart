@@ -521,6 +521,8 @@ class _RecurringPlansTabView extends ConsumerWidget {
 
         Expanded(
           child: plansAsync.when(
+            skipLoadingOnReload: true,
+            skipLoadingOnRefresh: true,
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, _) => Center(child: Text('Error loading plans: $err')),
             data: (plans) {
