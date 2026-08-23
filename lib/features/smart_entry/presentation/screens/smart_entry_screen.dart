@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 
@@ -123,9 +125,14 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'Smart Assistant Entry',
                 subtitle: 'Type or paste free-form notes. The assistant automatically detects amounts, categories, accounts, and types.',
+                action: FilledButton.tonalIcon(
+                  onPressed: () => context.push('/financial-setup'),
+                  icon: const Icon(Icons.psychology_alt_rounded, size: 18),
+                  label: const Text('Full Financial Setup'),
+                ),
               ),
 
               // Sample Prompt Chips

@@ -24,11 +24,14 @@
 ## Phase 1 — Financial Setup & Financial Blueprint
 - [x] Smart Financial Entry Assistant foundation (`SmartParserService`, `SmartEntryScreen`).
 - [ ] Multi-entity Natural Language Situation Understanding (Extracting Income, Debt Commitments, Living Expenses, Savings, and Goals from a single passage).
-- [ ] Financial Blueprint Draft & Interactive Review screen before persistence.
+- [ ] Conversational Clarification Engine (Targeted questions, intelligent batched confirmations, selectable chips, escape hatches: *"Skip for now"*, *"I'll add later"*).
+- [ ] Interactive Mutable Financial Blueprint Draft & Review screen before persistence.
 - [ ] Progressive Guided Setup: *"Tell FINAURA about your money"* onboarding flow.
-- [ ] Ambiguity resolution dialogs (asking clarifying questions rather than guessing).
 - [ ] Workspace boundary & data isolation (`workspaceId` indexing with default "Personal" workspace).
+- [ ] Workspace Purpose & Financial Context onboarding (lightweight purpose statement, editable under Workspace Settings, guiding Financial Intelligence).
 - [ ] Workspace Creation options: "Start Empty" and "Copy Setup" (copying structure without duplicating financial history).
+
+
 
 ---
 

@@ -74,17 +74,27 @@ Build a Personal Financial Assistant for:
   - `PageHeader` (breakpoint 600px) eliminating vertical single-character text collapse across all viewports.
   - `ResponsiveCenter` enforcing full-width constraints to prevent shrink-wrapping.
   - `AppShell` with adaptive `NavigationRail` ($\ge 720\text{px}$) and `NavigationBar` ($< 720\text{px}$).
+- **Financial Setup & Live Financial Blueprint (Phase 1 Master Deliverable)**:
+  - `Workspace` context layer with user-provided `purpose` and `priorities` (`users/{userId}/workspaces/{workspaceId}`).
+  - `FirestoreWorkspaceRepository` and Riverpod providers (`activeWorkspaceProvider`, `workspacesStreamProvider`).
+  - `CreateWorkspaceDialog` and `EditWorkspaceDialog` with 0ms in-memory instant rendering.
+  - `FinancialSituationParser`: Pure deterministic multi-entity natural language parser extracting incomes, loans/commitments, recurring living expenses, savings/assets, goals, and actual transactions.
+  - **Conversational Clarification Loop**: Automatic interactive detection of ambiguities (`ClarificationQuestion`) for actual payments vs recurring commitments vs existing loans vs expenses.
+  - **Live Mutable Financial Blueprint**: Pre-persistence in-memory draft with instant computed metrics (`totalMonthlyIncome`, `totalMonthlyExpenses`, `totalMonthlyEmi`, `knownRemainingMonthlyCashFlow`).
+  - `BlueprintPersistenceService`: Atomic confirmed mapping into existing domain models (`PlannedExpense`, `Loan`, `Account`, `Goal`, `Transaction`) without parallel schemas or silent persistence.
+  - `FinancialSetupScreen` (/financial-setup) with interactive Q&A clarification chips, live financial picture breakdown, and explicit confirmation dialog.
+  - Full integration into `DashboardScreen` and `SettingsScreen`.
 - **Automated Verification**:
   - Static Analysis: `dart analyze` (0 issues found).
-  - Test Suite: `flutter test` (137/137 tests passing).
+  - Test Suite: `flutter test` (148/148 tests passing).
   - Web Release Build: `flutter build web --release` (built cleanly).
 
 ---
 
 ## Next Strategic Work
 
-1. **Phase 1 Evolution**: Multi-entity Situation Understanding & Financial Blueprint Onboarding Flow (*"Tell FINAURA about your money"*).
-2. **Phase 3**: Category-level monthly Budgets, threshold warning indicators, and actual vs budget variances.
-3. **Phase 4**: Unified Net Worth & Balance Sheet calculation (Assets minus Liabilities).
-4. **Phase 5**: Goal vs Debt Prepayment trade-off engine.
-5. **Phase 6**: Ask FINAURA natural-language assistant layer.
+1. **Phase 3**: Category-level monthly Budgets, threshold warning indicators, and actual vs budget variances.
+2. **Phase 4**: Unified Net Worth & Balance Sheet calculation (Assets minus Liabilities).
+3. **Phase 5**: Goal vs Debt Prepayment trade-off engine.
+4. **Phase 6**: Ask FINAURA natural-language assistant layer.
+

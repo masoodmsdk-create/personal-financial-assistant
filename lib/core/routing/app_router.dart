@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/register_screen.dart';
+import 'package:personal_financial_assistant/features/blueprint/presentation/screens/financial_setup_screen.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/screens/categories_screen.dart';
+
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/app_shell.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/screens/account_types_screen.dart';
 import 'package:personal_financial_assistant/features/goals/presentation/screens/goals_screen.dart';
@@ -134,6 +136,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/smart-entry',
         name: 'smart-entry',
         builder: (context, state) => const SmartEntryScreen(),
+      ),
+      GoRoute(
+        path: '/financial-setup',
+        name: 'financial-setup',
+        builder: (context, state) => const FinancialSetupScreen(),
       ),
     ],
 

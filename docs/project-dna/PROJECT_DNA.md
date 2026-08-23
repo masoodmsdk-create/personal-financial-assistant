@@ -53,7 +53,26 @@ USER TELLS FINAURA ABOUT THEIR MONEY
 
 ---
 
-## 2. FINANCIAL UNDERSTANDING & FINANCIAL BLUEPRINT
+## 2. FINANCIAL UNDERSTANDING, CLARIFICATION & THE FINANCIAL BLUEPRINT
+
+### The Master Interactive Flow
+```text
+User Natural Language Input
+            ↓
+    Financial Parser
+            ↓
+Is meaning sufficiently clear?
+      ├── YES ──→ Add to Blueprint Draft
+      └── NO  ──→ Present Targeted Clarification Question
+                        ↓
+                  User Selects / Answers
+                        ↓
+                  Update Blueprint Dynamically
+                        ↓
+                  User Confirms Blueprint
+                        ↓
+                  Persist Records (0ms Local)
+```
 
 ### Financial Situation Understanding
 Evolves from single-transaction parsing to multi-entity financial situation extraction:
@@ -64,38 +83,72 @@ Evolves from single-transaction parsing to multi-entity financial situation extr
   - **Recurring Expenses**: Rent, utilities, groceries, fuel.
   - **Savings & Assets**: Existing bank balances, emergency savings.
   - **Goals**: Target amounts and target timelines.
-- **Ambiguity Handling**: Unspecified lenders, accounts, or recurring flags are explicitly flagged for user clarification.
 
-### The Financial Blueprint Concept
-A **Financial Blueprint** is the intermediate structured draft representing the parsed financial picture **before** persistence.
+### Interactive Clarification Loop ("When to Ask")
+FINAURA must **NOT** blindly guess or silently choose an interpretation when input is ambiguous.
+- **Trigger Clarification When Ambiguity Materially Changes**:
+  - **Entity Type**: Actual historical expense vs. recurring monthly commitment vs. planned budget.
+  - **Payment vs. Commitment**: Actual EMI paid today vs. ongoing recurring loan obligation.
+  - **Account Matching**: Multiple accounts matching keyword (e.g., *"Which HDFC account: Salary Account or Credit Card?"*) or unlinked account (*"Create HDFC account"*, *"Choose another"*, *"Skip for now"*).
+  - **Frequency**: One-time expense vs. monthly recurring budget.
+  - **Loan Association**: Payment toward specific existing loan vs. generic commitment.
+- **Clarification UX Principles**:
+  1. **Concise & Contextual**: Short questions with clear tap targets/chips.
+  2. **Intelligent Batching**: Auto-resolve obvious items immediately without asking 5 redundant questions. Prefer batched confirmations (e.g., *"I understood these 4 items as monthly recurring amounts. Is that correct?"*).
+  3. **Escape Hatches Guaranteed**: Always provide escape options (*"Not sure"*, *"Skip for now"*, *"I'll add it later"*, *"Enter manually"*). Never trap the user in an inescapable question loop.
+
+### The Mutable Financial Blueprint
+A **Financial Blueprint** is the live, mutable intermediate state representing the parsed financial picture **before** persistence.
 ```text
-Financial Blueprint Draft
-├── Income Heads (₹1,60,000/mo)
-├── Debt Commitments (₹45,000/mo)
-├── Recurring Living Expenses (₹28,000/mo)
-├── Estimated Net Cash Flow (₹87,000/mo)
-├── Existing Savings Reserves (₹2,00,000)
-└── Active Goals (Emergency Fund ₹5,00,000)
+Financial Blueprint Draft (Mutable)
+├── Income Heads (₹1,60,000/mo) [CONFIRMED]
+├── Debt Commitments (₹45,000/mo) [CONFIRMED]
+├── Recurring Living Expenses (₹28,000/mo) [CONFIRMED]
+├── Estimated Net Cash Flow (₹87,000/mo) [DERIVED]
+├── Existing Savings Reserves (₹2,00,000) [CONFIRMED]
+└── Active Goals (Emergency Fund ₹5,00,000) [NEEDS CLARIFICATION]
 ```
-The user reviews, edits discrepancies, clarifies questions, and clicks `[Confirm & Create Setup]`.
+As clarification questions are answered, the Blueprint updates reactively in memory without restarting the session. The user reviews and clicks `[Confirm & Create Setup]`.
+
 
 ---
 
-## 3. WORKSPACE ARCHITECTURE & DATA ISOLATION
+## 3. WORKSPACE ARCHITECTURE, PURPOSE & FINANCIAL CONTEXT
 
-### Purpose
-Workspace is an architectural boundary for independent financial contexts (e.g., *Personal*, *Business*, *Rental Property*, *Family*, *Testing*).
+### Architectural Purpose
+A Workspace is an independent financial boundary (e.g., *Personal*, *Family Finances*, *Rental Property*, *Business / Freelance*, *Testing*). It is not merely a database container, but carries a user-provided **Workspace Purpose & Financial Context**.
 
-### Invariants & Rules
-1. **Invisible Simplicity**: Single-workspace users simply see "Personal" without needing to understand `workspaceId` or complex configuration.
-2. **Simple Field-Level Isolation**:
+### Workspace Purpose & Financial Context
+When creating or configuring a Workspace, the user provides a lightweight purpose statement:
+> *"What is this Workspace for? Tell FINAURA what you are managing or trying to achieve here. This helps FINAURA understand your financial context and provide more relevant insights."*
+
+#### Concrete Context Examples:
+- **Family Finances**: *"My wife and I manage our household finances here. We want to control spending, pay off our home loan faster, and build an emergency fund."*
+- **Rental Property**: *"I want to track rental income, property expenses, maintenance, and loan repayment to understand whether this property is profitable."*
+
+### Critical Architectural Rules for Workspace Purpose
+1. **Purpose is Context, NOT Accounting Data**:
+   - Workspace Purpose must **NEVER** modify deterministic accounting formulas.
+   - It must **NEVER** override accounting invariants.
+   - It must **NEVER** create or modify financial records automatically.
+   - It must **NEVER** be used to invent or fabricate missing financial data (amounts, rates, balances, loans).
+2. **Authoritative Financial Data First**:
+   - Actual recorded financial data is always authoritative.
+   - The Purpose provides context to the Financial Intelligence layer (influencing insight emphasis, relevant suggestions, dashboard focus, and Ask FINAURA explanations).
+3. **User Control & Full Mutability**:
+   - Workspace Purpose is completely editable at any time under **Workspace Settings** (`name`, `purpose`, optional `priorities`).
+4. **Simple 3-Step Creation UX**:
+   - Step 1: Name the Workspace.
+   - Step 2: Tell FINAURA why it exists (Purpose).
+   - Step 3: Choose starting mode (`Start Empty` vs. `Copy Setup`).
+5. **Data Isolation & Privacy**:
    - Documents reside at `users/{userId}/{collection}/{documentId}` with an indexed `workspaceId` field.
-   - All financial queries must filter by `request.auth.uid == userId` and `workspaceId == activeWorkspaceId`.
-   - Strictly no cross-workspace financial leakage or balance mixing.
-3. **Workspace Creation ("Start Over" Mechanism)**:
-   - **Start Empty**: Creates a completely blank workspace with default categories.
-   - **Copy Setup**: Duplicates category trees, account types, planned expense templates, and goal definitions. **Never copies historical transactions, account balances, or loan repayment history.**
-   - Replaces destructive global "Reset Everything" features safely.
+   - All queries filter strictly by `request.auth.uid == userId` and `workspaceId == activeWorkspaceId`.
+   - Workspace purpose and financial data are strictly isolated; zero leakage across workspaces or users.
+6. **Workspace Duplication ("Copy Setup")**:
+   - `Copy Setup` duplicates reusable structures (categories, account types, planned expense templates, goal definitions).
+   - **Never duplicates historical transactions, account balances, or actual loan payment records.**
+
 
 ---
 

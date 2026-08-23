@@ -1,6 +1,33 @@
 # Changelog
 
+## 2026-08-23 (MSD FINAURA — Phase 1: Workspace Context, Situation Understanding, Clarification Loop & Financial Blueprint)
+
+- **Workspace Purpose & Context Layer**:
+  - `Workspace` model with `purpose`, `priorities`, `isDefault`, and predefined user priority taxonomy (`users/{userId}/workspaces/{workspaceId}`).
+  - `FirestoreWorkspaceRepository` and Riverpod state providers (`workspacesStreamProvider`, `activeWorkspaceProvider`, `workspaceControllerProvider`).
+  - `CreateWorkspaceDialog` (3-step setup with purpose & priority chips) and `EditWorkspaceDialog` with 0ms in-memory instant rendering.
+  - Workspace context card on `SettingsScreen` with inline editing and instant workspace switching.
+- **Pure Deterministic Multi-Entity Situation Understanding (`FinancialSituationParser`)**:
+  - 100% pure local Dart engine (0ms, 100% offline, ₹0 cost).
+  - Multi-entity extraction across: Incomes (with owner detection for spouse/family), Loans & Commitments, Recurring Living Expenses, Savings/Assets, Goals, and Actual Transactions.
+  - Robust Indian currency and quantity parsing (lakhs, k, standard commas: ₹1,00,000, 2L, 45k).
+- **Conversational Clarification Loop (`ClarificationQuestion`)**:
+  - Interactive ambiguity detection for material financial differences (e.g. *Actual EMI payment* vs *Recurring EMI commitment* vs *Payment toward existing loan* vs *Past expense* vs *Monthly living budget*).
+  - Selectable choice chips and escape options (*Not sure*, *Skip for now*, *Record without account*).
+  - Reactive in-place blueprint mutation upon clarification selection without restarting parsing.
+- **Live Mutable Financial Blueprint (`FinancialBlueprint`)**:
+  - Pre-persistence draft container with real-time computed financial summary metrics: `totalMonthlyIncome`, `totalMonthlyExpenses`, `totalMonthlyEmi`, `totalMonthlyCommitments`, `knownRemainingMonthlyCashFlow`, and `totalSavings`.
+  - Inline edit and delete capabilities across all extracted entity categories.
+- **Safe Explicit Persistence (`BlueprintPersistenceService`)**:
+  - Atomic mapping of reviewed Blueprint items into existing domain entities (`PlannedExpense`, `Loan`, `Account`, `Goal`, `Transaction`).
+  - Strict invariant enforcement: No financial record is persisted before explicit user confirmation.
+- **Dedicated Financial Setup Screen (`FinancialSetupScreen`)**:
+  - Registered `/financial-setup` in `app_router.dart` with direct navigation from `DashboardScreen` and `SmartEntryScreen`.
+  - Rich responsive UI with active workspace badge, free-form multi-line text input, quick prompt chips, clarification Q&A cards, summary metrics, categorized breakdown cards, and explicit confirmation dialog.
+- **Verification**: 148/148 tests passing (`flutter test`), 0 analyzer issues (`dart analyze`), formatted (`dart format .`), release web bundle succeeded (`flutter build web --release`).
+
 ## 2026-08-23 (MSD FINAURA — Loans Management & Debt Intelligence Module)
+
 
 - **Comprehensive Debt Portfolio Analytics (`DebtIntelligenceService`)**:
   - Pure deterministic local calculation engine (0ms, 100% offline, ₹0 cost).

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:personal_financial_assistant/core/constants/app_constants.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
+import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
+import 'package:personal_financial_assistant/features/workspaces/presentation/widgets/create_workspace_dialog.dart';
+import 'package:personal_financial_assistant/features/workspaces/presentation/widgets/edit_workspace_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -93,7 +96,35 @@ class SettingsScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 20),
-              // Section 2: FINANCIAL SETUP
+              // Section 2: WORKSPACE & CONTEXT
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'ACTIVE WORKSPACE & PURPOSE',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const CreateWorkspaceDialog(),
+                      );
+                    },
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('New'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _WorkspaceContextCard(),
+
+              const SizedBox(height: 20),
+              // Section 3: FINANCIAL SETUP
               Text(
                 'FINANCIAL SETUP',
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -319,6 +350,179 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WorkspaceContextCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeWorkspace = ref.watch(activeWorkspaceProvider);
+    final allWorkspacesAsync = ref.watch(workspacesStreamProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.workspaces_rounded,
+                    color: colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              activeWorkspace.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (activeWorkspace.isDefault) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Default',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Active Financial Context',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton.outlined(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) =>
+                          EditWorkspaceDialog(workspace: activeWorkspace),
+                    );
+                  },
+                  tooltip: 'Edit Purpose & Context',
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                ),
+              ],
+            ),
+            if (activeWorkspace.purpose.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.4,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  activeWorkspace.purpose,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+            if (activeWorkspace.priorities.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: activeWorkspace.priorities.map((p) {
+                  return Chip(
+                    label: Text(p, style: const TextStyle(fontSize: 11)),
+                    padding: EdgeInsets.zero,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    side: BorderSide.none,
+                  );
+                }).toList(),
+              ),
+            ],
+            const Divider(height: 24),
+            allWorkspacesAsync.when(
+              data: (workspaces) {
+                if (workspaces.length <= 1) {
+                  return const SizedBox.shrink();
+                }
+                return DropdownButtonFormField<String>(
+                  initialValue: activeWorkspace.id,
+                  decoration: InputDecoration(
+                    labelText: 'Switch Workspace',
+                    prefixIcon: const Icon(Icons.swap_horiz_rounded),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  items: workspaces.map((ws) {
+                    return DropdownMenuItem(value: ws.id, child: Text(ws.name));
+                  }).toList(),
+                  onChanged: (selectedId) {
+                    if (selectedId != null) {
+                      ref.read(activeWorkspaceIdProvider.notifier).state =
+                          selectedId;
+                    }
+                  },
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
+          ],
         ),
       ),
     );
