@@ -52,10 +52,22 @@
 
 ---
 
-## Phase 3B — Loan vs Goal Trade-Off Intelligence (Next Priority)
+## Phase 3B — Home / Financial Command Center
+- [x] Redesigned Home screen answering: *Where do I stand?*, *How are goals/loans progressing?*, *What does FINAURA suggest?*
+- [x] Live Financial Situation Card (Total Net Balance, Monthly Income, Monthly Expenses, Remaining Cash Flow, Assets vs Liabilities).
+- [x] Top 1–3 prioritized Goals & Loans cards with deep-link navigation.
+- [x] **🧠 FINAURA Suggests**: Deterministic, contextual, actionable assistant guidance with direct routes.
+- [x] **🔔 Upcoming**: Next 30-day EMIs & planned expense reminders.
+- [x] **Recent Activity**: 3–5 recent transactions with View All action.
+- [x] Workspace Header with inline purpose display and Financial Setup shortcut.
+
+---
+
+## Phase 3C — Loan vs Goal Trade-Off Intelligence (Next Priority)
 - [ ] Extra Cash Flow allocator (Loan Prepayment vs Goal Investment).
 - [ ] Multi-scenario strategy comparison (Loan-First vs Goal-First vs Balanced 50/50 vs Custom Split).
-- [ ] Net Worth, lifetime interest saved, and timeline comparison engine.
+- [ ] Net Worth, lifetime interest saved, liquidity gained, and timeline comparison engine.
+- [ ] Deterministic recommendations with transparent "Why" explanations.
 
 ---
 

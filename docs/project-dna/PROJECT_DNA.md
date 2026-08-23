@@ -261,11 +261,47 @@ EXPLANATION (Neutral, Factual Financial Explanation)
 
 ---
 
-## 9. FIRESTORE DATA MODEL & SECURITY
+---
 
+## 9. HOME — YOUR FINANCIAL COMMAND CENTER
+
+### The Master Command Center Flow
+$$\text{UNDERSTAND} \longrightarrow \text{SELECT} \longrightarrow \text{NAVIGATE} \longrightarrow \text{ACT}$$
+
+### Core Architecture & Hierarchy
+1. **Workspace Context Header**: Active workspace name, user greeting, and quick onboarding action.
+2. **Section 1: Current Financial Situation (`FinancialSituationCard`)**:
+   - Total Net Balance, Monthly Income, Monthly Expenses, Remaining Cash Flow.
+   - Compact Accounts Summary card (active count, assets vs liabilities) linking to `/accounts`.
+3. **Section 2 & 3: Goals & Loans Portfolio (`FinancialPlansDashboardSection`)**:
+   - Top 1–3 prioritized goals & loans with progress bars, EMIs, target vs projected dates, status chips, and deep links (`/loans/:loanId`, `/goals`).
+4. **Section 4: 🧠 FINAURA Suggests (`AssistantSuggestionsSection`)**:
+   - Deterministic, explainable, neutral, and factual assistant guidance derived strictly from confirmed user data (0ms, 100% offline, ₹0 cost).
+   - Contextual navigation button per suggestion card.
+5. **Section 5: 🔔 Upcoming (`UpcomingRemindersSection`)**:
+   - Scheduled EMIs and planned expenses due in the next 30 days with due date pills and direct item navigation.
+6. **Section 6: Recent Activity (`RecentActivitySection`)**:
+   - 3–5 recent transactions with signed MoneyText and `[View All]` action to `/transactions`.
+
+### Domain Service
+- `CommandCenterService`: Pure Dart service generating suggestions, upcoming reminders, and accounts summary without new Firestore reads.
+
+---
+
+## 10. LOCAL-FIRST STORAGE EVALUATION & STATUS
+
+- **Investigation Status**: Evaluated moving primary persistence from Cloud Firestore + IndexedDB to a local-first relational database (Drift / SQLite WASM).
+- **Current Decision**: **Storage architecture remains 100% UNCHANGED (Firestore + IndexedDB web client persistence)**.
+- **Migration Invariant**: Any future local-first migration must be proven simple, reliable, and invisible to users before adoption. Domain services are already 100% pure Dart and decoupled from storage.
+- **Beta Data Invariant**: FINAURA is in Beta. If local-first is ever implemented, beta data can start clean (no complex production migration system required).
+
+---
+
+## 11. FIRESTORE DATA MODEL & SECURITY
 
 ```text
 users/{userId}
+├── workspaces/{workspaceId}
 ├── accounts/{accountId}
 ├── account_types/{typeId}
 ├── categories/{categoryId}
@@ -286,7 +322,7 @@ match /users/{userId}/{document=**} {
 
 ---
 
-## 9. PERFORMANCE GUARDRAILS & ARCHITECTURAL RULES
+## 12. PERFORMANCE GUARDRAILS & ARCHITECTURAL RULES
 
 1. **Firestore Client Persistence**: Must remain enabled (`Settings(persistenceEnabled: true)`) in `main.dart` for instant cache reads.
 2. **0ms Save Validation**: Save and update methods validate in memory without executing remote network queries.
@@ -294,3 +330,4 @@ match /users/{userId}/{document=**} {
 4. **AppShell Tab Isolation**: Inactive tabs are lazily mounted and paused via `TickerMode`/`Offstage`.
 5. **No Full-Screen Loading Spinners**: Stream builders use `skipLoadingOnReload: true` and `skipLoadingOnRefresh: true`.
 6. **Responsive UI Guardrails**: All pages use `PageHeader` (breakpoint 600px) and `ResponsiveCenter` (`width: double.infinity`) to prevent single-character text collapse across 320px–1440px viewports.
+
