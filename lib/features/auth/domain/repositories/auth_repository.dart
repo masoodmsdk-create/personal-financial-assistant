@@ -14,4 +14,5 @@ abstract class AuthRepository {
   });
   Future<void> signOut();
   Future<void> sendPasswordResetEmail(String email);
+  Future<void> updateDisplayName(String displayName);
 }

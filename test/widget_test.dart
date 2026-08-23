@@ -41,6 +41,9 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> sendPasswordResetEmail(String email) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateDisplayName(String displayName) async {}
 }
 
 void main() {

@@ -18,18 +18,19 @@
 - [x] Logout
 - [x] Password reset
 - [x] Authentication state
-- [x] User profile
+- [x] User profile & Profile edit
 
 ## Phase 2 — Core Finance
 
 - [x] Accounts
-- [ ] Categories
-- [ ] Transactions
-- [ ] Income
-- [ ] Expenses
-- [ ] Transfers
+- [x] Dynamic Categories Foundation
+- [x] Planned Expenses / Monthly Forecast Foundation
+- [x] Transactions
+- [x] Income
+- [x] Expenses
+- [x] Transfers
 - [x] Balance calculation
-- [ ] Transaction history
+- [x] Transaction history
 
 ## Phase 3 — Dashboard
 

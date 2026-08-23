@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/register_screen.dart';
+import 'package:personal_financial_assistant/features/categories/presentation/screens/categories_screen.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/app_shell.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/financial_disclaimer_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
+import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -73,6 +76,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/disclaimer',
         name: 'disclaimer',
         builder: (context, state) => const FinancialDisclaimerScreen(),
+      ),
+      GoRoute(
+        path: '/categories',
+        name: 'categories',
+        builder: (context, state) => const CategoriesScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/planned-expenses',
+        name: 'planned-expenses',
+        builder: (context, state) => const PlannedExpensesScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

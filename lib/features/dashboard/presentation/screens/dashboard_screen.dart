@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
+import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
+import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -46,6 +50,27 @@ class DashboardScreen extends ConsumerWidget {
     final greeting = _getTimeBasedGreeting();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final totalBalance = ref.watch(calculatedTotalBalanceProvider);
+    final summary = ref.watch(monthlyFinancialSummaryProvider);
+
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final accountsAsync = ref.watch(accountsStreamProvider);
+    final categoriesAsync = ref.watch(categoriesStreamProvider);
+
+    final accountMap = <String, String>{};
+    if (accountsAsync.hasValue) {
+      for (final a in accountsAsync.value!) {
+        accountMap[a.id] = a.name;
+      }
+    }
+
+    final categoryMap = <String, String>{};
+    if (categoriesAsync.hasValue) {
+      for (final c in categoriesAsync.value!) {
+        categoryMap[c.id] = c.name;
+      }
+    }
 
     final initial = displayName.isNotEmpty
         ? displayName
@@ -120,9 +145,9 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               Chip(
-                label: const Text('Live & Placeholder'),
+                label: const Text('Live Metrics'),
                 backgroundColor: colorScheme.surfaceContainerHighest,
-                avatar: const Icon(Icons.info_outline, size: 16),
+                avatar: const Icon(Icons.show_chart_rounded, size: 16),
               ),
             ],
           ),
@@ -133,30 +158,37 @@ class DashboardScreen extends ConsumerWidget {
             crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.4,
+            childAspectRatio: 1.35,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              _LiveTotalBalanceCard(
-                totalBalance: ref.watch(totalBalanceProvider),
+              _LiveMetricCard(
+                title: 'Total Balance',
+                amount: totalBalance,
+                icon: Icons.account_balance_outlined,
+                color: Colors.blue,
+                subtitle: 'Accounts + Txns',
               ),
-              const _PlaceholderCard(
+              _LiveMetricCard(
                 title: 'Monthly Income',
-                amount: '₹ --',
+                amount: summary.totalIncome,
                 icon: Icons.arrow_downward_outlined,
                 color: Colors.green,
+                subtitle: 'Current Month',
               ),
-              const _PlaceholderCard(
+              _LiveMetricCard(
                 title: 'Monthly Expenses',
-                amount: '₹ --',
+                amount: summary.totalExpense,
                 icon: Icons.arrow_upward_outlined,
                 color: Colors.red,
+                subtitle: 'Current Month',
               ),
-              const _PlaceholderCard(
-                title: 'Monthly Savings',
-                amount: '₹ --',
+              _LiveMetricCard(
+                title: 'Net Cash Flow',
+                amount: summary.netCashFlow,
                 icon: Icons.savings_outlined,
-                color: Colors.amber,
+                color: summary.netCashFlow >= 0 ? Colors.green : Colors.red,
+                subtitle: 'Income - Expense',
               ),
             ],
           ),
@@ -171,45 +203,91 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          // Placeholder Recent Transactions List
+          // Real Recent Transactions List
           Card(
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              separatorBuilder: (context, index) => const Divider(),
-              itemBuilder: (context, index) {
-                final placeholders = [
-                  {
-                    'name': 'Sample Income Placeholder',
-                    'type': 'Income',
-                    'amount': '+ ₹0.00',
-                  },
-                  {
-                    'name': 'Sample Expense Placeholder',
-                    'type': 'Expense',
-                    'amount': '- ₹0.00',
-                  },
-                  {
-                    'name': 'Sample Transfer Placeholder',
-                    'type': 'Transfer',
-                    'amount': '₹0.00',
-                  },
-                ];
-                final item = placeholders[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    child: const Icon(Icons.receipt_long_outlined, size: 20),
-                  ),
-                  title: Text(item['name']!),
-                  subtitle: Text('[Placeholder] ${item['type']}'),
-                  trailing: Text(
-                    item['amount']!,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+            child: transactionsAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (err, _) => Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Center(child: Text('Error: $err')),
+              ),
+              data: (transactions) {
+                if (transactions.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 40,
+                            color: colorScheme.outline,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No transactions recorded yet',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  );
+                }
+
+                final recentList = transactions.take(5).toList();
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: recentList.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final t = recentList[index];
+                    final isIncome = t.type == TransactionType.income;
+                    final isExpense = t.type == TransactionType.expense;
+                    final isTransfer = t.type == TransactionType.transfer;
+
+                    String subtitle;
+                    if (isTransfer) {
+                      final from = accountMap[t.fromAccountId] ?? 'Account';
+                      final to = accountMap[t.toAccountId] ?? 'Account';
+                      subtitle = '$from ➔ $to';
+                    } else {
+                      final cat = categoryMap[t.categoryId] ?? 'Category';
+                      final acc = accountMap[t.accountId] ?? 'Account';
+                      subtitle = '$cat • $acc';
+                    }
+
+                    final dateStr = DateFormat('MMM dd').format(t.date);
+                    final prefix = isIncome
+                        ? '+ ₹ '
+                        : (isExpense ? '- ₹ ' : '₹ ');
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: t.type.color.withValues(alpha: 0.1),
+                        child: Icon(t.type.icon, size: 20, color: t.type.color),
+                      ),
+                      title: Text(
+                        t.type.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text('$subtitle ($dateStr)'),
+                      trailing: Text(
+                        '$prefix${t.amount.toStringAsFixed(2)}',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: t.type.color,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -220,74 +298,19 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _LiveTotalBalanceCard extends StatelessWidget {
-  final double totalBalance;
-
-  const _LiveTotalBalanceCard({required this.totalBalance});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Balance',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const Icon(
-                  Icons.account_balance_outlined,
-                  size: 20,
-                  color: Colors.blue,
-                ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MoneyText(
-                  totalBalance,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Live Account Sum',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderCard extends StatelessWidget {
+class _LiveMetricCard extends StatelessWidget {
   final String title;
-  final String amount;
+  final double amount;
   final IconData icon;
   final Color color;
+  final String subtitle;
 
-  const _PlaceholderCard({
+  const _LiveMetricCard({
     required this.title,
     required this.amount,
     required this.icon,
     required this.color,
+    required this.subtitle,
   });
 
   @override
@@ -303,10 +326,14 @@ class _PlaceholderCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(icon, size: 20, color: color),
@@ -315,7 +342,7 @@ class _PlaceholderCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                MoneyText(
                   amount,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -323,10 +350,10 @@ class _PlaceholderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '[Placeholder]',
+                  subtitle,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

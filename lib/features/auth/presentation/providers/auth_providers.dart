@@ -58,6 +58,14 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     );
     return !state.hasError;
   }
+
+  Future<bool> updateDisplayName(String displayName) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => _repository.updateDisplayName(displayName),
+    );
+    return !state.hasError;
+  }
 }
 
 final authControllerProvider =

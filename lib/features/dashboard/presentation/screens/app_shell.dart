@@ -6,6 +6,8 @@ import 'package:personal_financial_assistant/features/auth/presentation/provider
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 import 'package:personal_financial_assistant/features/accounts/presentation/screens/accounts_screen.dart';
+import 'package:personal_financial_assistant/features/settings/presentation/screens/settings_screen.dart';
+import 'package:personal_financial_assistant/features/transactions/presentation/screens/transactions_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -20,8 +22,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   final List<Widget> _pages = const [
     DashboardScreen(),
     AccountsScreen(),
-    _PlaceholderTab(title: 'Transactions', icon: Icons.receipt_long_rounded),
-    _PlaceholderTab(title: 'Settings', icon: Icons.settings_rounded),
+    TransactionsScreen(),
+    SettingsScreen(),
   ];
 
   String _getDisplayName(User? user) {
@@ -106,49 +108,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: 'Settings',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _PlaceholderTab({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: theme.colorScheme.outline),
-            const SizedBox(height: 16),
-            Text(
-              '$title Feature',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'This section will be implemented in upcoming releases.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Chip(
-              label: const Text('Placeholder Screen'),
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            ),
-          ],
-        ),
       ),
     );
   }

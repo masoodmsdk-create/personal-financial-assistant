@@ -66,6 +66,7 @@ class AuthService {
   Future<void> updateDisplayName(String displayName) async {
     try {
       await _auth.currentUser?.updateDisplayName(displayName);
+      await _auth.currentUser?.reload();
     } on FirebaseAuthException catch (e) {
       throw _mapAuthException(e);
     }
