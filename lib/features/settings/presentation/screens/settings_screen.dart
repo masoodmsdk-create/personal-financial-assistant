@@ -108,6 +108,16 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/planned-expenses'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.account_balance_outlined),
+                  title: const Text('Loans & What-If Forecasts'),
+                  subtitle: const Text(
+                    'Track loans, payoff dates, and test prepayment scenarios',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push('/loans'),
+                ),
               ],
             ),
           ),

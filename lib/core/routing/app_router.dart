@@ -9,6 +9,7 @@ import 'package:personal_financial_assistant/features/dashboard/presentation/scr
 import 'package:personal_financial_assistant/features/legal/presentation/screens/financial_disclaimer_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
+import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
 import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
 
@@ -91,6 +92,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/planned-expenses',
         name: 'planned-expenses',
         builder: (context, state) => const PlannedExpensesScreen(),
+      ),
+      GoRoute(
+        path: '/loans',
+        name: 'loans',
+        builder: (context, state) => const LoansScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

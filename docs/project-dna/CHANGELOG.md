@@ -1,6 +1,22 @@
 # Changelog
 
-## 2026-08-23 (Latest)
+## 2026-08-23 (Latest — Loan Forecast & What-If Engine)
+
+- Implemented **Loan Forecast & What-If Engine (MSD FINAURA)**:
+  - `Loan` domain model supporting progressively optional fields (`id`, `userId`, `name`, `type`, `originalPrincipal`, `outstandingPrincipal`, `interestRate`, `interestRateType`, `emiAmount`, `remainingTenureMonths`, `startDate`, `nextEmiDate`, `targetClosureDate`, `linkedAccountId`, `notes`).
+  - Supported loan types: Home Loan, Personal Loan, Car Loan, Education Loan, Credit Card Debt, Other Loan.
+  - `LoanForecastService`: Pure deterministic engine calculating PMT EMI, remaining tenure, closure date, remaining interest, total repayment, and 12-month amortization preview without fabricating numbers.
+  - What-If Prepayment & Rate Scenario Simulations (`WhatIfScenarioCard`): Extra Monthly Payment (+₹X/mo), Annual Prepayment (+₹X/yr), One-Time Lump Sum (+₹X now), Increased EMI, Target Closure Date (desired payoff date), and Custom Interest Rate scenario testing with side-by-side **CURRENT PLAN vs SCENARIO** comparison (EMI, Est. Closure, Interest Saved, Time Saved, Disclaimer notice).
+  - `ImproveForecastCard`: Reusable component rendering relevant missing high-value fields with brief explanations without fake accuracy percentages.
+  - `FirestoreLoanRepository` and `firestore.rules` extended for `users/{userId}/loans/{loanId}` strictly restricted to `request.auth.uid == userId`.
+  - Material 3 `LoansScreen`, `AddEditLoanDialog`, `/loans` route, and settings navigation.
+  - Exclusions Maintained: What-If scenarios are purely illustrative simulations (never modify actual loan data, create transactions, or alter account balances).
+  - Unit & Widget tests: 103/103 tests passed (`flutter test`).
+  - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
+  - Built Web distribution bundle (`flutter build web` — succeeded).
+
+## 2026-08-23
+
 
 - Implemented **Analytics, Charts & Financial Insights**:
   - `FinancialInsight` domain model (`InsightType`, `InsightSeverity`, title, description, categoryId, amount, suggestedAction).

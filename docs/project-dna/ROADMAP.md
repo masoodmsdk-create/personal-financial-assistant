@@ -48,13 +48,14 @@
 ## Phase 4 — Financial Planning
 
 - [ ] Budgets
-- [ ] Loans
-- [ ] EMI calculation
-- [ ] Loan amortization
-- [ ] Prepayment simulation
+- [x] Loans
+- [x] EMI calculation
+- [x] Loan amortization
+- [x] Prepayment simulation
 - [ ] Investments
 - [ ] Goals
 - [ ] Net worth
+
 
 ## Phase 5 — Assistant
 

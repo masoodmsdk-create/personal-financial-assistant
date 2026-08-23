@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Phase 3 — Dashboard & Analytics: Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, Financial Aggregation Engine, Charts, and Safe In-App Insights complete.
+Phase 4 — Financial Planning: Loan Forecast & What-If Engine, Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, Financial Aggregation Engine, Charts, and In-App Insights complete.
 
 ## Current Target
 
@@ -57,29 +57,32 @@ Build a Personal Financial Assistant for:
   - Strict accounting rules: Transfers have NO `categoryId` and do NOT affect Income, Expense, or Net Cash Flow.
   - Extended `firestore.rules` for isolated user collection path `users/{userId}/transactions/{transactionId}`.
   - `FirestoreTransactionRepository` with user scoping and validation.
-  - `FinancialAggregationService`: Pure deterministic engine calculating `totalIncome`, `totalExpense`, `netCashFlow`, `totalTransfers`, `expenseByCategory`, `incomeByCategory`, dynamic `accountBalances`, `totalNetBalance` (applying credit card negative liability convention), `aggregateByPeriod`, and `calculatePlannedVsActual`.
+  - `FinancialAggregationService`: Pure deterministic engine calculating `totalIncome`, `totalExpense`, `netCashFlow`, `totalTransfers`, `expenseByCategory`, `incomeByCategory`, dynamic `accountBalances`, `totalNetBalance`, `aggregateByPeriod`, and `calculatePlannedVsActual`.
 - **Implemented ANALYTICS, CHARTS & FINANCIAL INSIGHTS**:
-  - Domain model `FinancialInsight` with types `missingPlannedExpense`, `overPlanExpense`, `underPlanExpense`, `upcomingPlannedExpense` and severities `info`, `warning`, `critical`.
-  - `FinancialInsightsService`: Local safe deterministic in-app insights generator without external AI API costs.
-  - `CategoryBreakdownItem` and `calculateCategoryBreakdown` in `FinancialAggregationService` supporting dynamic categories (custom & archived).
-  - Riverpod analytics providers (`selectedAnalyticsPeriodModeProvider`, `selectedAnalyticsDateProvider`, `periodDateRangeProvider`, `periodTransactionsProvider`, `periodSummaryProvider`, `expenseCategoryBreakdownProvider`, `incomeCategoryBreakdownProvider`, `periodPlannedVsActualProvider`, `financialInsightsProvider`).
-  - UI Components: `PeriodSelectorWidget` (Weekly, Monthly, Yearly), `IncomeExpenseChartCard` (Custom Material 3 Bar Chart), `CategoryBreakdownCard` (Visual progress bars & percentages), `ThingsToReviewCard` (Actionable financial warnings & suggestions), and `AnalyticsScreen`.
-  - Updated `AppShell` with Analytics tab and `DashboardScreen` with Things to Review & trend chart.
+  - `FinancialInsight` domain model and `FinancialInsightsService` (local deterministic engine operating at ₹0 AI cost).
+  - Material 3 Visual Components: `PeriodSelectorWidget`, `IncomeExpenseChartCard`, `CategoryBreakdownCard`, `ThingsToReviewCard`, and `AnalyticsScreen`.
+- **Implemented LOAN FORECAST & WHAT-IF ENGINE (MSD FINAURA)**:
+  - Domain model `Loan` with progressively optional fields (`id`, `userId`, `name`, `type`, `originalPrincipal`, `outstandingPrincipal`, `interestRate`, `interestRateType`, `emiAmount`, `remainingTenureMonths`, `startDate`, `nextEmiDate`, `targetClosureDate`, `linkedAccountId`, `notes`).
+  - `LoanForecastService`: Pure deterministic engine calculating PMT EMI, remaining tenure, closure date, remaining interest, total repayment, and 12-month amortization preview without fabricating numbers.
+  - What-If Scenario Simulations (`WhatIfScenarioCard`): Extra Monthly Payment (+₹X/mo), Annual Prepayment (+₹X/yr), One-Time Lump Sum (+₹X now), Increased EMI, Target Closure Date (desired payoff date), and Custom Interest Rate scenario testing with side-by-side **CURRENT PLAN vs SCENARIO** comparison (EMI, Est. Closure, Interest Saved, Time Saved, Disclaimer notice).
+  - `ImproveForecastCard`: Reusable component rendering relevant missing high-value fields with brief explanations without fake accuracy percentages.
+  - `FirestoreLoanRepository` and `firestore.rules` extended for `users/{userId}/loans/{loanId}` strictly restricted to `request.auth.uid == userId`.
+  - `LoansScreen`, `AddEditLoanDialog`, `/loans` route, and settings navigation.
 - **Note on Exclusions**:
+  - What-If scenarios are purely illustrative simulations (never modify actual loan data, create transactions, or alter account balances).
   - Bank statement import (PDF/CSV/OCR), automatic bank sync, AI transaction parsing, paid external AI APIs, and push notifications are NOT implemented.
-  - Account `currentBalance` is NOT stored in Firestore (calculated dynamically).
-  - Planned expenses are NOT automatically converted to actual transactions.
-- Unit & Widget tests: 85/85 tests passed (`flutter test`).
+- Unit & Widget tests: 103/103 tests passed (`flutter test`).
 - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
 - Built Web distribution bundle (`flutter build web` — succeeded).
 
 ## In Progress
 
-Phase 3 Analytics and Dashboard complete. Next milestone: Phase 4 — Financial Planning (Budgets, Loans & EMI, Investments, Goals, Assets/Liabilities/Net Worth).
+Loan Forecast & What-If Engine complete. Next milestone: Phase 4 Financial Planning (Budgets, Investments, Goals, Net Worth).
 
 ## Next Work
 
-Implement Financial Planning Foundation (Budgets & Loan Amortization / Prepayment Simulator).
+Implement Financial Planning Foundation (Budgets, Goal Progress, and Net Worth calculation).
+
 
 
 
