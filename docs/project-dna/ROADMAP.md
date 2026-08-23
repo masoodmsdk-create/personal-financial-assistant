@@ -9,7 +9,7 @@
 - [ ] Configure GitHub
 - [x] Configure Firebase Core for Android and Web
 - [x] Create initial documentation
-- [ ] Establish security rules
+- [x] Establish security rules
 
 ## Phase 1 — Authentication
 
@@ -22,13 +22,13 @@
 
 ## Phase 2 — Core Finance
 
-- [ ] Accounts
+- [x] Accounts
 - [ ] Categories
 - [ ] Transactions
 - [ ] Income
 - [ ] Expenses
 - [ ] Transfers
-- [ ] Balance calculation
+- [x] Balance calculation
 - [ ] Transaction history
 
 ## Phase 3 — Dashboard

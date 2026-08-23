@@ -5,6 +5,9 @@ import 'package:personal_financial_assistant/features/auth/presentation/provider
 import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/register_screen.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/app_shell.dart';
+import 'package:personal_financial_assistant/features/legal/presentation/screens/financial_disclaimer_screen.dart';
+import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
+import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -22,11 +25,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final isLoggedIn = authState.value != null;
+      final isLegalRoute =
+          state.matchedLocation == '/terms' ||
+          state.matchedLocation == '/privacy' ||
+          state.matchedLocation == '/disclaimer';
       final isAuthRoute =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
 
-      if (!isLoggedIn && !isAuthRoute) {
+      if (!isLoggedIn && !isAuthRoute && !isLegalRoute) {
         return '/login';
       }
 
@@ -51,6 +58,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/dashboard',
         name: 'dashboard',
         builder: (context, state) => const AppShell(),
+      ),
+      GoRoute(
+        path: '/terms',
+        name: 'terms',
+        builder: (context, state) => const TermsOfServiceScreen(),
+      ),
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        builder: (context, state) => const PrivacyNoticeScreen(),
+      ),
+      GoRoute(
+        path: '/disclaimer',
+        name: 'disclaimer',
+        builder: (context, state) => const FinancialDisclaimerScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

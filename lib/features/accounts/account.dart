@@ -15,7 +15,6 @@ class Account implements Entity {
   final double openingBalance;
   final String currency;
   final bool active;
-  final double? currentBalance;
 
   const Account({
     required this.id,
@@ -27,7 +26,6 @@ class Account implements Entity {
     required this.openingBalance,
     required this.currency,
     required this.active,
-    this.currentBalance,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -41,9 +39,6 @@ class Account implements Entity {
       openingBalance: (json['openingBalance'] as num).toDouble(),
       currency: json['currency'] as String,
       active: json['active'] as bool,
-      currentBalance: json['currentBalance'] != null
-          ? (json['currentBalance'] as num).toDouble()
-          : null,
     );
   }
 
@@ -58,7 +53,6 @@ class Account implements Entity {
       'openingBalance': openingBalance,
       'currency': currency,
       'active': active,
-      'currentBalance': currentBalance,
     };
   }
 
@@ -72,7 +66,6 @@ class Account implements Entity {
     double? openingBalance,
     String? currency,
     bool? active,
-    double? currentBalance,
   }) {
     return Account(
       id: id ?? this.id,
@@ -84,7 +77,6 @@ class Account implements Entity {
       openingBalance: openingBalance ?? this.openingBalance,
       currency: currency ?? this.currency,
       active: active ?? this.active,
-      currentBalance: currentBalance ?? this.currentBalance,
     );
   }
 }
@@ -93,7 +85,6 @@ enum AccountType {
   bank('bank'),
   cash('cash'),
   creditCard('credit_card'),
-  wallet('wallet'),
   other('other');
 
   final String value;
@@ -116,8 +107,6 @@ extension AccountTypeX on AccountType {
         return 'Cash';
       case AccountType.creditCard:
         return 'Credit Card';
-      case AccountType.wallet:
-        return 'Wallet';
       case AccountType.other:
         return 'Other';
     }
@@ -131,8 +120,6 @@ extension AccountTypeX on AccountType {
         return Icons.money;
       case AccountType.creditCard:
         return Icons.credit_card;
-      case AccountType.wallet:
-        return Icons.wallet;
       case AccountType.other:
         return Icons.category;
     }
@@ -146,8 +133,6 @@ extension AccountTypeX on AccountType {
         return const Color(0xFFE65100);
       case AccountType.creditCard:
         return const Color(0xFF0D47A1);
-      case AccountType.wallet:
-        return const Color(0xFF4A148C);
       case AccountType.other:
         return const Color(0xFF37474F);
     }
@@ -155,11 +140,7 @@ extension AccountTypeX on AccountType {
 }
 
 extension AccountX on Account {
-  double get effectiveBalance => currentBalance ?? openingBalance;
+  double get effectiveBalance => openingBalance;
 
   bool get isCreditAccount => type == AccountType.creditCard;
-
-  Account copyWithUpdatedBalance(double newBalance) {
-    return copyWith(currentBalance: newBalance, updatedAt: DateTime.now());
-  }
 }

@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Phase 1 — Authentication + Application Shell complete.
+Phase 2 — Core Finance: Accounts Feature complete.
 
 ## Current Target
 
@@ -21,24 +21,32 @@ Build a Personal Financial Assistant for:
 - Inspected the workspace and preserved existing structure and commits.
 - Configured Firebase Core for Android and Web in Firebase project `msd-financial-assistant`.
 - Implemented `AuthService` and `FirebaseAuthRepository` abstraction for Firebase Email/Password authentication.
-- Implemented form input validators for email, minimum password length (>= 6 chars), and password confirmation.
+- Implemented form input validators for email, full name, password strength, and password confirmation.
 - Implemented authentication state stream listener and state management with Riverpod (`authRepositoryProvider`, `authStateChangesProvider`, `authControllerProvider`).
 - Integrated `GoRouter` declarative routing with automatic authentication state redirection and loading screen resolution.
-- Created Material 3 `LoginScreen` with email/password input, visibility toggle, validation, error handling snackbars, and register navigation.
-- Created Material 3 `RegisterScreen` with email/password/confirm password input, validation, error handling snackbars, and login navigation.
-- Created Material 3 `AppShell` with navigation bar and confirmation logout dialog.
-- Created `DashboardScreen` displaying user welcome card with authenticated user email (`FirebaseAuth.currentUser?.email`), and placeholder cards for Balance, Income, Expenses, Savings, and Recent Transactions.
-- Added comprehensive unit tests for form validators and AuthException mapping, and widget tests for LoginScreen (`flutter test` 12/12 passed).
-- Ran formatting verification (`dart format .`) and static analysis (`dart analyze` — 0 errors).
+- Polished Material 3 `LoginScreen` ("MSD's Financial Assistant", tagline, email/password login, visibility toggle, forgot password dialog, privacy shield badge).
+- Polished Material 3 `RegisterScreen` (Full Name, email, password, confirm password, password strength indicator bar, password requirements checklist).
+- Created Material 3 `AppShell` with bottom navigation bar and account sign-out dialog.
+- Created `DashboardScreen` displaying user greeting with `displayName` and dynamic time greeting (`Good morning/afternoon/evening, <Name> 👋`), live total net balance summary card, and placeholder overview cards.
+- **Implemented ACCOUNTS Feature**:
+  - `Account` model with JSON serialization, balance calculations, and `AccountType` extensions (`bank`, `cash`, `creditCard`, `wallet`, `other`).
+  - `FirestoreAccountRepository` storing user accounts under isolated path `users/{userId}/accounts/{accountId}` backed by `FirestoreService`.
+  - Security rules (`firestore.rules`) restricting read/write access to `users/{userId}` strictly to authenticated owner (`request.auth.uid == userId`).
+  - Riverpod providers (`accountRepositoryProvider`, `accountsStreamProvider`, `totalBalanceProvider`, `accountControllerProvider`).
+  - `AccountsScreen` with total net balance header card, list of account tiles with type badges, actions overflow menu (Edit, Delete with confirmation dialog), and `EmptyStateWidget`.
+  - `AddEditAccountDialog` with validation for account name and balance amount.
+  - Connected `AccountsScreen` to `AppShell` navigation and `totalBalanceProvider` to `DashboardScreen`.
+- Unit & Widget tests: 23/23 tests passed (`flutter test`).
+- Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
 - Built Web distribution bundle (`flutter build web` — succeeded).
 
 ## In Progress
 
-Phase 1 complete. Core finance features (Accounts, Categories, Transactions) ready for implementation in Phase 2.
+Accounts feature complete. Next core finance features: Categories and Transactions.
 
 ## Next Work
 
-Configure Firestore rules and implement Phase 2 Core Finance features (Accounts, Categories, Transactions).
+Implement Categories and Transactions features in Phase 2.
 
 ## Known Issues
 

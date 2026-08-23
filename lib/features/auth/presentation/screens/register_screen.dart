@@ -21,6 +21,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _acceptedTerms = false;
+  bool _acceptedPrivacy = false;
 
   @override
   void dispose() {
@@ -76,6 +78,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    if (!_acceptedTerms || !_acceptedPrivacy) return;
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref
@@ -118,7 +121,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -126,13 +129,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   _buildIllustration(theme),
                   const SizedBox(height: 24),
                   _buildHeader(theme),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
+                  _buildSafetyWarningCard(theme),
+                  const SizedBox(height: 24),
                   _buildForm(theme, isLoading, passwordStrength),
+                  const SizedBox(height: 16),
+                  _buildPolicyConsentCheckboxes(theme, isLoading),
                   const SizedBox(height: 24),
                   _buildCreateAccountButton(theme, isLoading),
                   const SizedBox(height: 24),
                   _buildLoginNavigation(theme, isLoading),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   _buildPrivacyMessage(theme),
                 ],
               ),
@@ -194,6 +201,64 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  Widget _buildSafetyWarningCard(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    return Card(
+      color: colorScheme.errorContainer.withValues(alpha: 0.15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: colorScheme.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.lock_person_outlined,
+              color: colorScheme.error,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '🔐 Stay Safe',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'We will never ask you for your OTP, UPI PIN, ATM PIN, debit/credit-card PIN, CVV, bank password or internet-banking credentials.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      height: 1.4,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Never share these details with anyone claiming to represent ${AppConstants.appName}.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildForm(ThemeData theme, bool isLoading, int passwordStrength) {
     return Form(
       key: _formKey,
@@ -206,9 +271,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             enabled: !isLoading,
             autofillHints: const [AutofillHints.name],
             maxLength: AppConstants.maxFullNameLength,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Full Name',
-              prefixIcon: const Icon(Icons.person_outline),
+              prefixIcon: Icon(Icons.person_outline),
               hintText: 'John Doe',
               counterText: '',
             ),
@@ -229,9 +294,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             textInputAction: TextInputAction.next,
             enabled: !isLoading,
             autofillHints: const [AutofillHints.email],
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Email',
-              prefixIcon: const Icon(Icons.email_outlined),
+              prefixIcon: Icon(Icons.email_outlined),
               hintText: 'you@example.com',
             ),
             validator: AuthValidators.validateEmail,
@@ -421,9 +486,79 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  Widget _buildPolicyConsentCheckboxes(ThemeData theme, bool isLoading) {
+    final colorScheme = theme.colorScheme;
+    return Column(
+      children: [
+        CheckboxListTile(
+          value: _acceptedTerms,
+          enabled: !isLoading,
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          onChanged: (val) {
+            setState(() {
+              _acceptedTerms = val ?? false;
+            });
+          },
+          title: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const Text('I have read and agree to the '),
+              InkWell(
+                onTap: () => context.push('/terms'),
+                child: Text(
+                  'Terms of Service',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const Text('.'),
+            ],
+          ),
+        ),
+        CheckboxListTile(
+          value: _acceptedPrivacy,
+          enabled: !isLoading,
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          onChanged: (val) {
+            setState(() {
+              _acceptedPrivacy = val ?? false;
+            });
+          },
+          title: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const Text('I acknowledge the '),
+              InkWell(
+                onTap: () => context.push('/privacy'),
+                child: Text(
+                  'Privacy Notice',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const Text('.'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCreateAccountButton(ThemeData theme, bool isLoading) {
+    final canSubmit = _acceptedTerms && _acceptedPrivacy && !isLoading;
+
     return FilledButton(
-      onPressed: isLoading ? null : _submit,
+      onPressed: canSubmit ? _submit : null,
       style: FilledButton.styleFrom(
         minimumSize: const Size(double.infinity, 52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -445,8 +580,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildLoginNavigation(ThemeData theme, bool isLoading) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           'Already have an account? ',

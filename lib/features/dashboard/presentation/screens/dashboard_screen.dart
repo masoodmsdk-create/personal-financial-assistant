@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -118,7 +120,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               Chip(
-                label: const Text('Placeholder Data'),
+                label: const Text('Live & Placeholder'),
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 avatar: const Icon(Icons.info_outline, size: 16),
               ),
@@ -134,26 +136,23 @@ class DashboardScreen extends ConsumerWidget {
             childAspectRatio: 1.4,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              _PlaceholderCard(
-                title: 'Total Balance',
-                amount: '₹ --',
-                icon: Icons.account_balance_outlined,
-                color: Colors.blue,
+            children: [
+              _LiveTotalBalanceCard(
+                totalBalance: ref.watch(totalBalanceProvider),
               ),
-              _PlaceholderCard(
+              const _PlaceholderCard(
                 title: 'Monthly Income',
                 amount: '₹ --',
                 icon: Icons.arrow_downward_outlined,
                 color: Colors.green,
               ),
-              _PlaceholderCard(
+              const _PlaceholderCard(
                 title: 'Monthly Expenses',
                 amount: '₹ --',
                 icon: Icons.arrow_upward_outlined,
                 color: Colors.red,
               ),
-              _PlaceholderCard(
+              const _PlaceholderCard(
                 title: 'Monthly Savings',
                 amount: '₹ --',
                 icon: Icons.savings_outlined,
@@ -216,6 +215,63 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LiveTotalBalanceCard extends StatelessWidget {
+  final double totalBalance;
+
+  const _LiveTotalBalanceCard({required this.totalBalance});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Balance',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Icon(
+                  Icons.account_balance_outlined,
+                  size: 20,
+                  color: Colors.blue,
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MoneyText(
+                  totalBalance,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Live Account Sum',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

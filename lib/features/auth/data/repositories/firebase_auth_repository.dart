@@ -45,4 +45,3 @@ class FirebaseAuthRepository implements AuthRepository {
     return _authService.sendPasswordResetEmail(email.trim());
   }
 }
-

@@ -5,6 +5,8 @@ import 'package:personal_financial_assistant/core/constants/app_constants.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/dashboard_screen.dart';
 
+import 'package:personal_financial_assistant/features/accounts/presentation/screens/accounts_screen.dart';
+
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -17,7 +19,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   final List<Widget> _pages = const [
     DashboardScreen(),
-    _PlaceholderTab(title: 'Accounts', icon: Icons.account_balance_rounded),
+    AccountsScreen(),
     _PlaceholderTab(title: 'Transactions', icon: Icons.receipt_long_rounded),
     _PlaceholderTab(title: 'Settings', icon: Icons.settings_rounded),
   ];
