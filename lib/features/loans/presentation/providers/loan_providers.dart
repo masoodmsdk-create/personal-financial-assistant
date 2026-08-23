@@ -157,4 +157,3 @@ final loanControllerProvider =
     StateNotifierProvider<LoanController, AsyncValue<void>>((ref) {
       return LoanController(ref.watch(loanRepositoryProvider), ref);
     });
-

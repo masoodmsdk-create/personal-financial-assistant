@@ -30,9 +30,7 @@ void main() {
           (ref) => Stream.value(loans ?? testLoans),
         ),
       ],
-      child: const MaterialApp(
-        home: LoansScreen(),
-      ),
+      child: const MaterialApp(home: LoansScreen()),
     );
   }
 
@@ -45,18 +43,18 @@ void main() {
       expect(find.text('Add Your First Loan'), findsOneWidget);
     });
 
-    testWidgets('Renders Loan Overview, What-If Simulator, and Amortization Tile when loans exist', (
-      tester,
-    ) async {
-      await tester.pumpWidget(createWidgetToTest());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Renders Loan Overview, What-If Simulator, and Amortization Tile when loans exist',
+      (tester) async {
+        await tester.pumpWidget(createWidgetToTest());
+        await tester.pumpAndSettle();
 
-      expect(find.text('Loans & Forecasts'), findsOneWidget);
-      expect(find.text('Total Outstanding Debt'), findsOneWidget);
-      expect(find.text('HDFC Home Loan'), findsWidgets);
-      expect(find.text('What-If Scenario Simulator'), findsOneWidget);
-      expect(find.text('Estimated Amortization Preview'), findsOneWidget);
-    });
+        expect(find.text('Loans & Forecasts'), findsOneWidget);
+        expect(find.text('Total Outstanding Debt'), findsOneWidget);
+        expect(find.text('HDFC Home Loan'), findsWidgets);
+        expect(find.text('What-If Scenario Simulator'), findsOneWidget);
+        expect(find.text('Estimated Amortization Preview'), findsOneWidget);
+      },
+    );
   });
 }
-

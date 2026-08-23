@@ -12,6 +12,7 @@ import 'package:personal_financial_assistant/features/legal/presentation/screens
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
 import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
+import 'package:personal_financial_assistant/features/review/presentation/screens/monthly_review_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -97,6 +98,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/loans',
         name: 'loans',
         builder: (context, state) => const LoansScreen(),
+      ),
+      GoRoute(
+        path: '/monthly-review',
+        name: 'monthly-review',
+        builder: (context, state) => const MonthlyReviewScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

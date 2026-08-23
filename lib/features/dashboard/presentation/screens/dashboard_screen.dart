@@ -8,6 +8,8 @@ import 'package:personal_financial_assistant/features/analytics/presentation/wid
 import 'package:personal_financial_assistant/features/analytics/presentation/widgets/things_to_review_card.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+
+import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/monthly_review_dashboard_card.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
@@ -196,8 +198,13 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
 
+          // Monthly Financial Review Entry Card
+          const MonthlyReviewDashboardCard(),
+          const SizedBox(height: 20),
+
           // Things to Review Section (In-App Insights)
           const ThingsToReviewCard(),
+
           const SizedBox(height: 20),
 
           // Income vs Expense Chart Card

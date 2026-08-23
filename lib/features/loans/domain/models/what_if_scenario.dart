@@ -66,8 +66,6 @@ class WhatIfScenarioResult {
     required this.estimatedTimeSavedMonths,
     required this.estimatedInterestSaved,
     this.requiredAdditionalMonthlyPayment,
-    this.disclaimer =
-        'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
+    this.disclaimer = 'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
   });
 }
-

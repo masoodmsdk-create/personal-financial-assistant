@@ -50,7 +50,6 @@ void main() {
       expect(secondSelected?.id, 'loan_2');
     });
 
-
     test('loanForecastProvider computes forecast for selected loan', () async {
       final container = ProviderContainer(
         overrides: [

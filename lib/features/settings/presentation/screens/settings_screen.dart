@@ -118,6 +118,16 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/loans'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.fact_check_outlined),
+                  title: const Text('Monthly Financial Review'),
+                  subtitle: const Text(
+                    'Unified monthly summary, forecast, and goal progress',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push('/monthly-review'),
+                ),
               ],
             ),
           ),

@@ -1,6 +1,21 @@
 # Changelog
 
-## 2026-08-23 (Latest — Loan Forecast & What-If Engine)
+## 2026-08-23 (Latest — Monthly Financial Review & Unified Financial Overview)
+
+- Implemented **Monthly Financial Review & Unified Financial Overview (MSD FINAURA)**:
+  - `Goal` domain model (`id`, `userId`, `name`, `type`, `targetAmount`, `currentAmount`, `targetDate`, `linkedLoanId`, `linkedAccountId`, `notes`, `active`, `createdAt`, `updatedAt`).
+  - Supported goal types: Savings Goal, Debt Payoff Goal, Emergency Reserve, Custom Goal (`GoalType`).
+  - Security rules (`firestore.rules`) extended to cover `users/{userId}/goals/{goalId}` restricted strictly to authenticated owner (`request.auth.uid == userId`).
+  - `FinancialReviewService`: Pure domain composition service uniting transaction actuals, planned expense forecasts, in-app insights, upcoming month forecast, active goal progress, and loan payoff projections without calculation duplication.
+  - Month navigation bar (`< Previous | August 2026 | Next >`).
+  - Material 3 components: `MonthlySummaryCard` (with explicit `ACTUAL` / `PLANNED` badges), `ComingUpForecastCard` (with `FORECAST` expected metrics), `GoalsLoanProgressCard` (savings goals progress & loan payoff projections), `MonthlyReviewDashboardCard` (Dashboard entry card), and `MonthlyReviewScreen`.
+  - Exclusions Maintained: Review forecasts are purely illustrative simulations (never modify actual loan data, create transactions, or alter account balances). No paid external AI APIs or push notifications.
+  - Unit & Widget tests: 110/110 tests passed (`flutter test`).
+  - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
+  - Built Web distribution bundle (`flutter build web` — succeeded).
+
+## 2026-08-23 (Loan Forecast & What-If Engine)
+
 
 - Implemented **Loan Forecast & What-If Engine (MSD FINAURA)**:
   - `Loan` domain model supporting progressively optional fields (`id`, `userId`, `name`, `type`, `originalPrincipal`, `outstandingPrincipal`, `interestRate`, `interestRateType`, `emiAmount`, `remainingTenureMonths`, `startDate`, `nextEmiDate`, `targetClosureDate`, `linkedAccountId`, `notes`).

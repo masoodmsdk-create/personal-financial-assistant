@@ -8,7 +8,6 @@ import 'package:personal_financial_assistant/features/loans/presentation/widgets
 import 'package:personal_financial_assistant/features/loans/presentation/widgets/improve_forecast_card.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/widgets/what_if_scenario_card.dart';
 
-
 class LoansScreen extends ConsumerWidget {
   const LoansScreen({super.key});
 

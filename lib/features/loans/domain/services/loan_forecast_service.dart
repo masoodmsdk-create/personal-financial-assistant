@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:personal_financial_assistant/features/loans/domain/models/loan_forecast.dart';
 import 'package:personal_financial_assistant/features/loans/domain/models/what_if_scenario.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
@@ -30,7 +31,8 @@ class LoanForecastService {
         const LoanMissingFieldInfo(
           fieldKey: 'outstandingPrincipal',
           title: 'Outstanding Principal',
-          reason: 'Helps estimate your remaining repayment and interest precisely.',
+          reason:
+              'Helps estimate your remaining repayment and interest precisely.',
           suggestedAction: 'Enter current balance',
         ),
       );
@@ -52,13 +54,16 @@ class LoanForecastService {
         const LoanMissingFieldInfo(
           fieldKey: 'emiAmount',
           title: 'EMI Amount',
-          reason: 'Helps determine monthly cash commitment and payoff timeline.',
+          reason:
+              'Helps determine monthly cash commitment and payoff timeline.',
           suggestedAction: 'Enter EMI amount',
         ),
       );
     }
 
-    if (!loan.hasRemainingTenure && loan.hasEmiAmount && loan.hasOutstandingPrincipal) {
+    if (!loan.hasRemainingTenure &&
+        loan.hasEmiAmount &&
+        loan.hasOutstandingPrincipal) {
       missing.add(
         const LoanMissingFieldInfo(
           fieldKey: 'remainingTenureMonths',
@@ -84,10 +89,7 @@ class LoanForecastService {
   }
 
   /// Calculates loan forecast based on available progressive information
-  static LoanForecastResult calculateForecast(
-    Loan loan, {
-    DateTime? asOfDate,
-  }) {
+  static LoanForecastResult calculateForecast(Loan loan, {DateTime? asOfDate}) {
     final now = asOfDate ?? DateTime.now();
     final missingFields = identifyMissingFields(loan);
     final startDate = loan.nextEmiDate ?? loan.startDate ?? now;
@@ -104,8 +106,7 @@ class LoanForecastService {
         loan: loan,
         calculatedAt: now,
         missingFields: missingFields,
-        note:
-            'Forecast based on the information currently provided. Add your outstanding principal to estimate remaining repayment.',
+        note: 'Forecast based on the information currently provided. Add your outstanding principal to estimate remaining repayment.',
       );
     }
 
@@ -125,22 +126,21 @@ class LoanForecastService {
         calculatedAt: now,
         outstandingPrincipal: P,
         missingFields: missingFields,
-        note:
-            'Forecast based on the information currently provided. Add your EMI amount or remaining tenure to calculate payoff timeline.',
+        note: 'Forecast based on the information currently provided. Add your EMI amount or remaining tenure to calculate payoff timeline.',
       );
     }
 
     // Case 4: Zero interest loan (e.g. 0% interest promo or loan without interest rate provided)
     if (rAnnual <= 0) {
-      final effectiveEmi = E ?? (nInput != null && nInput > 0 ? P / nInput : 0.0);
+      final effectiveEmi =
+          E ?? (nInput != null && nInput > 0 ? P / nInput : 0.0);
       if (effectiveEmi <= 0) {
         return LoanForecastResult(
           loan: loan,
           calculatedAt: now,
           outstandingPrincipal: P,
           missingFields: missingFields,
-          note:
-              'Forecast based on the information currently provided. Add your EMI or interest rate.',
+          note: 'Forecast based on the information currently provided. Add your EMI or interest rate.',
         );
       }
 
@@ -153,7 +153,11 @@ class LoanForecastService {
         schedule.add(
           AmortizationScheduleRow(
             monthNumber: m,
-            date: DateTime(startDate.year, startDate.month + (m - 1), startDate.day),
+            date: DateTime(
+              startDate.year,
+              startDate.month + (m - 1),
+              startDate.day,
+            ),
             payment: double.parse(payment.toStringAsFixed(2)),
             principalComponent: double.parse(payment.toStringAsFixed(2)),
             interestComponent: 0.0,
@@ -226,7 +230,11 @@ class LoanForecastService {
       schedule.add(
         AmortizationScheduleRow(
           monthNumber: month,
-          date: DateTime(startDate.year, startDate.month + (month - 1), startDate.day),
+          date: DateTime(
+            startDate.year,
+            startDate.month + (month - 1),
+            startDate.day,
+          ),
           payment: double.parse(payment.toStringAsFixed(2)),
           principalComponent: double.parse(principalComp.toStringAsFixed(2)),
           interestComponent: double.parse(interestComp.toStringAsFixed(2)),
@@ -246,7 +254,9 @@ class LoanForecastService {
       calculatedAt: now,
       estimatedRemainingTenureMonths: month,
       estimatedClosureDate: closureDate,
-      estimatedRemainingInterest: double.parse(totalInterest.toStringAsFixed(2)),
+      estimatedRemainingInterest: double.parse(
+        totalInterest.toStringAsFixed(2),
+      ),
       outstandingPrincipal: P,
       totalRemainingRepayment: double.parse(totalRepayment.toStringAsFixed(2)),
       effectiveEmi: effectiveEmi,
@@ -276,7 +286,8 @@ class LoanForecastService {
         final extra = params.extraMonthlyAmount ?? 0.0;
         final baseEmi = loan.emiAmount ?? baseline.effectiveEmi ?? 0.0;
         scenarioLoan = loan.copyWith(emiAmount: baseEmi + extra);
-        scenarioName = 'Extra Monthly Payment (+₹${extra.toStringAsFixed(0)}/mo)';
+        scenarioName =
+            'Extra Monthly Payment (+₹${extra.toStringAsFixed(0)}/mo)';
         scenarioForecast = calculateForecast(scenarioLoan, asOfDate: now);
         break;
 
@@ -289,23 +300,27 @@ class LoanForecastService {
 
       case WhatIfType.lumpSumPrepayment:
         final lumpSum = params.lumpSumAmount ?? 0.0;
-        final baseP = loan.outstandingPrincipal ?? loan.originalPrincipal ?? 0.0;
+        final baseP =
+            loan.outstandingPrincipal ?? loan.originalPrincipal ?? 0.0;
         final newP = math.max(0.0, baseP - lumpSum);
         scenarioLoan = loan.copyWith(outstandingPrincipal: newP);
-        scenarioName = 'One-time Prepayment (₹${lumpSum.toStringAsFixed(0)} now)';
+        scenarioName =
+            'One-time Prepayment (₹${lumpSum.toStringAsFixed(0)} now)';
         scenarioForecast = calculateForecast(scenarioLoan, asOfDate: now);
         break;
 
       case WhatIfType.interestRateChange:
         final newRate = params.scenarioInterestRate ?? loan.interestRate ?? 0.0;
         scenarioLoan = loan.copyWith(interestRate: newRate);
-        scenarioName = 'Interest Rate Scenario (${newRate.toStringAsFixed(1)}%)';
+        scenarioName =
+            'Interest Rate Scenario (${newRate.toStringAsFixed(1)}%)';
         scenarioForecast = calculateForecast(scenarioLoan, asOfDate: now);
         break;
 
       case WhatIfType.annualPrepayment:
         final annualExtra = params.annualPrepaymentAmount ?? 0.0;
-        scenarioName = 'Annual Prepayment (+₹${annualExtra.toStringAsFixed(0)}/yr)';
+        scenarioName =
+            'Annual Prepayment (+₹${annualExtra.toStringAsFixed(0)}/yr)';
         scenarioForecast = _simulateAnnualPrepayment(
           loan: loan,
           annualPrepayment: annualExtra,
@@ -314,11 +329,16 @@ class LoanForecastService {
         break;
 
       case WhatIfType.targetClosureDate:
-        final desiredDate = params.desiredClosureDate ?? DateTime.now().add(const Duration(days: 365));
-        scenarioName = 'Target Closure Date (${desiredDate.year}-${desiredDate.month.toString().padLeft(2, '0')})';
+        final desiredDate =
+            params.desiredClosureDate ??
+            DateTime.now().add(const Duration(days: 365));
+        scenarioName =
+            'Target Closure Date (${desiredDate.year}-${desiredDate.month.toString().padLeft(2, '0')})';
 
         final startDate = loan.nextEmiDate ?? loan.startDate ?? now;
-        var monthsDiff = (desiredDate.year - startDate.year) * 12 + (desiredDate.month - startDate.month);
+        var monthsDiff =
+            (desiredDate.year - startDate.year) * 12 +
+            (desiredDate.month - startDate.month);
         if (monthsDiff <= 0) monthsDiff = 1;
 
         final P = loan.outstandingPrincipal ?? loan.originalPrincipal ?? 0.0;
@@ -366,8 +386,7 @@ class LoanForecastService {
       requiredAdditionalMonthlyPayment: requiredAdditionalPayment != null
           ? double.parse(requiredAdditionalPayment.toStringAsFixed(2))
           : null,
-      disclaimer:
-          'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
+      disclaimer: 'Illustrative estimate assuming the entered rate/parameters remain unchanged. Actual lender treatment may differ.',
     );
   }
 
@@ -417,7 +436,11 @@ class LoanForecastService {
       schedule.add(
         AmortizationScheduleRow(
           monthNumber: month,
-          date: DateTime(startDate.year, startDate.month + (month - 1), startDate.day),
+          date: DateTime(
+            startDate.year,
+            startDate.month + (month - 1),
+            startDate.day,
+          ),
           payment: double.parse(payment.toStringAsFixed(2)),
           principalComponent: double.parse(principalComp.toStringAsFixed(2)),
           interestComponent: double.parse(interestComp.toStringAsFixed(2)),
@@ -437,7 +460,9 @@ class LoanForecastService {
       calculatedAt: asOfDate,
       estimatedRemainingTenureMonths: month,
       estimatedClosureDate: closureDate,
-      estimatedRemainingInterest: double.parse(totalInterest.toStringAsFixed(2)),
+      estimatedRemainingInterest: double.parse(
+        totalInterest.toStringAsFixed(2),
+      ),
       outstandingPrincipal: P,
       totalRemainingRepayment: double.parse(totalRepayment.toStringAsFixed(2)),
       effectiveEmi: E,
@@ -447,4 +472,3 @@ class LoanForecastService {
     );
   }
 }
-

@@ -1,16 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/core/services/firestore_service.dart';
-import 'package:personal_financial_assistant/features/loans/domain/repositories/loan_repository.dart';
-import 'package:personal_financial_assistant/features/loans/loan.dart';
+import 'package:personal_financial_assistant/features/goals/domain/repositories/goal_repository.dart';
+import 'package:personal_financial_assistant/features/goals/goal.dart';
 
-class FirestoreLoanRepository implements LoanRepository {
+class FirestoreGoalRepository implements GoalRepository {
   final FirestoreService _firestoreService;
   final FirebaseAuth _firebaseAuth;
 
-  static const String _collectionName = 'loans';
+  static const String _collectionName = 'goals';
 
-  FirestoreLoanRepository({
+  FirestoreGoalRepository({
     FirestoreService? firestoreService,
     FirebaseAuth? firebaseAuth,
   }) : _firestoreService = firestoreService ?? FirestoreService(),
@@ -25,18 +25,18 @@ class FirestoreLoanRepository implements LoanRepository {
   }
 
   @override
-  Future<List<Loan>> getLoans(String userId) async {
+  Future<List<Goal>> getGoals(String userId) async {
     final currentUid = _requireCurrentUserId();
     final dataList = await _firestoreService.queryCollection(
       userId: currentUid,
       collection: _collectionName,
       params: const QueryParams(orderBy: 'createdAt', descending: true),
     );
-    return dataList.map((data) => Loan.fromJson(data)).toList();
+    return dataList.map((data) => Goal.fromJson(data)).toList();
   }
 
   @override
-  Stream<List<Loan>> watchLoans(String userId) {
+  Stream<List<Goal>> watchGoals(String userId) {
     final currentUid = _requireCurrentUserId();
     return _firestoreService
         .watchCollection(
@@ -45,63 +45,63 @@ class FirestoreLoanRepository implements LoanRepository {
           params: const QueryParams(orderBy: 'createdAt', descending: true),
         )
         .map(
-          (dataList) => dataList.map((data) => Loan.fromJson(data)).toList(),
+          (dataList) => dataList.map((data) => Goal.fromJson(data)).toList(),
         );
   }
 
   @override
-  Future<void> createLoan(Loan loan) async {
+  Future<void> createGoal(Goal goal) async {
     final currentUid = _requireCurrentUserId();
-    final secureLoan = loan.copyWith(userId: currentUid);
+    final secureGoal = goal.copyWith(userId: currentUid);
     await _firestoreService.setData(
       userId: currentUid,
       collection: _collectionName,
-      docId: secureLoan.id,
-      data: secureLoan.toJson(),
+      docId: secureGoal.id,
+      data: secureGoal.toJson(),
     );
   }
 
   @override
-  Future<void> updateLoan(Loan loan) async {
+  Future<void> updateGoal(Goal goal) async {
     final currentUid = _requireCurrentUserId();
-    final secureLoan = loan.copyWith(
+    final secureGoal = goal.copyWith(
       userId: currentUid,
       updatedAt: DateTime.now(),
     );
     await _firestoreService.setData(
       userId: currentUid,
       collection: _collectionName,
-      docId: secureLoan.id,
-      data: secureLoan.toJson(),
+      docId: secureGoal.id,
+      data: secureGoal.toJson(),
       merge: true,
     );
   }
 
   @override
-  Future<void> archiveLoan({
+  Future<void> archiveGoal({
     required String userId,
-    required String loanId,
+    required String goalId,
   }) async {
     final currentUid = _requireCurrentUserId();
     await _firestoreService.setData(
       userId: currentUid,
       collection: _collectionName,
-      docId: loanId,
+      docId: goalId,
       data: {'active': false, 'updatedAt': DateTime.now().toIso8601String()},
       merge: true,
     );
   }
 
   @override
-  Future<void> deleteLoan({
+  Future<void> deleteGoal({
     required String userId,
-    required String loanId,
+    required String goalId,
   }) async {
     final currentUid = _requireCurrentUserId();
     await _firestoreService.deleteData(
       userId: currentUid,
       collection: _collectionName,
-      docId: loanId,
+      docId: goalId,
     );
   }
 }

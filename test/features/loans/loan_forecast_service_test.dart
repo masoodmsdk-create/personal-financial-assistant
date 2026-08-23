@@ -3,7 +3,6 @@ import 'package:personal_financial_assistant/features/loans/domain/models/what_i
 import 'package:personal_financial_assistant/features/loans/domain/services/loan_forecast_service.dart';
 import 'package:personal_financial_assistant/features/loans/loan.dart';
 
-
 void main() {
   final now = DateTime(2026, 8, 1);
 

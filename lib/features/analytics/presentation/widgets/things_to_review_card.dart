@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_financial_assistant/features/analytics/domain/models/financial_insight.dart';
 import 'package:personal_financial_assistant/features/analytics/presentation/providers/analytics_providers.dart';
 
 class ThingsToReviewCard extends ConsumerWidget {
-  const ThingsToReviewCard({super.key});
+  final List<FinancialInsight>? customInsights;
+
+  const ThingsToReviewCard({super.key, this.customInsights});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final insights = ref.watch(financialInsightsProvider);
+    final List<FinancialInsight> insights =
+        customInsights ?? ref.watch(financialInsightsProvider);
 
     return Card(
       elevation: 0,

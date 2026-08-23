@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Phase 4 — Financial Planning: Loan Forecast & What-If Engine, Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, Financial Aggregation Engine, Charts, and In-App Insights complete.
+Phase 4 — Financial Planning: Monthly Financial Review & Unified Financial Overview, Goals, Loan Forecast & What-If Engine, Accounts, Dynamic Categories, Profile Edit, Planned Expenses, Transactions, Financial Aggregation Engine, Charts, and In-App Insights complete.
 
 ## Current Target
 
@@ -68,20 +68,27 @@ Build a Personal Financial Assistant for:
   - `ImproveForecastCard`: Reusable component rendering relevant missing high-value fields with brief explanations without fake accuracy percentages.
   - `FirestoreLoanRepository` and `firestore.rules` extended for `users/{userId}/loans/{loanId}` strictly restricted to `request.auth.uid == userId`.
   - `LoansScreen`, `AddEditLoanDialog`, `/loans` route, and settings navigation.
+- **Implemented MONTHLY FINANCIAL REVIEW & UNIFIED FINANCIAL OVERVIEW (MSD FINAURA)**:
+  - `Goal` domain model (`id`, `userId`, `name`, `type`, `targetAmount`, `currentAmount`, `targetDate`, `linkedLoanId`, `linkedAccountId`, `notes`, `active`) and `GoalType` enum (`savingsGoal`, `debtGoal`, `emergencyFund`, `customGoal`).
+  - Security rules (`firestore.rules`) extended to cover `users/{userId}/goals/{goalId}` restricted strictly to authenticated owner (`request.auth.uid == userId`).
+  - `FinancialReviewService`: Pure domain composition service uniting transaction actuals, planned expense forecasts, in-app insights, upcoming month forecast, active goal progress, and loan payoff projections without calculation duplication.
+  - Month navigation bar (`< Previous | August 2026 | Next >`).
+  - Material 3 components: `MonthlySummaryCard` (with explicit `ACTUAL` / `PLANNED` badges), `ComingUpForecastCard` (with `FORECAST` expected metrics), `GoalsLoanProgressCard` (savings goals progress & loan payoff projections), `MonthlyReviewDashboardCard` (Dashboard entry card), and `MonthlyReviewScreen`.
 - **Note on Exclusions**:
-  - What-If scenarios are purely illustrative simulations (never modify actual loan data, create transactions, or alter account balances).
-  - Bank statement import (PDF/CSV/OCR), automatic bank sync, AI transaction parsing, paid external AI APIs, and push notifications are NOT implemented.
-- Unit & Widget tests: 103/103 tests passed (`flutter test`).
+  - What-If scenarios and review forecasts are purely illustrative simulations (never modify actual loan data, create transactions, or alter account balances).
+  - Bank statement import (PDF/CSV/OCR), automatic bank sync, AI transaction parsing, paid external AI APIs, and mobile push notifications are NOT implemented.
+- Unit & Widget tests: 110/110 tests passed (`flutter test`).
 - Static Analysis & Formatting: `dart analyze` (0 errors), `dart format .` (clean).
 - Built Web distribution bundle (`flutter build web` — succeeded).
 
 ## In Progress
 
-Loan Forecast & What-If Engine complete. Next milestone: Phase 4 Financial Planning (Budgets, Investments, Goals, Net Worth).
+Monthly Financial Review & Unified Financial Overview complete. Next milestone: Phase 4 Financial Planning (Budgets & Net Worth calculation).
 
 ## Next Work
 
-Implement Financial Planning Foundation (Budgets, Goal Progress, and Net Worth calculation).
+Implement Financial Planning Foundation (Budgets, Net Worth calculation, & Asset/Liability tracking).
+
 
 
 

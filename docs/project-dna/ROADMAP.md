@@ -53,8 +53,9 @@
 - [x] Loan amortization
 - [x] Prepayment simulation
 - [ ] Investments
-- [ ] Goals
+- [x] Goals
 - [ ] Net worth
+
 
 
 ## Phase 5 — Assistant

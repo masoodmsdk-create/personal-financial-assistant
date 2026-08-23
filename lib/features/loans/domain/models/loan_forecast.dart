@@ -63,4 +63,3 @@ class LoanForecastResult {
   bool get hasTenure => estimatedRemainingTenureMonths != null;
   bool get hasInterest => estimatedRemainingInterest != null;
 }
-
