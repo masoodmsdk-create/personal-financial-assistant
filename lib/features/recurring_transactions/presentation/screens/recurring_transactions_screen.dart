@@ -121,11 +121,13 @@ class _RecurringTransactionsScreenState
             PageHeader(
               title: 'Recurring Transactions',
               subtitle: 'Manage automated income and expense commitments with deterministic catch-up.',
-              action: FilledButton.icon(
-                onPressed: () => _showAddRuleDialog(),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Add Recurring Rule'),
-              ),
+              action: (rulesAsync.value?.isNotEmpty ?? false)
+                  ? FilledButton.icon(
+                      onPressed: () => _showAddRuleDialog(),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Recurring Rule'),
+                    )
+                  : null,
             ),
             const DueOccurrencesBanner(),
             Expanded(
@@ -421,22 +423,10 @@ class _RecurringTransactionsScreenState
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              alignment: WrapAlignment.center,
-              children: [
-                FilledButton.icon(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.add),
-                  label: Text(buttonText),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _showAddRuleDialog(TransactionType.income),
-                  icon: const Icon(Icons.wallet, color: Colors.green),
-                  label: const Text('Add Salary'),
-                ),
-              ],
+            FilledButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(buttonText),
             ),
           ],
         ),

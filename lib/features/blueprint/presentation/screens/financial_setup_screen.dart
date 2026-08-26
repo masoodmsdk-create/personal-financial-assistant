@@ -185,94 +185,32 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
     }
   }
 
-  Future<void> _showConfirmDialog(
-    BuildContext context,
-    FinancialBlueprint bp,
-  ) async {
+  Future<void> _saveBlueprint(FinancialBlueprint bp) async {
     final user = ref.read(currentUserProvider);
-    if (user == null) return;
+    final userId = user?.uid ?? 'guest';
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Financial Setup'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'FINAURA will create the following records in your active workspace:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (bp.incomes.isNotEmpty)
-              _bulletPoint('${bp.incomes.length} Income source(s)'),
-            if (bp.loans.isNotEmpty)
-              _bulletPoint('${bp.loans.length} Loan obligation(s)'),
-            if (bp.recurringExpenses.isNotEmpty)
-              _bulletPoint(
-                '${bp.recurringExpenses.length} Recurring planned expense(s)',
-              ),
-            if (bp.savings.isNotEmpty)
-              _bulletPoint('${bp.savings.length} Savings / Account record(s)'),
-            if (bp.goals.isNotEmpty)
-              _bulletPoint('${bp.goals.length} Financial goal(s)'),
-            if (bp.transactions.isNotEmpty)
-              _bulletPoint('${bp.transactions.length} Actual transaction(s)'),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'No financial records were created yet. Tapping "Confirm & Create" will save these to your workspace.',
-                style: TextStyle(fontSize: 12, color: Colors.blue.shade900),
-              ),
-            ),
-          ],
+    final success = await ref
+        .read(blueprintControllerProvider.notifier)
+        .confirmAndPersist(userId);
+    if (!mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Financial setup created successfully!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Review Again'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Confirm & Create'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final success = await ref
-          .read(blueprintControllerProvider.notifier)
-          .confirmAndPersist(user.uid);
-      if (!context.mounted) return;
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Financial setup created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      );
+    } else {
+      final err = ref.read(blueprintControllerProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err ?? 'Failed to create financial records'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
-  }
-
-  Widget _bulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
-          const SizedBox(width: 8),
-          Text(text),
-        ],
-      ),
-    );
   }
 
   @override
@@ -314,11 +252,35 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
               PageHeader(
                 title: 'Your Money Blueprint',
                 subtitle: 'Describe, view, and manage your income, expenses, loans, accounts, and goals',
-                action: OutlinedButton.icon(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                  label: const Text('Back'),
-                ),
+                action:
+                    (bp != null &&
+                        bp.totalEntitiesCount > 0 &&
+                        !state.isConfirmed)
+                    ? FilledButton.icon(
+                        onPressed: state.isPersisting
+                            ? null
+                            : () => _saveBlueprint(bp),
+                        icon: state.isPersisting
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.save_rounded, size: 18),
+                        label: Text(
+                          state.isPersisting
+                              ? 'Saving Blueprint...'
+                              : 'Save Blueprint',
+                        ),
+                      )
+                    : OutlinedButton.icon(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                        label: const Text('Back'),
+                      ),
               ),
               const SizedBox(height: 16),
 
@@ -554,7 +516,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   !state.isConfirmed) ...[
                 const SizedBox(height: 24),
                 _BlueprintSummaryMetrics(bp: bp),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                Text(
+                  'Detected Financial Items',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
 
                 // Sections Breakdown with EDIT and DELETE buttons
                 if (bp.incomes.isNotEmpty) ...[
@@ -681,80 +650,6 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-
-                // Explicit Confirmation Bar with visible primary Save button
-                const SizedBox(height: 24),
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: colorScheme.primary, width: 1.5),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        Wrap(
-                          alignment: WrapAlignment.spaceBetween,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 16,
-                          runSpacing: 12,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.shield_outlined,
-                                  color: colorScheme.primary,
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Ready to Create Financial Setup',
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    Text(
-                                      '${bp.totalEntitiesCount} records ready to be saved in ${activeWorkspace.name}',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            FilledButton.icon(
-                              onPressed: state.isPersisting
-                                  ? null
-                                  : () => _showConfirmDialog(context, bp),
-                              icon: state.isPersisting
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.check_circle_rounded),
-                              label: Text(
-                                state.isPersisting
-                                    ? 'Saving Blueprint...'
-                                    : 'Confirm & Create Setup',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
 
               // ACTIVE BLUEPRINT MANAGEMENT (When existing entities exist)

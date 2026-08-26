@@ -475,7 +475,7 @@ class _AddEditLoanDialogState extends ConsumerState<AddEditLoanDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(_isEditing ? 'Save Changes' : 'Add Loan'),
+              : Text(_isEditing ? 'Save Changes' : 'Save Loan'),
         ),
       ],
     );

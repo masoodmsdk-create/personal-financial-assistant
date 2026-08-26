@@ -252,7 +252,7 @@ class _AddEditAccountDialogState extends ConsumerState<AddEditAccountDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text(isEditing ? 'Save Changes' : 'Add Account'),
+              : Text(isEditing ? 'Save Changes' : 'Save Account'),
         ),
       ],
     );

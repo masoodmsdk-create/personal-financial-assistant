@@ -200,7 +200,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text(isEditing ? 'Save Changes' : 'Add Category'),
+              : Text(isEditing ? 'Save Changes' : 'Save Category'),
         ),
       ],
     );

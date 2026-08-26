@@ -32,11 +32,20 @@ STEP 7: Leave all changes uncommitted in the working tree.
 
 ## 2. CORE ARCHITECTURAL INVARIANTS
 
-0. **Core Product Principle — Simplicity & Minimum Complexity**:
-   - **MSD FINAURA MUST BE AS SIMPLE AS POSSIBLE FOR THE USER**: Maximum financial usefulness with minimum user complexity.
-   - Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
-   - Always reuse existing screens, models, services, and providers before creating new components.
-   - Use progressive disclosure for advanced detail (`[View Breakdown]`, `[View Details]`) instead of cluttering primary views.
+0. **Core Product Principles & Five-Pillar Model**:
+   - **1. Simplest Possible UI**: MSD FINAURA must always maximize financial usefulness while minimizing user complexity. Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
+   - **2. Home is the True Landing Page**: Home (`/dashboard`) is the user's Financial Command Center. Its core principle is `SUMMARY → UNDERSTAND → DRILL DOWN`. It must answer within seconds: what I have, what I owe, what I earn, what I spend, what I can safely spend, my debts, my goals, upcoming payments, and where I'm heading.
+   - **3. Home Summarizes, Never Duplicates**: Home provides concise real-data summaries and progressive disclosure drill-downs (`[View Breakdown]`, `[View Details]`, `[View Loans]`, `[View Goals]`, `[View Budget]`, `[View Forecast]`, `[View Transactions]`). It never blindly duplicates entire feature management screens.
+   - **4. Loans & Goals as First-Class Home Health**: High-level loan burden and savings goal progress must remain visible on Home without needing to dig into Plans. Adaptive display hides empty sections when no loans or goals exist.
+   - **5. Financial Health Over Mere Transactions**: Home prioritizes overall solvency, net worth, safe-to-spend margin, and upcoming commitments, not just raw transaction feeds.
+   - **6. Money Pillar**: `/money` strictly records and manages actual liquid money (Accounts, Transactions, Recurring Rules).
+   - **7. Plans Pillar**: `/plans` strictly manages the future (Budgets, Goals, Loans & Debt, Trade-Off Intelligence).
+   - **8. Insights Pillar**: `/insights` strictly explains financial performance (Analytics), period comparisons (Monthly Review), and multi-horizon projections (Forecast).
+   - **9. Settings Pillar**: `/settings` strictly configures the application (Profile, Workspaces, Categories, Legal, Export/Import).
+   - **10. Drill-Down Over Information Overload**: Every important metric must explain its mathematical origin via clean drill-downs (`[View Breakdown]`) rather than cluttering the primary view.
+   - **11. One Primary Creation Action**: Exactly ONE primary creation action per workflow. Never show competing PageHeader, FAB, and EmptyState buttons simultaneously.
+   - **12. Actionability Over Button Existence**: UI actions must be clearly visible, accessible, properly contrasted, correctly enabled/disabled, loading-aware, wired to persistence, and verified in real UI.
+   - **13. Real User Acceptance**: All workflows must be verified through actual end-to-end user interaction (Input $\to$ Validate $\to$ Action $\to$ Submit $\to$ Confirm $\to$ Persist $\to$ Feedback).
 
 1. **Source of Truth**:
    - The actual Dart source code and config files (`pubspec.yaml`, `firestore.rules`, etc.) are the ground truth.

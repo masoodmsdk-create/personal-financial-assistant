@@ -128,11 +128,13 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               PageHeader(
                 title: 'Budget & Cash-Flow Planning',
                 subtitle: 'Understand how much you can safely spend, what is committed, and what remains available.',
-                action: FilledButton.icon(
-                  onPressed: () => _openAddBudgetDialog(),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('Add Budget'),
-                ),
+                action: budgetSummary.categoryBreakdowns.isNotEmpty
+                    ? FilledButton.icon(
+                        onPressed: () => _openAddBudgetDialog(),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('Add Budget'),
+                      )
+                    : null,
               ),
 
               // Month Selector Bar
@@ -261,7 +263,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           ? 'Set monthly budgets for groceries, dining, shopping, and living expenses to control spending.'
                           : 'Try changing the filter chips above.',
                       actionLabel: budgetSummary.categoryBreakdowns.isEmpty
-                          ? 'Set First Category Budget'
+                          ? 'Add Budget'
                           : null,
                       onAction: budgetSummary.categoryBreakdowns.isEmpty
                           ? () => _openAddBudgetDialog()

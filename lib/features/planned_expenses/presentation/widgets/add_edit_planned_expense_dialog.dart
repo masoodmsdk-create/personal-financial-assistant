@@ -410,7 +410,7 @@ class _AddEditPlannedExpenseDialogState
                     color: Colors.white,
                   ),
                 )
-              : Text(isEditing ? 'Save Changes' : 'Add Plan'),
+              : Text(isEditing ? 'Save Changes' : 'Save Plan'),
         ),
       ],
     );

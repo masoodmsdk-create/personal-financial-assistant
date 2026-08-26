@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/features/budgets/presentation/providers/budget_providers.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/providers/command_center_providers.dart';
+import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/available_to_spend_breakdown_dialog.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/financial_position_breakdown_dialog.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
@@ -131,7 +132,7 @@ class FinancialSituationCard extends ConsumerWidget {
                         );
                       },
                       icon: const Icon(Icons.analytics_outlined, size: 16),
-                      label: const Text('Breakdown'),
+                      label: const Text('View Breakdown'),
                     ),
                   ],
                 ),
@@ -239,7 +240,7 @@ class FinancialSituationCard extends ConsumerWidget {
             OutlinedButton.icon(
               onPressed: () => context.push('/analytics'),
               icon: const Icon(Icons.show_chart_rounded, size: 16),
-              label: const Text('View Analytics'),
+              label: const Text('View Details'),
             ),
           ],
         ),
@@ -327,13 +328,29 @@ class FinancialSituationCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    TextButton.icon(
-                      onPressed: () => context.push('/budgets'),
-                      icon: const Icon(
-                        Icons.pie_chart_outline_rounded,
-                        size: 16,
-                      ),
-                      label: const Text('View Budget'),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        FilledButton.tonalIcon(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) =>
+                                  const AvailableToSpendBreakdownDialog(),
+                            );
+                          },
+                          icon: const Icon(Icons.analytics_outlined, size: 16),
+                          label: const Text('View Breakdown'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => context.push('/budgets'),
+                          icon: const Icon(
+                            Icons.pie_chart_outline_rounded,
+                            size: 16,
+                          ),
+                          label: const Text('View Budget'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

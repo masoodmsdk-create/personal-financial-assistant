@@ -272,11 +272,8 @@ void main() {
         expect(find.text('Recurring Living Expenses'), findsOneWidget);
         expect(find.text('Loans & Commitments'), findsOneWidget);
 
-        // Verify explicit visible "Confirm & Create Setup" button
-        final saveButton = find.widgetWithText(
-          FilledButton,
-          'Confirm & Create Setup',
-        );
+        // Verify explicit single primary "Save Blueprint" button in PageHeader
+        final saveButton = find.widgetWithText(FilledButton, 'Save Blueprint');
         expect(saveButton, findsOneWidget);
       },
     );
@@ -332,6 +329,8 @@ void main() {
         expect(editButtons, findsNWidgets(2));
 
         // 1. Edit Income: change Salary ₹80,000 -> ₹90,000
+        await tester.ensureVisible(editButtons.first);
+        await tester.pumpAndSettle();
         await tester.tap(editButtons.first);
         await tester.pumpAndSettle();
 

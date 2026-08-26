@@ -263,7 +263,8 @@ class _AddEditBudgetDialogState extends ConsumerState<AddEditBudgetDialog> {
                             )
                           : const Icon(Icons.check_rounded, size: 18),
                       label: Text(
-                        widget.budget != null ? 'Save Changes' : 'Add Budget',
+                        widget.budget != null ? 'Save Changes' : 'Save Budget',
+                      ),
                     ),
                   ],
                 ),

@@ -175,11 +175,6 @@ class _PlannedExpensesScreenState extends ConsumerState<PlannedExpensesScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddPlanDialog,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Plan'),
-      ),
     );
   }
 }
@@ -511,12 +506,25 @@ class _RecurringPlansTabView extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  showArchived ? Icons.archive_rounded : Icons.archive_outlined,
-                ),
-                tooltip: showArchived ? 'Hide Archived' : 'Show Archived',
-                onPressed: onToggleArchived,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FilledButton.icon(
+                    onPressed: onAdd,
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('Add Plan'),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      showArchived
+                          ? Icons.archive_rounded
+                          : Icons.archive_outlined,
+                    ),
+                    tooltip: showArchived ? 'Hide Archived' : 'Show Archived',
+                    onPressed: onToggleArchived,
+                  ),
+                ],
               ),
             ],
           ),
@@ -557,17 +565,11 @@ class _RecurringPlansTabView extends ConsumerWidget {
                         Text(
                           showArchived
                               ? 'No active or archived planned expenses found.'
-                              : 'Tap the button below to add your first recurring planned expense.',
+                              : 'Use the "Add Plan" button above to add your first recurring planned expense.',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton.icon(
-                          onPressed: onAdd,
-                          icon: const Icon(Icons.add_rounded),
-                          label: const Text('Add Planned Expense'),
                         ),
                       ],
                     ),

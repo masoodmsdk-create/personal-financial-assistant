@@ -37,6 +37,16 @@ class AccountTypesScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  PageHeader(
+                    title: 'Account Types',
+                    subtitle: 'Manage asset and liability categories for your accounts.',
+                    action: FilledButton.icon(
+                      onPressed: () => _showAddTypeDialog(context),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Account Type'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Card(
                     color: theme.colorScheme.surfaceContainerLow,
                     child: Padding(
@@ -164,11 +174,6 @@ class AccountTypesScreen extends ConsumerWidget {
           message: 'Error loading account types: $err',
           onRetry: () => ref.invalidate(accountTypesStreamProvider),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTypeDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Account Type'),
       ),
     );
   }

@@ -149,11 +149,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     icon: const Icon(Icons.auto_awesome_rounded, size: 18),
                     label: const Text('Smart Entry'),
                   ),
-                  FilledButton.icon(
-                    onPressed: _showAddTransactionDialog,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Transaction'),
-                  ),
+                  if (transactionsAsync.value?.isNotEmpty ?? false)
+                    FilledButton.icon(
+                      onPressed: _showAddTransactionDialog,
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Transaction'),
+                    ),
                 ],
               ),
             ),
@@ -310,7 +311,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             FilledButton.icon(
                               onPressed: _showAddTransactionDialog,
                               icon: const Icon(Icons.add_rounded),
-                              label: const Text('Record Transaction'),
+                              label: const Text('Add Transaction'),
                             ),
                           ],
                         ),

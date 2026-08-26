@@ -54,7 +54,7 @@ class RecentActivitySection extends ConsumerWidget {
             TextButton.icon(
               onPressed: () => context.push('/transactions'),
               icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-              label: const Text('View All'),
+              label: const Text('View Transactions'),
             ),
           ],
         ),

@@ -1,11 +1,19 @@
 # Development Rules & Principles
 
-## 1. Golden Rule
-- **MSD FINAURA MUST BE AS SIMPLE AS POSSIBLE FOR THE USER**: Maximum financial usefulness with minimum user complexity.
-- Do not build complexity that we do not currently need.
-- Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
-- Always reuse existing screens, models, services, and providers before creating new components.
-- The application begins with 5–10 users. Build cleanly, securely, and deterministically now; scale later.
+## 1. Golden Rules & Core Principles
+1. **SIMPLEST POSSIBLE UI**: MSD FINAURA must always maximize financial usefulness while minimizing user complexity. Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
+2. **HOME IS THE TRUE LANDING PAGE**: Home (`/dashboard`) is the user's Financial Command Center. Core principle: `SUMMARY → UNDERSTAND → DRILL DOWN`. Must answer within seconds: what I have, owe, earn, spend, safe-to-spend, debts, goals, upcoming commitments, and financial trajectory.
+3. **HOME SUMMARIZES, NEVER DUPLICATES**: Home provides concise real-data summaries and progressive disclosure drill-downs (`[View Breakdown]`, `[View Details]`, `[View Loans]`, `[View Goals]`, `[View Budget]`, `[View Forecast]`, `[View Transactions]`). It never blindly duplicates full feature management screens.
+4. **LOANS & GOALS AS FIRST-CLASS HOME HEALTH**: High-level loan burden and savings goal progress remain prominent on Home without needing to dig into Plans. Adaptive display hides empty sections when no loans or goals exist.
+5. **FINANCIAL HEALTH OVER MERE TRANSACTIONS**: Home prioritizes overall solvency, net worth, safe-to-spend margin, and upcoming commitments, not just raw transaction feeds.
+6. **MONEY RECORDS ACTUAL MONEY**: `/money` strictly records and manages actual liquid money (Accounts, Transactions, Recurring Rules).
+7. **PLANS MANAGES THE FUTURE**: `/plans` strictly manages the future (Budgets, Goals, Loans & Debt, Trade-Off Intelligence).
+8. **INSIGHTS EXPLAINS PERFORMANCE AND PROJECTIONS**: `/insights` strictly explains financial performance (Analytics), period comparisons (Monthly Review), and multi-horizon projections (Forecast).
+9. **SETTINGS CONFIGURES THE APPLICATION**: `/settings` strictly configures the application (Profile, Workspaces, Categories, Legal, Export/Import).
+10. **DRILL-DOWN OVER INFORMATION OVERLOAD**: Every important metric must explain its mathematical origin via clean drill-downs (`[View Breakdown]`) rather than cluttering the primary view.
+11. **ONE PRIMARY CREATION ACTION PER WORKFLOW**: Avoid duplicate creation actions for the same workflow. Never show competing PageHeader, FAB, and EmptyState buttons simultaneously.
+12. **ACTIONABILITY OVER BUTTON EXISTENCE**: UI actions must be clearly visible, accessible, properly contrasted, correctly enabled/disabled, loading-aware, wired to persistence, and verified in real UI.
+13. **REAL USER ACCEPTANCE**: Critical workflows must be verified through actual interaction (Input $\to$ Validate $\to$ Action $\to$ Submit $\to$ Confirm $\to$ Persist $\to$ Feedback), not only static analysis.
 
 ---
 

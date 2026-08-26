@@ -326,7 +326,7 @@ class _AddEditGoalDialogState extends ConsumerState<AddEditGoalDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text(isEditing ? 'Save Changes' : 'Create Goal'),
+              : Text(isEditing ? 'Save Changes' : 'Save Goal'),
         ),
       ],
     );

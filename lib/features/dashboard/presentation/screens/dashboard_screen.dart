@@ -283,7 +283,7 @@ class DashboardScreen extends ConsumerWidget {
                               );
                             },
                             icon: const Icon(Icons.flag_outlined, size: 16),
-                            label: const Text('Create Goal'),
+                            label: const Text('Add Goal'),
                           ),
                         ],
                       ),
@@ -294,59 +294,64 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 20),
             ],
 
-            // SECTION 11 — FINAURA QUICK ACTIONS BAR
-            Card(
-              elevation: 0,
-              color: colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.35,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            // SECTION 11 — FINAURA QUICK ACTIONS BAR (Shown for existing financial pictures)
+            if (!isNewUser) ...[
+              Card(
+                elevation: 0,
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.35,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceEvenly,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: () => context.push('/smart-entry'),
+                        icon: const Icon(Icons.mic_none_rounded, size: 18),
+                        label: const Text('Smart Entry'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => context.push('/financial-setup'),
+                        icon: const Icon(
+                          Icons.psychology_alt_rounded,
+                          size: 18,
+                        ),
+                        label: const Text('Tell FINAURA About Your Money'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => context.push('/trade-off'),
+                        icon: const Icon(Icons.balance_rounded, size: 18),
+                        label: const Text('Trade-Off Intelligence'),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => const AddEditTransactionDialog(),
+                          );
+                        },
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('Add Transaction'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceEvenly,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    FilledButton.tonalIcon(
-                      onPressed: () => context.push('/smart-entry'),
-                      icon: const Icon(Icons.mic_none_rounded, size: 18),
-                      label: const Text('Smart Entry'),
-                    ),
-                    FilledButton.tonalIcon(
-                      onPressed: () => context.push('/financial-setup'),
-                      icon: const Icon(Icons.psychology_alt_rounded, size: 18),
-                      label: const Text('Tell FINAURA About Your Money'),
-                    ),
-                    FilledButton.tonalIcon(
-                      onPressed: () => context.push('/trade-off'),
-                      icon: const Icon(Icons.balance_rounded, size: 18),
-                      label: const Text('Trade-Off Intelligence'),
-                    ),
-                    FilledButton.icon(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => const AddEditTransactionDialog(),
-                        );
-                      },
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: const Text('Add Transaction'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
 
             // SECTIONS 1, 2, 3 — Financial Position, This Month, Available to Spend
             const RepaintBoundary(child: FinancialSituationCard()),

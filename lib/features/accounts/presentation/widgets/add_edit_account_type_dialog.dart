@@ -168,7 +168,7 @@ class _AddEditAccountTypeDialogState
                     color: Colors.white,
                   ),
                 )
-              : const Text('Create Type'),
+              : const Text('Save Account Type'),
         ),
       ],
     );

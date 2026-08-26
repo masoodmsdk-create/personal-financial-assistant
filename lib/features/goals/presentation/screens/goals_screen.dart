@@ -105,7 +105,7 @@ class GoalsScreen extends ConsumerWidget {
                       icon: Icons.flag_outlined,
                       title: 'No Goals Created Yet',
                       message: 'Define your savings targets, debt payoff plans, or emergency reserve goals to stay motivated and track your progress.',
-                      actionLabel: 'Create Goal',
+                      actionLabel: 'Add Goal',
                       onAction: () => _showAddGoalDialog(context),
                     ),
                   ],
@@ -211,11 +211,6 @@ class GoalsScreen extends ConsumerWidget {
           message: 'Failed to load goals: $error',
           onRetry: () => ref.invalidate(goalsStreamProvider),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddGoalDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Goal'),
       ),
     );
   }

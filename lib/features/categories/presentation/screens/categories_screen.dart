@@ -139,6 +139,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
       appBar: AppBar(
         title: const Text('Categories'),
         actions: [
+          FilledButton.icon(
+            onPressed: () {
+              final currentType = _tabController.index == 0
+                  ? CategoryType.income
+                  : CategoryType.expense;
+              _showAddCategoryDialog(currentType);
+            },
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: const Text('Add Category'),
+          ),
+          const SizedBox(width: 8),
           IconButton(
             icon: Icon(
               _showArchived ? Icons.archive_rounded : Icons.archive_outlined,
@@ -150,6 +161,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
               });
             },
           ),
+          const SizedBox(width: 8),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -188,16 +200,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
             onAdd: () => _showAddCategoryDialog(CategoryType.expense),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          final currentType = _tabController.index == 0
-              ? CategoryType.income
-              : CategoryType.expense;
-          _showAddCategoryDialog(currentType);
-        },
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Category'),
       ),
     );
   }
@@ -283,17 +285,11 @@ class _CategoryListView extends ConsumerWidget {
                   Text(
                     showArchived
                         ? 'No active or archived ${type.displayName.toLowerCase()} categories found.'
-                        : 'Tap the button below to add your first ${type.displayName.toLowerCase()} category.',
+                        : 'Use the "Add Category" button above to add your first ${type.displayName.toLowerCase()} category.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: onAdd,
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text('Add ${type.displayName} Category'),
                   ),
                 ],
               ),
