@@ -126,7 +126,9 @@ class PageHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 600;
+          final isWide = constraints.hasBoundedWidth
+              ? constraints.maxWidth >= 600
+              : MediaQuery.sizeOf(context).width >= 600;
 
           if (isWide) {
             return Row(

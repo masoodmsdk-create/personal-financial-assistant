@@ -9,6 +9,7 @@ import 'package:personal_financial_assistant/core/widgets/responsive_center.dart
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/widgets/due_occurrences_banner.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/widgets/add_edit_transaction_dialog.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -139,6 +140,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 runSpacing: 8,
                 children: [
                   FilledButton.tonalIcon(
+                    onPressed: () => context.push('/recurring-transactions'),
+                    icon: const Icon(Icons.repeat_rounded, size: 18),
+                    label: const Text('Recurring'),
+                  ),
+                  FilledButton.tonalIcon(
                     onPressed: () => context.push('/smart-entry'),
                     icon: const Icon(Icons.auto_awesome_rounded, size: 18),
                     label: const Text('Smart Entry'),
@@ -151,6 +157,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 ],
               ),
             ),
+
+            // Due Recurring Occurrences Banner
+            const DueOccurrencesBanner(),
 
             // Monthly Summary Banner
             Container(

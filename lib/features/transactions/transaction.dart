@@ -80,6 +80,7 @@ class Transaction implements Entity {
   final String? toAccountId;
   final DateTime date;
   final String? note;
+  final String? recurringRuleId;
 
   const Transaction({
     required this.id,
@@ -94,6 +95,7 @@ class Transaction implements Entity {
     this.toAccountId,
     required this.date,
     this.note,
+    this.recurringRuleId,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -110,6 +112,7 @@ class Transaction implements Entity {
       toAccountId: json['toAccountId'] as String?,
       date: DateTime.parse(json['date'] as String),
       note: json['note'] as String?,
+      recurringRuleId: json['recurringRuleId'] as String?,
     );
   }
 
@@ -127,6 +130,7 @@ class Transaction implements Entity {
       'toAccountId': toAccountId,
       'date': date.toIso8601String(),
       'note': note,
+      'recurringRuleId': recurringRuleId,
     };
   }
 
@@ -143,6 +147,7 @@ class Transaction implements Entity {
     String? toAccountId,
     DateTime? date,
     String? note,
+    String? recurringRuleId,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -157,6 +162,7 @@ class Transaction implements Entity {
       toAccountId: toAccountId ?? this.toAccountId,
       date: date ?? this.date,
       note: note ?? this.note,
+      recurringRuleId: recurringRuleId ?? this.recurringRuleId,
     );
   }
 }

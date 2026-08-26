@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:personal_financial_assistant/core/models/entity.dart';
 
 enum RecurrenceFrequency {
+  daily('daily'),
   monthly('monthly'),
   weekly('weekly'),
   quarterly('quarterly'),
@@ -23,6 +24,8 @@ extension RecurrenceFrequencyX on RecurrenceFrequency {
 
   String get displayName {
     switch (this) {
+      case RecurrenceFrequency.daily:
+        return 'Daily';
       case RecurrenceFrequency.monthly:
         return 'Monthly';
       case RecurrenceFrequency.weekly:
@@ -40,13 +43,14 @@ extension RecurrenceFrequencyX on RecurrenceFrequency {
 
   IconData get icon {
     switch (this) {
+      case RecurrenceFrequency.daily:
+        return Icons.today_rounded;
       case RecurrenceFrequency.monthly:
         return Icons.calendar_month_rounded;
       case RecurrenceFrequency.weekly:
         return Icons.calendar_view_week_rounded;
       case RecurrenceFrequency.quarterly:
         return Icons.pie_chart_outline_rounded;
-
       case RecurrenceFrequency.halfYearly:
         return Icons.date_range_rounded;
       case RecurrenceFrequency.yearly:
@@ -170,6 +174,7 @@ class PlannedExpense implements Entity {
     if (endDate != null && endDate!.isBefore(targetStart)) return false;
 
     switch (frequency) {
+      case RecurrenceFrequency.daily:
       case RecurrenceFrequency.monthly:
       case RecurrenceFrequency.weekly:
         return true;

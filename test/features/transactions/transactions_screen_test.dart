@@ -5,6 +5,7 @@ import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/screens/transactions_screen.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -100,6 +101,11 @@ void main() {
   testWidgets(
     'TransactionsScreen renders summary metrics and list items correctly',
     (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -126,6 +132,9 @@ void main() {
                     .toList(),
               ),
             ),
+            recurringTransactionsStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
           ],
           child: const MaterialApp(home: TransactionsScreen()),
         ),
@@ -150,6 +159,11 @@ void main() {
   testWidgets('Filter chip Income hides Expense and Transfer items', (
     WidgetTester tester,
   ) async {
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -161,6 +175,9 @@ void main() {
           ),
           categoriesStreamProvider.overrideWith(
             (ref) => Stream.value(testCategories),
+          ),
+          recurringTransactionsStreamProvider.overrideWith(
+            (ref) => Stream.value([]),
           ),
         ],
         child: const MaterialApp(home: TransactionsScreen()),

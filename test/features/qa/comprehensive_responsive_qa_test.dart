@@ -32,6 +32,8 @@ import 'package:personal_financial_assistant/features/planned_expenses/domain/re
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:personal_financial_assistant/features/review/presentation/screens/monthly_review_screen.dart';
 import 'package:personal_financial_assistant/features/settings/presentation/screens/settings_screen.dart';
 import 'package:personal_financial_assistant/features/smart_entry/presentation/screens/smart_entry_screen.dart';
@@ -239,6 +241,9 @@ void main() {
         (ref) => AsyncValue.data(<Category>[sampleCategory]),
       ),
       accountTypesStreamProvider.overrideWith((ref) => Stream.value([])),
+      recurringTransactionsStreamProvider.overrideWith(
+        (ref) => Stream.value([]),
+      ),
       blueprintPersistenceServiceProvider.overrideWithValue(persistenceService),
       blueprintControllerProvider.overrideWith(
         (ref) => BlueprintController(
@@ -562,6 +567,25 @@ void main() {
           await tester.pump(Duration.zero);
           await tester.pumpAndSettle();
           expect(find.text('Tell FINAURA About Your Money'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        });
+
+        testWidgets('17. Recurring Transactions Screen on $vpName', (
+          WidgetTester tester,
+        ) async {
+          tester.view.physicalSize = vpSize;
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: buildOverrides(),
+              child: const MaterialApp(home: RecurringTransactionsScreen()),
+            ),
+          );
+          await tester.pump(Duration.zero);
+          await tester.pumpAndSettle();
+          expect(find.text('Recurring Transactions'), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }

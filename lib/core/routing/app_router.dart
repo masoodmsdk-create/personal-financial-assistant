@@ -19,6 +19,7 @@ import 'package:personal_financial_assistant/features/loans/presentation/screens
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
 import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:personal_financial_assistant/features/review/presentation/screens/monthly_review_screen.dart';
 import 'package:personal_financial_assistant/features/settings/presentation/screens/settings_screen.dart';
 import 'package:personal_financial_assistant/features/smart_entry/presentation/screens/smart_entry_screen.dart';
@@ -197,6 +198,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/trade-off',
         name: 'trade-off',
         builder: (context, state) => const TradeOffScreen(),
+      ),
+      GoRoute(
+        path: '/recurring-transactions',
+        name: 'recurring-transactions',
+        builder: (context, state) => const RecurringTransactionsScreen(),
       ),
     ],
 
