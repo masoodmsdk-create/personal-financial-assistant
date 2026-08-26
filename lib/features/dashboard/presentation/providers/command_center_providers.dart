@@ -6,6 +6,7 @@ import 'package:personal_financial_assistant/features/dashboard/domain/services/
 import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
 
@@ -51,8 +52,14 @@ final upcomingRemindersProvider = Provider<List<UpcomingPaymentReminder>>((
   final service = ref.watch(commandCenterServiceProvider);
   final loans = ref.watch(loansStreamProvider).value ?? [];
   final plans = ref.watch(plannedExpensesStreamProvider).value ?? [];
+  final recurringRules =
+      ref.watch(recurringTransactionsStreamProvider).value ?? [];
 
-  return service.getUpcomingReminders(loans: loans, plans: plans);
+  return service.getUpcomingReminders(
+    loans: loans,
+    plans: plans,
+    recurringRules: recurringRules,
+  );
 });
 
 final accountsSummaryDataProvider = Provider<AccountsSummaryData>((ref) {

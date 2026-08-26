@@ -162,6 +162,20 @@ void main() {
         expect(find.text('Frequency'), findsOneWidget);
         expect(find.text('Interval'), findsOneWidget);
         expect(find.text('Confirm & Save Rule'), findsOneWidget);
+
+        // Toggle to One-time via SegmentedButton
+        final onetimeSegment = find.text('One-time');
+        await tester.tap(onetimeSegment);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirm & Save'), findsOneWidget);
+
+        // Toggle back to Recurring via SegmentedButton
+        final recurringSegment = find.text('Recurring');
+        await tester.tap(recurringSegment);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirm & Save Rule'), findsOneWidget);
       },
     );
 

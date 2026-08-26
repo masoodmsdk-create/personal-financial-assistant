@@ -50,6 +50,7 @@ Build cleanly, securely, and deterministically now; scale later.
 3. Always use `PageHeader` (breakpoint 600px) for titles; never allow page titles to vertically collapse into character-by-character columns.
 4. Dialogs must have instant in-memory fallbacks (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`) so dropdowns/chips render with 0ms delay.
 5. `AppShell` uses lazy tab mounting and `TickerMode`/`Offstage` to pause inactive tabs during user interactions.
+6. **Mandatory Action (Submit) Buttons**: Any user input feature (forms, dialogs, smart entry input, review cards, filter bars) where data is submitted, saved, parsed, searched, applied, or confirmed **MUST** have an explicit, prominent, clearly labeled primary action button (e.g. `[Submit]`, `[Understand]`, `[Save Transaction]`, `[Save Recurring Rule]`, `[Confirm & Save]`). Relying solely on keyboard Enter or background implicit triggers is forbidden.
 
 ---
 

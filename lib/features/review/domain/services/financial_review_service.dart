@@ -6,6 +6,7 @@ import 'package:personal_financial_assistant/features/loans/domain/services/loan
 import 'package:personal_financial_assistant/features/loans/loan.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense_override.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
 import 'package:personal_financial_assistant/features/review/domain/models/monthly_review_data.dart';
 import 'package:personal_financial_assistant/features/transactions/domain/services/financial_aggregation_service.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -20,6 +21,7 @@ class FinancialReviewService {
     required List<Category> categories,
     required List<Loan> loans,
     required List<Goal> goals,
+    List<RecurringTransactionRule> recurringRules = const [],
   }) {
     final year = targetDate.year;
     final month = targetDate.month;
@@ -107,8 +109,25 @@ class FinancialReviewService {
       }
     }
 
-    // Expected Income = current month actual income or reasonable baseline
-    final expectedIncome = totalIncome > 0 ? totalIncome : 0.0;
+    // Add active recurring expense rules to expected expenses forecast
+    for (final rule in recurringRules.where(
+      (r) => r.active && r.type == TransactionType.expense,
+    )) {
+      expectedExpenses += rule.amount;
+      plannedCount++;
+    }
+
+    // Expected Income = current month actual income or active recurring income rules
+    var expectedIncome = totalIncome > 0 ? totalIncome : 0.0;
+    if (expectedIncome == 0.0) {
+      final activeRecurringIncome = recurringRules
+          .where((r) => r.active && r.type == TransactionType.income)
+          .fold<double>(0.0, (sum, r) => sum + r.amount);
+      if (activeRecurringIncome > 0) {
+        expectedIncome = activeRecurringIncome;
+      }
+    }
+
     final expectedNetPosition = expectedIncome - expectedExpenses;
 
     final upcomingForecast = UpcomingForecastData(

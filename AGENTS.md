@@ -45,6 +45,7 @@ STEP 7: Leave all changes uncommitted in the working tree.
    - **Planned vs. Actual**: Planned expenses and loan forecasts **NEVER** automatically create `Transaction` documents.
    - **User Confirmation Required**: Never silently modify or create financial records without explicit user confirmation.
    - **No Data Fabrication**: Never invent financial figures or fake precision metrics.
+   - **Mandatory Action (Submit) Buttons**: Whenever user input is expected to be submitted, parsed, saved, confirmed, searched, applied, filtered, or continued, a clearly visible, prominent primary action button (e.g. `[Submit]`, `[Understand]`, `[Confirm & Save]`, `[Save Transaction]`, `[Save Recurring Rule]`, `[Apply]`) **MUST** exist. Relying exclusively on keyboard Enter, implicit auto-save, gesture dismiss, or automatic background triggers is strictly prohibited.
 4. **₹0 Operating Cost & Firebase Quotas**:
    - The application strictly targets the Firebase Spark tier (₹0 cost).
    - Never link billing, enable paid GCP APIs, or introduce paid external services.
@@ -56,6 +57,7 @@ STEP 7: Leave all changes uncommitted in the working tree.
    - Keep local UI interactions instantaneous (0ms).
    - Dialog choice chips and dropdowns must provide instant in-memory defaults (`AccountTypeDefinition.defaultTypes`, `Category.generateDefaults`).
    - Page headers must use `PageHeader` (breakpoint 600px) to prevent vertical single-character text collapse across all viewports (320px–1440px).
+   - Every input form, dialog, card, and review interface must provide clearly visible, accessible primary action buttons and responsive layout constraints (360px–1440px).
 
 ---
 

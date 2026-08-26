@@ -502,6 +502,43 @@ class _DraftTransactionCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
+            // Mode Selector: One-time vs Recurring
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment<bool>(
+                    value: false,
+                    label: Text('One-time'),
+                    icon: Icon(Icons.flash_on_rounded, size: 16),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    label: Text('Recurring'),
+                    icon: Icon(Icons.repeat_rounded, size: 16),
+                  ),
+                ],
+                selected: {draft.isRecurring},
+                onSelectionChanged: (Set<bool> newSelection) {
+                  final isRec = newSelection.first;
+                  onUpdate(
+                    draft.copyWith(
+                      isRecurring: isRec,
+                      frequency: isRec
+                          ? (draft.frequency ?? RecurrenceFrequency.monthly)
+                          : null,
+                      interval: isRec ? draft.interval : 1,
+                      startDate: isRec
+                          ? (draft.startDate ?? DateTime.now())
+                          : null,
+                      ruleName: isRec ? (draft.ruleName ?? draft.note) : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+
             // Editable Form Fields (Grid)
             Wrap(
               spacing: 12,

@@ -354,6 +354,64 @@ void main() {
         expect(r2.first.amount, 25000.0);
       });
 
+      test('Parses inherent recurring commitments: Salary, Rent, SIP, EMI, Netflix, Insurance', () {
+        final rSalary = parser.parseText(
+          rawText: 'Salary 80000 into SBI',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rSalary.first.isRecurring, isTrue);
+        expect(rSalary.first.type, TransactionType.income);
+        expect(rSalary.first.frequency, RecurrenceFrequency.monthly);
+        expect(rSalary.first.amount, 80000.0);
+
+        final rRent = parser.parseText(
+          rawText: 'Rent 15000',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rRent.first.isRecurring, isTrue);
+        expect(rRent.first.type, TransactionType.expense);
+        expect(rRent.first.frequency, RecurrenceFrequency.monthly);
+        expect(rRent.first.amount, 15000.0);
+
+        final rSip = parser.parseText(
+          rawText: 'SIP 5000 in SBI Mutual Fund',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rSip.first.isRecurring, isTrue);
+        expect(rSip.first.frequency, RecurrenceFrequency.monthly);
+        expect(rSip.first.amount, 5000.0);
+
+        final rNetflix = parser.parseText(
+          rawText: 'Netflix 650',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rNetflix.first.isRecurring, isTrue);
+        expect(rNetflix.first.frequency, RecurrenceFrequency.monthly);
+        expect(rNetflix.first.amount, 650.0);
+
+        final rEmi = parser.parseText(
+          rawText: 'Car loan EMI 12000',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rEmi.first.isRecurring, isTrue);
+        expect(rEmi.first.frequency, RecurrenceFrequency.monthly);
+        expect(rEmi.first.amount, 12000.0);
+
+        final rInsurance = parser.parseText(
+          rawText: 'Health insurance 25000',
+          accounts: mockAccounts,
+          categories: mockCategories,
+        );
+        expect(rInsurance.first.isRecurring, isTrue);
+        expect(rInsurance.first.frequency, RecurrenceFrequency.yearly);
+        expect(rInsurance.first.amount, 25000.0);
+      });
+
       test(
         'One-time transaction with "today" is NOT classified as recurring',
         () {

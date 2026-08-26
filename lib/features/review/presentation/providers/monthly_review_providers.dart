@@ -3,6 +3,7 @@ import 'package:personal_financial_assistant/features/categories/presentation/pr
 import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/review/domain/models/monthly_review_data.dart';
 import 'package:personal_financial_assistant/features/review/domain/services/financial_review_service.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
@@ -23,13 +24,15 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
   final categoriesAsync = ref.watch(categoriesStreamProvider);
   final loansAsync = ref.watch(loansStreamProvider);
   final goalsAsync = ref.watch(goalsStreamProvider);
+  final recurringAsync = ref.watch(recurringTransactionsStreamProvider);
 
   if (transactionsAsync.isLoading ||
       plansAsync.isLoading ||
       overridesAsync.isLoading ||
       categoriesAsync.isLoading ||
       loansAsync.isLoading ||
-      goalsAsync.isLoading) {
+      goalsAsync.isLoading ||
+      recurringAsync.isLoading) {
     return const AsyncLoading();
   }
 
@@ -43,6 +46,7 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
   final categories = categoriesAsync.value ?? [];
   final loans = loansAsync.value ?? [];
   final goals = goalsAsync.value ?? [];
+  final recurringRules = recurringAsync.value ?? [];
 
   final reviewData = FinancialReviewService.buildMonthlyReview(
     targetDate: targetDate,
@@ -52,6 +56,7 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
     categories: categories,
     loans: loans,
     goals: goals,
+    recurringRules: recurringRules,
   );
 
   return AsyncData(reviewData);

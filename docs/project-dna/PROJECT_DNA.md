@@ -50,6 +50,9 @@ USER TELLS FINAURA ABOUT THEIR MONEY
    - Always clearly label data sources: `ACTUAL`, `PLANNED`, `FORECAST`, `ESTIMATED`, `ILLUSTRATIVE`.
 6. **Actual vs. Forecast Separation**:
    - Planned expenses and loan forecasts **NEVER** automatically create `Transaction` documents or mutate balances. Actual transactions require explicit user confirmation.
+7. **Mandatory Action (Submit) Buttons**:
+   - Whenever user input is expected to be submitted, parsed, saved, confirmed, searched, applied, filtered, or continued, a clearly visible, prominent primary action button (e.g. `[Submit]`, `[Understand]`, `[Confirm & Save]`, `[Save Transaction]`, `[Save Recurring Rule]`, `[Apply]`) **MUST** exist.
+   - Relying exclusively on keyboard Enter, implicit auto-save, gesture dismiss, or automatic background triggers is **strictly prohibited** across all features, dialogs, cards, and screens.
 
 ---
 

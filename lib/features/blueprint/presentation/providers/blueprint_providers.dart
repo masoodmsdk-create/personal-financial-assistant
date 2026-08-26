@@ -13,6 +13,8 @@ import 'package:personal_financial_assistant/features/planned_expenses/presentat
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
+
 final financialSituationParserProvider = Provider<FinancialSituationParser>((
   ref,
 ) {
@@ -27,6 +29,7 @@ final blueprintPersistenceServiceProvider =
         accountRepo: ref.watch(accountRepositoryProvider),
         goalRepo: ref.watch(goalRepositoryProvider),
         transactionRepo: ref.watch(transactionRepositoryProvider),
+        recurringRepo: ref.watch(recurringTransactionRepositoryProvider),
       );
     });
 

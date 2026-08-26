@@ -11,6 +11,7 @@ import 'package:personal_financial_assistant/features/planned_expenses/planned_e
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense_override.dart';
 import 'package:personal_financial_assistant/features/plans_progress/domain/models/plan_progress_models.dart';
 import 'package:personal_financial_assistant/features/plans_progress/domain/services/plan_progress_service.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
@@ -244,6 +245,7 @@ class CommandCenterService {
   List<UpcomingPaymentReminder> getUpcomingReminders({
     required List<Loan> loans,
     required List<PlannedExpense> plans,
+    List<RecurringTransactionRule> recurringRules = const [],
     DateTime? asOfDate,
   }) {
     final now = asOfDate ?? DateTime.now();
@@ -308,6 +310,33 @@ class CommandCenterService {
             dueDate: due,
             daysRemaining: daysLeft,
             actionRoute: '/planned-expenses',
+            isEmi: false,
+          ),
+        );
+      }
+    }
+
+    // 3. Upcoming Active Recurring Expense Rules
+    for (final rule in recurringRules.where(
+      (r) => r.active && r.type == TransactionType.expense,
+    )) {
+      final due = rule.nextOccurrence;
+      if (due.isAfter(now.subtract(const Duration(days: 1))) &&
+          due.isBefore(cutoffDate)) {
+        final daysLeft = due.difference(now).inDays;
+        reminders.add(
+          UpcomingPaymentReminder(
+            id: 'rem_rec_${rule.id}',
+            title: rule.name,
+            subtitle: daysLeft == 0
+                ? 'Recurring today'
+                : daysLeft == 1
+                ? 'Recurring tomorrow'
+                : 'Recurring in $daysLeft days',
+            amount: rule.amount,
+            dueDate: due,
+            daysRemaining: daysLeft,
+            actionRoute: '/recurring-transactions',
             isEmi: false,
           ),
         );

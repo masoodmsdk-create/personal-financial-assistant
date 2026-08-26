@@ -7,6 +7,8 @@ import 'package:personal_financial_assistant/features/loans/domain/repositories/
 import 'package:personal_financial_assistant/features/loans/loan.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/domain/repositories/planned_expense_repository.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/repositories/recurring_transaction_repository.dart';
 import 'package:personal_financial_assistant/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
@@ -16,6 +18,7 @@ class BlueprintPersistenceResult {
   final int savingsCreated;
   final int goalsCreated;
   final int transactionsCreated;
+  final int recurringIncomesCreated;
 
   const BlueprintPersistenceResult({
     this.expensesCreated = 0,
@@ -23,6 +26,7 @@ class BlueprintPersistenceResult {
     this.savingsCreated = 0,
     this.goalsCreated = 0,
     this.transactionsCreated = 0,
+    this.recurringIncomesCreated = 0,
   });
 
   int get totalRecordsCreated =>
@@ -30,7 +34,8 @@ class BlueprintPersistenceResult {
       loansCreated +
       savingsCreated +
       goalsCreated +
-      transactionsCreated;
+      transactionsCreated +
+      recurringIncomesCreated;
 }
 
 class BlueprintPersistenceService {
@@ -39,6 +44,7 @@ class BlueprintPersistenceService {
   final AccountRepository accountRepo;
   final GoalRepository goalRepo;
   final TransactionRepository transactionRepo;
+  final RecurringTransactionRepository? recurringRepo;
 
   const BlueprintPersistenceService({
     required this.plannedExpenseRepo,
@@ -46,6 +52,7 @@ class BlueprintPersistenceService {
     required this.accountRepo,
     required this.goalRepo,
     required this.transactionRepo,
+    this.recurringRepo,
   });
 
   Future<BlueprintPersistenceResult> persistBlueprint({
@@ -58,6 +65,7 @@ class BlueprintPersistenceService {
     int savingsCount = 0;
     int goalsCount = 0;
     int transactionsCount = 0;
+    int recurringIncomesCount = 0;
 
     // 1. Persist Recurring Planned Expenses
     for (final exp in blueprint.recurringExpenses) {
@@ -157,12 +165,38 @@ class BlueprintPersistenceService {
       transactionsCount++;
     }
 
+    // 6. Persist Recurring Income Rules
+    if (recurringRepo != null) {
+      for (final inc in blueprint.incomes) {
+        final rule = RecurringTransactionRule(
+          id: 'rule_${now.millisecondsSinceEpoch}_$recurringIncomesCount',
+          userId: userId,
+          createdAt: now,
+          updatedAt: now,
+          name: inc.label.isNotEmpty ? inc.label : 'Salary',
+          type: TransactionType.income,
+          amount: inc.monthlyAmount,
+          accountId: 'acc_primary',
+          categoryId: 'cat_salary',
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: 1,
+          startDate: now,
+          nextOccurrence: now,
+          active: true,
+        );
+        await recurringRepo!.createRecurringTransaction(rule);
+        recurringIncomesCount++;
+      }
+    }
+
     return BlueprintPersistenceResult(
       expensesCreated: expensesCount,
       loansCreated: loansCount,
       savingsCreated: savingsCount,
       goalsCreated: goalsCount,
       transactionsCreated: transactionsCount,
+      recurringIncomesCreated: recurringIncomesCount,
     );
   }
 }

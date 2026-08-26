@@ -685,6 +685,43 @@ class SmartParserService {
       );
     }
 
+    // 5. Inherently recurring financial commitments (Salary, Rent, SIP, EMI, Subscriptions, Insurance)
+    // ONLY when NOT accompanied by explicit past/one-time date expressions (e.g., "today", "yesterday", "on 1 Aug", "last week")
+    final hasOneTimeDateKeyword = RegExp(
+      r'\b(?:today|yesterday|just\s+now|last\s+week|this\s+morning|\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december))\b',
+      caseSensitive: false,
+    ).hasMatch(text);
+
+    if (!hasOneTimeDateKeyword) {
+      // Inherently recurring monthly commitments:
+      if (RegExp(
+        r'\b(?:salary|stipend|wages|paycheck|rent|flat\s+rent|house\s+rent|office\s+rent|sip|mutual\s+fund\s+sip|emi|car\s+loan\s+emi|home\s+loan\s+emi|loan\s+emi|subscription|netflix|spotify|prime\s+membership|youtube\s+premium|hotstar|broadband|wifi\s+bill|maintenance\s+fee)\b',
+        caseSensitive: false,
+      ).hasMatch(text)) {
+        return _RecurrenceResult(
+          isRecurring: true,
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: _extractDayOfMonth(text),
+          rawMatch: '',
+        );
+      }
+
+      // Inherently recurring yearly commitments:
+      if (RegExp(
+        r'\b(?:insurance|term\s+insurance|health\s+insurance|car\s+insurance|bike\s+insurance|lic\s+premium|policy\s+premium)\b',
+        caseSensitive: false,
+      ).hasMatch(text)) {
+        return _RecurrenceResult(
+          isRecurring: true,
+          frequency: RecurrenceFrequency.yearly,
+          interval: 1,
+          dayOfMonth: _extractDayOfMonth(text),
+          rawMatch: '',
+        );
+      }
+    }
+
     return const _RecurrenceResult(isRecurring: false);
   }
 
