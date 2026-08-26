@@ -18,14 +18,21 @@ class RecentActivitySection extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 4,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +65,9 @@ class RecentActivitySection extends ConsumerWidget {
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
           ),
           child: transactionsAsync.when(
             skipLoadingOnReload: true,
@@ -130,7 +139,9 @@ class RecentActivitySection extends ConsumerWidget {
                     final toName = accountMap[tx.toAccountId] ?? 'Account';
                     title = '$fromName → $toName';
                   } else if (tx.categoryId != null) {
-                    title = categoryMap[tx.categoryId] ?? (isIncome ? 'Income' : 'Expense');
+                    title =
+                        categoryMap[tx.categoryId] ??
+                        (isIncome ? 'Income' : 'Expense');
                   } else if (tx.note != null && tx.note!.isNotEmpty) {
                     title = tx.note!;
                   }
@@ -141,7 +152,10 @@ class RecentActivitySection extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(14),
                     onTap: () => context.push('/transactions'),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
                           CircleAvatar(
@@ -149,20 +163,20 @@ class RecentActivitySection extends ConsumerWidget {
                             backgroundColor: isIncome
                                 ? Colors.teal.withValues(alpha: 0.12)
                                 : isExpense
-                                    ? Colors.redAccent.withValues(alpha: 0.12)
-                                    : Colors.blue.withValues(alpha: 0.12),
+                                ? Colors.redAccent.withValues(alpha: 0.12)
+                                : Colors.blue.withValues(alpha: 0.12),
                             child: Icon(
                               isIncome
                                   ? Icons.arrow_downward_rounded
                                   : isExpense
-                                      ? Icons.arrow_upward_rounded
-                                      : Icons.swap_horiz_rounded,
+                                  ? Icons.arrow_upward_rounded
+                                  : Icons.swap_horiz_rounded,
                               size: 16,
                               color: isIncome
                                   ? Colors.teal
                                   : isExpense
-                                      ? Colors.redAccent
-                                      : Colors.blue,
+                                  ? Colors.redAccent
+                                  : Colors.blue,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -178,7 +192,9 @@ class RecentActivitySection extends ConsumerWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (tx.note != null && tx.note!.isNotEmpty && title != tx.note) ...[
+                                if (tx.note != null &&
+                                    tx.note!.isNotEmpty &&
+                                    title != tx.note) ...[
                                   const SizedBox(height: 1),
                                   Text(
                                     tx.note!,
@@ -197,14 +213,18 @@ class RecentActivitySection extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '${isIncome ? '+' : isExpense ? '-' : ''}${currency.format(tx.amount)}',
+                                '${isIncome
+                                    ? '+'
+                                    : isExpense
+                                    ? '-'
+                                    : ''}${currency.format(tx.amount)}',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isIncome
                                       ? Colors.teal
                                       : isExpense
-                                          ? Colors.redAccent
-                                          : colorScheme.onSurface,
+                                      ? Colors.redAccent
+                                      : colorScheme.onSurface,
                                 ),
                               ),
                               Text(
@@ -229,4 +249,3 @@ class RecentActivitySection extends ConsumerWidget {
     );
   }
 }
-

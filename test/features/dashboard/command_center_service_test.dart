@@ -18,51 +18,66 @@ void main() {
   });
 
   group('CommandCenterService — Assistant Suggestions Tests', () {
-    test('Behind-target loan generates warning suggestion with direct route', () {
-      final baseLoan = Loan(
-        id: 'loan_home',
-        userId: 'u1',
-        name: 'Home Loan',
-        type: LoanType.homeLoan,
-        originalPrincipal: 5000000.0,
-        outstandingPrincipal: 4000000.0,
-        interestRate: 8.5,
-        remainingTenureMonths: 147,
-        emiAmount: 52000.0,
-        startDate: DateTime(2026, 8, 1),
-        createdAt: now,
-        updatedAt: now,
-      );
+    test(
+      'Behind-target loan generates warning suggestion with direct route',
+      () {
+        final baseLoan = Loan(
+          id: 'loan_home',
+          userId: 'u1',
+          name: 'Home Loan',
+          type: LoanType.homeLoan,
+          originalPrincipal: 5000000.0,
+          outstandingPrincipal: 4000000.0,
+          interestRate: 8.5,
+          remainingTenureMonths: 147,
+          emiAmount: 52000.0,
+          startDate: DateTime(2026, 8, 1),
+          createdAt: now,
+          updatedAt: now,
+        );
 
-      final forecast = LoanForecastService.calculateForecast(baseLoan, asOfDate: now);
-      final projectedDate = forecast.estimatedClosureDate!;
-      final targetDate = DateTime(projectedDate.year, projectedDate.month - 4, 1);
-      final loan = baseLoan.copyWith(targetClosureDate: targetDate);
+        final forecast = LoanForecastService.calculateForecast(
+          baseLoan,
+          asOfDate: now,
+        );
+        final projectedDate = forecast.estimatedClosureDate!;
+        final targetDate = DateTime(
+          projectedDate.year,
+          projectedDate.month - 4,
+          1,
+        );
+        final loan = baseLoan.copyWith(targetClosureDate: targetDate);
 
-      final suggestions = service.generateAssistantSuggestions(
-        loans: [loan],
-        goals: [],
-        accounts: [],
-        transactions: [],
-        plans: [],
-        overrides: [],
-        categories: [],
-        monthlySummary: const MonthlySummaryData(
-          year: 2026,
-          month: 8,
-          totalIncome: 100000.0,
-          totalExpense: 40000.0,
-          netCashFlow: 60000.0,
-        ),
-        asOfDate: now,
-      );
+        final suggestions = service.generateAssistantSuggestions(
+          loans: [loan],
+          goals: [],
+          accounts: [],
+          transactions: [],
+          plans: [],
+          overrides: [],
+          categories: [],
+          monthlySummary: const MonthlySummaryData(
+            year: 2026,
+            month: 8,
+            totalIncome: 100000.0,
+            totalExpense: 40000.0,
+            netCashFlow: 60000.0,
+          ),
+          asOfDate: now,
+        );
 
-      expect(suggestions.any((s) => s.id == 'sug_loan_behind_loan_home'), isTrue);
-      final loanSug = suggestions.firstWhere((s) => s.id == 'sug_loan_behind_loan_home');
-      expect(loanSug.severity, SuggestionSeverity.warning);
-      expect(loanSug.actionRoute, '/loans/loan_home');
-      expect(loanSug.actionLabel, 'View Loan');
-    });
+        expect(
+          suggestions.any((s) => s.id == 'sug_loan_behind_loan_home'),
+          isTrue,
+        );
+        final loanSug = suggestions.firstWhere(
+          (s) => s.id == 'sug_loan_behind_loan_home',
+        );
+        expect(loanSug.severity, SuggestionSeverity.warning);
+        expect(loanSug.actionRoute, '/loans/loan_home');
+        expect(loanSug.actionLabel, 'View Loan');
+      },
+    );
 
     test('Goal reached target generates success suggestion', () {
       final goal = Goal(
@@ -95,8 +110,13 @@ void main() {
         asOfDate: now,
       );
 
-      expect(suggestions.any((s) => s.id == 'sug_goal_achieved_goal_car'), isTrue);
-      final goalSug = suggestions.firstWhere((s) => s.id == 'sug_goal_achieved_goal_car');
+      expect(
+        suggestions.any((s) => s.id == 'sug_goal_achieved_goal_car'),
+        isTrue,
+      );
+      final goalSug = suggestions.firstWhere(
+        (s) => s.id == 'sug_goal_achieved_goal_car',
+      );
       expect(goalSug.severity, SuggestionSeverity.success);
       expect(goalSug.actionRoute, '/goals');
     });
@@ -121,7 +141,9 @@ void main() {
       );
 
       expect(suggestions.any((s) => s.id == 'sug_cashflow_negative'), isTrue);
-      final cashSug = suggestions.firstWhere((s) => s.id == 'sug_cashflow_negative');
+      final cashSug = suggestions.firstWhere(
+        (s) => s.id == 'sug_cashflow_negative',
+      );
       expect(cashSug.severity, SuggestionSeverity.warning);
       expect(cashSug.actionRoute, '/monthly-review');
     });
@@ -212,10 +234,7 @@ void main() {
         ),
       ];
 
-      final balances = {
-        'acc_bank': 150000.0,
-        'acc_cc': -30000.0,
-      };
+      final balances = {'acc_bank': 150000.0, 'acc_cc': -30000.0};
 
       final summary = service.getAccountsSummary(
         accounts: accounts,
@@ -229,4 +248,3 @@ void main() {
     });
   });
 }
-

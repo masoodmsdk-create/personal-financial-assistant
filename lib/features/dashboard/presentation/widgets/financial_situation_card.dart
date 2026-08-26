@@ -14,7 +14,11 @@ class FinancialSituationCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     final summary = ref.watch(monthlyFinancialSummaryProvider);
     final totalBalance = ref.watch(calculatedTotalBalanceProvider);
@@ -32,16 +36,18 @@ class FinancialSituationCard extends ConsumerWidget {
     final isTablet = screenWidth >= 600 && screenWidth < 1024;
     final gridColumns = isDesktop ? 4 : (isTablet ? 2 : 1);
 
-    final availableCashFlow = summary.totalIncome -
-        summary.totalExpense -
-        totalMonthlyEmi;
+    final availableCashFlow =
+        summary.totalIncome - summary.totalExpense - totalMonthlyEmi;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 8,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +128,9 @@ class FinancialSituationCard extends ConsumerWidget {
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
@@ -210,8 +218,13 @@ class _MetricCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: isPrimary
-            ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.4), width: 1.5)
-            : BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+            ? BorderSide(
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                width: 1.5,
+              )
+            : BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14.0),
@@ -269,4 +282,3 @@ class _MetricCard extends StatelessWidget {
     );
   }
 }
-

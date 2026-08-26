@@ -97,8 +97,11 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
               // Section 2: WORKSPACE & CONTEXT
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   Text(
                     'ACTIVE WORKSPACE & PURPOSE',

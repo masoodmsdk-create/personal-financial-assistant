@@ -242,10 +242,12 @@ class LoansScreen extends ConsumerWidget {
                           color: colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'Debt Intelligence & Nuances',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            'Debt Intelligence & Nuances',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -355,10 +357,11 @@ class LoansScreen extends ConsumerWidget {
                                   color: colorScheme.primary,
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Debt Prioritization Strategy',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Text(
+                                    'Debt Prioritization Strategy',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -673,9 +676,10 @@ class LoansScreen extends ConsumerWidget {
                                 const Divider(height: 20),
 
                                 // Metric columns
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 12,
+                                  alignment: WrapAlignment.spaceBetween,
                                   children: [
                                     _SummaryTile(
                                       label: 'Outstanding Principal',
@@ -704,9 +708,11 @@ class LoansScreen extends ConsumerWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 12,
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     _SummaryTile(
                                       label: 'Est. Remaining Interest',

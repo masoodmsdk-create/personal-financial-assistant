@@ -24,13 +24,11 @@ final assistantSuggestionsProvider = Provider<List<HomeAssistantSuggestion>>((
   final plans = ref.watch(plannedExpensesStreamProvider).value ?? [];
   final overrides = ref.watch(monthlyOverridesStreamProvider).value ?? [];
   final categories = ref.watch(categoriesStreamProvider).value ?? [];
-  final monthlySummary =
-      ref.watch(monthlyFinancialSummaryProvider);
+  final monthlySummary = ref.watch(monthlyFinancialSummaryProvider);
   final activeWorkspace = ref.watch(activeWorkspaceProvider);
 
   final now = DateTime.now();
-  final currentSummary =
-      monthlySummary;
+  final currentSummary = monthlySummary;
 
   return service.generateAssistantSuggestions(
     loans: loans,
@@ -67,4 +65,3 @@ final accountsSummaryDataProvider = Provider<AccountsSummaryData>((ref) {
     dynamicBalances: balances,
   );
 });
-

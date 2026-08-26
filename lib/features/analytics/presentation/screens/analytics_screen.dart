@@ -49,35 +49,78 @@ class AnalyticsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Executive Summary Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _SummaryCard(
-                      title: 'Income',
-                      amount: currencyFormat.format(summary.totalIncome),
-                      color: const Color(0xFF2E7D32),
-                      icon: Icons.arrow_downward_rounded,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _SummaryCard(
-                      title: 'Expense',
-                      amount: currencyFormat.format(summary.totalExpense),
-                      color: const Color(0xFFD32F2F),
-                      icon: Icons.arrow_upward_rounded,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _SummaryCard(
-                      title: 'Net Cash Flow',
-                      amount: currencyFormat.format(summary.netCashFlow),
-                      color: colorScheme.primary,
-                      icon: Icons.swap_vert_rounded,
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 460;
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _SummaryCard(
+                                title: 'Income',
+                                amount: currencyFormat.format(
+                                  summary.totalIncome,
+                                ),
+                                color: const Color(0xFF2E7D32),
+                                icon: Icons.arrow_downward_rounded,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _SummaryCard(
+                                title: 'Expense',
+                                amount: currencyFormat.format(
+                                  summary.totalExpense,
+                                ),
+                                color: const Color(0xFFD32F2F),
+                                icon: Icons.arrow_upward_rounded,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _SummaryCard(
+                          title: 'Net Cash Flow',
+                          amount: currencyFormat.format(summary.netCashFlow),
+                          color: colorScheme.primary,
+                          icon: Icons.swap_vert_rounded,
+                        ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _SummaryCard(
+                          title: 'Income',
+                          amount: currencyFormat.format(summary.totalIncome),
+                          color: const Color(0xFF2E7D32),
+                          icon: Icons.arrow_downward_rounded,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _SummaryCard(
+                          title: 'Expense',
+                          amount: currencyFormat.format(summary.totalExpense),
+                          color: const Color(0xFFD32F2F),
+                          icon: Icons.arrow_upward_rounded,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _SummaryCard(
+                          title: 'Net Cash Flow',
+                          amount: currencyFormat.format(summary.netCashFlow),
+                          color: colorScheme.primary,
+                          icon: Icons.swap_vert_rounded,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
 
@@ -102,8 +145,10 @@ class AnalyticsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
                           _PlannedMetric(
                             label: 'Planned',

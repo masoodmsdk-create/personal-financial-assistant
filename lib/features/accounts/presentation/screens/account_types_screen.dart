@@ -51,10 +51,12 @@ class AccountTypesScreen extends ConsumerWidget {
                                 color: theme.colorScheme.primary,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                'Extensible Account Types',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Text(
+                                  'Extensible Account Types',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -98,9 +100,13 @@ class AccountTypesScreen extends ConsumerWidget {
                           title: Text(
                             typeDef.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: Text(
                             '${typeDef.nature.displayName} • ${typeDef.isDefault ? 'System Default' : 'Custom'}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           trailing: typeDef.isDefault
                               ? const Chip(

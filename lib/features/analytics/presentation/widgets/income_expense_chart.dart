@@ -75,8 +75,11 @@ class IncomeExpenseChartCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   'Income vs Expense',
@@ -95,12 +98,12 @@ class IncomeExpenseChartCard extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Legend
-            Row(
+            Wrap(
+              spacing: 16,
+              runSpacing: 6,
               children: [
-                _LegendItem(color: const Color(0xFF2E7D32), label: 'Income'),
-                const SizedBox(width: 16),
-                _LegendItem(color: const Color(0xFFD32F2F), label: 'Expense'),
-                const SizedBox(width: 16),
+                const _LegendItem(color: Color(0xFF2E7D32), label: 'Income'),
+                const _LegendItem(color: Color(0xFFD32F2F), label: 'Expense'),
                 _LegendItem(color: colorScheme.primary, label: 'Net Cash Flow'),
               ],
             ),

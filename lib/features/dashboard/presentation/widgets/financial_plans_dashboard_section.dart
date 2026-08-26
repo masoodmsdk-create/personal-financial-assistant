@@ -199,23 +199,27 @@ class FinancialPlansDashboardSection extends ConsumerWidget {
         // Section Footer Navigation
         if (summary.hasPlans) ...[
           const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            spacing: 8,
+            alignment: WrapAlignment.end,
             children: [
+              TextButton.icon(
+                onPressed: () => context.push('/trade-off'),
+                icon: const Icon(Icons.balance_rounded, size: 16),
+                label: const Text('Trade-Offs'),
+              ),
               if (summary.hasLoans)
                 TextButton.icon(
                   onPressed: () => context.push('/loans'),
                   icon: const Icon(Icons.account_balance_outlined, size: 16),
                   label: const Text('View All Loans'),
                 ),
-              if (summary.hasGoals) ...[
-                const SizedBox(width: 8),
+              if (summary.hasGoals)
                 TextButton.icon(
                   onPressed: () => context.push('/goals'),
                   icon: const Icon(Icons.flag_outlined, size: 16),
                   label: const Text('View All Goals'),
                 ),
-              ],
             ],
           ),
         ],
@@ -252,20 +256,25 @@ class _SummaryPill extends StatelessWidget {
           child: Icon(icon, size: 16, color: color),
         ),
         const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-            ),
-            Text(
-              value,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              Text(
+                value,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -501,12 +510,16 @@ class _GoalProgressCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${currency.format(item.currentAmount)} / ${currency.format(item.targetAmount)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    '${currency.format(item.currentAmount)} / ${currency.format(item.targetAmount)}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   '${item.percentage.toStringAsFixed(0)}%',
                   style: TextStyle(

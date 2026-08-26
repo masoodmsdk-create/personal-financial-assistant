@@ -154,40 +154,48 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
             // Monthly Summary Banner
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               color: theme.colorScheme.surfaceContainerHighest.withValues(
                 alpha: 0.5,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _SummaryMetric(
-                    label: 'Month Income',
-                    amount: summary.totalIncome,
-                    color: Colors.green,
-                    prefix: '+ ₹ ',
+                  Expanded(
+                    child: _SummaryMetric(
+                      label: 'Month Income',
+                      amount: summary.totalIncome,
+                      color: Colors.green,
+                      prefix: '+ ₹ ',
+                    ),
                   ),
                   Container(
                     height: 30,
                     width: 1,
                     color: theme.colorScheme.outlineVariant,
                   ),
-                  _SummaryMetric(
-                    label: 'Month Expense',
-                    amount: summary.totalExpense,
-                    color: Colors.red,
-                    prefix: '- ₹ ',
+                  Expanded(
+                    child: _SummaryMetric(
+                      label: 'Month Expense',
+                      amount: summary.totalExpense,
+                      color: Colors.red,
+                      prefix: '- ₹ ',
+                    ),
                   ),
                   Container(
                     height: 30,
                     width: 1,
                     color: theme.colorScheme.outlineVariant,
                   ),
-                  _SummaryMetric(
-                    label: 'Net Cash Flow',
-                    amount: summary.netCashFlow,
-                    color: summary.netCashFlow >= 0 ? Colors.green : Colors.red,
-                    prefix: '₹ ',
+                  Expanded(
+                    child: _SummaryMetric(
+                      label: 'Net Cash Flow',
+                      amount: summary.netCashFlow,
+                      color: summary.netCashFlow >= 0
+                          ? Colors.green
+                          : Colors.red,
+                      prefix: '₹ ',
+                    ),
                   ),
                 ],
               ),
@@ -347,7 +355,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             ),
                             child: Icon(t.type.icon, color: t.type.color),
                           ),
-                          title: Row(
+                          title: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 2,
                             children: [
                               Text(
                                 t.type.displayName,
@@ -355,7 +366,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Text(
                                 _dateFormat.format(t.date),
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -454,12 +464,17 @@ class _SummaryMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
+            fontSize: 11,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 2),
         Text(
@@ -467,7 +482,11 @@ class _SummaryMetric extends StatelessWidget {
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: color,
+            fontSize: 13,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
       ],
     );

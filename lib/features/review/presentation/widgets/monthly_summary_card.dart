@@ -40,17 +40,21 @@ class MonthlySummaryCard extends StatelessWidget {
                   size: 22,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Monthly Financial Summary',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'Monthly Financial Summary',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 6,
+                    vertical: 2,
                   ),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
@@ -61,6 +65,7 @@ class MonthlySummaryCard extends StatelessWidget {
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onPrimaryContainer,
+                      fontSize: 10,
                     ),
                   ),
                 ),
@@ -69,44 +74,64 @@ class MonthlySummaryCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Top Row: Income, Expenses, Net Cash Flow
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: _SummaryTile(
-                    label: 'Total Income (ACTUAL)',
-                    value: currencyFormat.format(reviewData.totalIncome),
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _SummaryTile(
-                    label: 'Total Expense (ACTUAL)',
-                    value: currencyFormat.format(reviewData.totalExpense),
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _SummaryTile(
-                    label: 'Net Cash Flow',
-                    value: currencyFormat.format(reviewData.netCashFlow),
-                    color: reviewData.netCashFlow >= 0
-                        ? Colors.green
-                        : Colors.red,
-                  ),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 460;
+                final incomeTile = _SummaryTile(
+                  label: 'Total Income (ACTUAL)',
+                  value: currencyFormat.format(reviewData.totalIncome),
+                  color: Colors.green,
+                );
+                final expenseTile = _SummaryTile(
+                  label: 'Total Expense (ACTUAL)',
+                  value: currencyFormat.format(reviewData.totalExpense),
+                  color: Colors.red,
+                );
+                final netTile = _SummaryTile(
+                  label: 'Net Cash Flow',
+                  value: currencyFormat.format(reviewData.netCashFlow),
+                  color: reviewData.netCashFlow >= 0
+                      ? Colors.green
+                      : Colors.red,
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: incomeTile),
+                          const SizedBox(width: 8),
+                          Expanded(child: expenseTile),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      netTile,
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: incomeTile),
+                    const SizedBox(width: 8),
+                    Expanded(child: expenseTile),
+                    const SizedBox(width: 8),
+                    Expanded(child: netTile),
+                  ],
+                );
+              },
             ),
 
             const Divider(height: 24),
 
             // Bottom Row: Planned vs Actual Comparison
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 420;
+                final columnWidget = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -123,8 +148,9 @@ class MonthlySummaryCard extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-                Container(
+                );
+
+                final badgeWidget = Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
@@ -135,6 +161,7 @@ class MonthlySummaryCard extends StatelessWidget {
                     border: Border.all(color: diffColor.withValues(alpha: 0.3)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         reviewData.isAbovePlan
@@ -144,17 +171,37 @@ class MonthlySummaryCard extends StatelessWidget {
                         color: diffColor,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        diffText,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: diffColor,
+                      Flexible(
+                        child: Text(
+                          diffText,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: diffColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      columnWidget,
+                      const SizedBox(height: 8),
+                      badgeWidget,
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [columnWidget, badgeWidget],
+                );
+              },
             ),
           ],
         ),
@@ -187,6 +234,8 @@ class _SummaryTile extends StatelessWidget {
           style: theme.textTheme.labelSmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(
@@ -195,6 +244,8 @@ class _SummaryTile extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: color,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

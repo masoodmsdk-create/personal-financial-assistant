@@ -47,10 +47,14 @@ class MonthlyReviewScreen extends ConsumerWidget {
                         DateTime(selectedDate.year, selectedDate.month - 1);
                   },
                 ),
-                Text(
-                  formattedMonth,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    formattedMonth,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(

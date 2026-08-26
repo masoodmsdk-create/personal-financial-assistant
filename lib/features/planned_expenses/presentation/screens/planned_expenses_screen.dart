@@ -296,17 +296,19 @@ class _MonthlyForecastTabView extends ConsumerWidget {
                                     color: theme.colorScheme.onPrimaryContainer,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'Total Forecasted Expense',
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                          color: theme
-                                              .colorScheme
-                                              .onPrimaryContainer,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                  Expanded(
+                                    child: Text(
+                                      'Total Forecasted Expense',
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onPrimaryContainer,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
                                   ),
-                                  const Spacer(),
+                                  const SizedBox(width: 8),
                                   const FinancialStatusChip(
                                     FinancialStatusType.forecast,
                                   ),
@@ -386,18 +388,18 @@ class _MonthlyForecastTabView extends ConsumerWidget {
                                   color: theme.colorScheme.primary,
                                 ),
                               ),
-                              title: Row(
+                              title: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                runSpacing: 2,
                                 children: [
-                                  Flexible(
-                                    child: Text(
-                                      item.plan.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  Text(
+                                    item.plan.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  if (item.hasOverride) ...[
-                                    const SizedBox(width: 8),
+                                  if (item.hasOverride)
                                     Chip(
                                       label: const Text('Overridden'),
                                       labelStyle: TextStyle(
@@ -411,11 +413,12 @@ class _MonthlyForecastTabView extends ConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       visualDensity: VisualDensity.compact,
                                     ),
-                                  ],
                                 ],
                               ),
                               subtitle: Text(
                                 '$categoryName • ${item.plan.frequency.displayName}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -607,24 +610,24 @@ class _RecurringPlansTabView extends ConsumerWidget {
                               : theme.colorScheme.primary,
                         ),
                       ),
-                      title: Row(
+                      title: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 2,
                         children: [
-                          Flexible(
-                            child: Text(
-                              plan.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                decoration: isArchived
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: isArchived
-                                    ? theme.colorScheme.outline
-                                    : theme.colorScheme.onSurface,
-                              ),
+                          Text(
+                            plan.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              decoration: isArchived
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: isArchived
+                                  ? theme.colorScheme.outline
+                                  : theme.colorScheme.onSurface,
                             ),
                           ),
-                          if (isArchived) ...[
-                            const SizedBox(width: 8),
+                          if (isArchived)
                             Chip(
                               label: const Text('Archived'),
                               labelStyle: TextStyle(
@@ -636,11 +639,12 @@ class _RecurringPlansTabView extends ConsumerWidget {
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                             ),
-                          ],
                         ],
                       ),
                       subtitle: Text(
                         '$categoryName • ${plan.frequency.displayName} • Starts ${dateFormat.format(plan.startDate)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

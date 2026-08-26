@@ -77,7 +77,9 @@ class AssistantSuggestionsSection extends ConsumerWidget {
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -103,7 +105,9 @@ class AssistantSuggestionsSection extends ConsumerWidget {
             ),
           ),
         ] else ...[
-          ...suggestions.map((suggestion) => _SuggestionCard(suggestion: suggestion)),
+          ...suggestions.map(
+            (suggestion) => _SuggestionCard(suggestion: suggestion),
+          ),
         ],
       ],
     );
@@ -144,7 +148,11 @@ class _SuggestionCard extends StatelessWidget {
                     color: suggestion.color.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(suggestion.icon, size: 16, color: suggestion.color),
+                  child: Icon(
+                    suggestion.icon,
+                    size: 16,
+                    color: suggestion.color,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -163,7 +171,10 @@ class _SuggestionCard extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(6),
@@ -197,7 +208,10 @@ class _SuggestionCard extends StatelessWidget {
               child: FilledButton.tonalIcon(
                 onPressed: () => context.push(suggestion.actionRoute),
                 icon: const Icon(Icons.arrow_forward_rounded, size: 14),
-                label: Text(suggestion.actionLabel, style: const TextStyle(fontSize: 12)),
+                label: Text(
+                  suggestion.actionLabel,
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
             ),
           ],
@@ -206,4 +220,3 @@ class _SuggestionCard extends StatelessWidget {
     );
   }
 }
-

@@ -13,7 +13,11 @@ class UpcomingRemindersSection extends ConsumerWidget {
     final reminders = ref.watch(upcomingRemindersProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +67,9 @@ class UpcomingRemindersSection extends ConsumerWidget {
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -94,7 +100,9 @@ class UpcomingRemindersSection extends ConsumerWidget {
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
             ),
             child: ListView.separated(
               itemCount: reminders.length,
@@ -149,10 +157,16 @@ class _ReminderTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 2,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: reminder.daysRemaining <= 3
                               ? Colors.amber.shade100
@@ -170,7 +184,6 @@ class _ReminderTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
                       Text(
                         '• $dateStr',
                         style: TextStyle(
@@ -202,4 +215,3 @@ class _ReminderTile extends StatelessWidget {
     );
   }
 }
-

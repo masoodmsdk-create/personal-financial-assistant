@@ -17,9 +17,8 @@ import 'package:personal_financial_assistant/features/transactions/transaction.d
 class CommandCenterService {
   final PlanProgressService _planProgressService;
 
-  const CommandCenterService({
-    PlanProgressService? planProgressService,
-  }) : _planProgressService = planProgressService ?? const PlanProgressService();
+  const CommandCenterService({PlanProgressService? planProgressService})
+    : _planProgressService = planProgressService ?? const PlanProgressService();
 
   /// Generates deterministic, explainable, and actionable assistant suggestions
   List<HomeAssistantSuggestion> generateAssistantSuggestions({

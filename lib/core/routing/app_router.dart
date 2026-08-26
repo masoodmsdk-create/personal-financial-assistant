@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/screens/account_types_screen.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/screens/accounts_screen.dart';
+import 'package:personal_financial_assistant/features/analytics/presentation/screens/analytics_screen.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/login_screen.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/screens/register_screen.dart';
 import 'package:personal_financial_assistant/features/blueprint/presentation/screens/financial_setup_screen.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/screens/categories_screen.dart';
-
 import 'package:personal_financial_assistant/features/dashboard/presentation/screens/app_shell.dart';
-import 'package:personal_financial_assistant/features/accounts/presentation/screens/account_types_screen.dart';
+import 'package:personal_financial_assistant/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:personal_financial_assistant/features/goals/presentation/screens/goals_screen.dart';
-
 import 'package:personal_financial_assistant/features/legal/presentation/screens/financial_disclaimer_screen.dart';
-
 import 'package:personal_financial_assistant/features/legal/presentation/screens/privacy_notice_screen.dart';
 import 'package:personal_financial_assistant/features/legal/presentation/screens/terms_of_service_screen.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loan_detail_screen.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/screens/loans_screen.dart';
-
 import 'package:personal_financial_assistant/features/planned_expenses/presentation/screens/planned_expenses_screen.dart';
 import 'package:personal_financial_assistant/features/profile/presentation/screens/profile_screen.dart';
 import 'package:personal_financial_assistant/features/review/presentation/screens/monthly_review_screen.dart';
+import 'package:personal_financial_assistant/features/settings/presentation/screens/settings_screen.dart';
 import 'package:personal_financial_assistant/features/smart_entry/presentation/screens/smart_entry_screen.dart';
+import 'package:personal_financial_assistant/features/trade_off/presentation/screens/trade_off_screen.dart';
+import 'package:personal_financial_assistant/features/transactions/presentation/screens/transactions_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -33,7 +35,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       authStateChangesProvider,
     ),
     redirect: (context, state) {
-      // While auth state is loading on app startup
       if (authState.isLoading) {
         return null;
       }
@@ -68,11 +69,62 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
-        builder: (context, state) => const AppShell(),
+
+      // Core Stateful Navigation Shell for Tab Destinations
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AppShell(navigationShell: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/dashboard',
+                name: 'dashboard',
+                builder: (context, state) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/accounts',
+                name: 'accounts',
+                builder: (context, state) => const AccountsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/transactions',
+                name: 'transactions',
+                builder: (context, state) => const TransactionsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/analytics',
+                name: 'analytics',
+                builder: (context, state) => const AnalyticsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                name: 'settings',
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
+
+      // Secondary Feature & Utility Routes
       GoRoute(
         path: '/terms',
         name: 'terms',
@@ -116,7 +168,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return LoanDetailScreen(loanId: loanId);
         },
       ),
-
       GoRoute(
         path: '/goals',
         name: 'goals',
@@ -141,6 +192,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/financial-setup',
         name: 'financial-setup',
         builder: (context, state) => const FinancialSetupScreen(),
+      ),
+      GoRoute(
+        path: '/trade-off',
+        name: 'trade-off',
+        builder: (context, state) => const TradeOffScreen(),
       ),
     ],
 

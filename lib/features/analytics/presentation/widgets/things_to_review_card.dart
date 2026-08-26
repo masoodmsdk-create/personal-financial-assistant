@@ -35,14 +35,15 @@ class ThingsToReviewCard extends ConsumerWidget {
                   size: 22,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Things to Review',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    'Things to Review',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 if (insights.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -50,13 +51,13 @@ class ThingsToReviewCard extends ConsumerWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
+                      color: colorScheme.errorContainer.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${insights.length}',
+                      '${insights.length} Attention',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
+                        color: colorScheme.onErrorContainer,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

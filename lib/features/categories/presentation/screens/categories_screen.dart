@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
+import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/widgets/add_edit_category_dialog.dart';
@@ -300,108 +301,113 @@ class _CategoryListView extends ConsumerWidget {
           );
         }
 
-        return ListView.builder(
+        return ResponsiveCenter(
+          maxWidth: 800,
           padding: const EdgeInsets.only(
             top: 8,
             left: 16,
             right: 16,
             bottom: 88,
           ),
-          itemCount: filtered.length,
+          child: ListView.builder(
+            itemCount: filtered.length,
 
-          itemBuilder: (context, index) {
-            final category = filtered[index];
-            final isArchived = !category.active;
+            itemBuilder: (context, index) {
+              final category = filtered[index];
+              final isArchived = !category.active;
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              elevation: isArchived ? 0 : 1,
-              color: isArchived
-                  ? theme.colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.5,
-                    )
-                  : null,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: isArchived
-                      ? theme.colorScheme.outline.withValues(alpha: 0.2)
-                      : type.color.withValues(alpha: 0.12),
-                  child: Icon(
-                    type.icon,
-                    color: isArchived ? theme.colorScheme.outline : type.color,
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                elevation: isArchived ? 0 : 1,
+                color: isArchived
+                    ? theme.colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      )
+                    : null,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isArchived
+                        ? theme.colorScheme.outline.withValues(alpha: 0.2)
+                        : type.color.withValues(alpha: 0.12),
+                    child: Icon(
+                      type.icon,
+                      color: isArchived
+                          ? theme.colorScheme.outline
+                          : type.color,
+                    ),
+                  ),
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          category.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            decoration: isArchived
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: isArchived
+                                ? theme.colorScheme.outline
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (category.isDefault) ...[
+                        const SizedBox(width: 8),
+                        Chip(
+                          label: const Text('Default'),
+                          labelStyle: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                      if (isArchived) ...[
+                        const SizedBox(width: 8),
+                        Chip(
+                          label: const Text('Archived'),
+                          labelStyle: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.error,
+                          ),
+                          backgroundColor: theme.colorScheme.errorContainer
+                              .withValues(alpha: 0.5),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isArchived)
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          tooltip: 'Edit Category',
+                          onPressed: () => onEdit(category),
+                        ),
+                      if (!isArchived)
+                        IconButton(
+                          icon: const Icon(Icons.archive_outlined),
+                          tooltip: 'Archive Category',
+                          onPressed: () => onArchive(category),
+                        )
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.unarchive_outlined),
+                          tooltip: 'Restore Category',
+                          onPressed: () => onRestore(category),
+                        ),
+                    ],
                   ),
                 ),
-                title: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        category.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          decoration: isArchived
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: isArchived
-                              ? theme.colorScheme.outline
-                              : theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                    if (category.isDefault) ...[
-                      const SizedBox(width: 8),
-                      Chip(
-                        label: const Text('Default'),
-                        labelStyle: TextStyle(
-                          fontSize: 10,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                    if (isArchived) ...[
-                      const SizedBox(width: 8),
-                      Chip(
-                        label: const Text('Archived'),
-                        labelStyle: TextStyle(
-                          fontSize: 10,
-                          color: theme.colorScheme.error,
-                        ),
-                        backgroundColor: theme.colorScheme.errorContainer
-                            .withValues(alpha: 0.5),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ],
-                ),
-
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isArchived)
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'Edit Category',
-                        onPressed: () => onEdit(category),
-                      ),
-                    if (!isArchived)
-                      IconButton(
-                        icon: const Icon(Icons.archive_outlined),
-                        tooltip: 'Archive Category',
-                        onPressed: () => onArchive(category),
-                      )
-                    else
-                      IconButton(
-                        icon: const Icon(Icons.unarchive_outlined),
-                        tooltip: 'Restore Category',
-                        onPressed: () => onRestore(category),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );

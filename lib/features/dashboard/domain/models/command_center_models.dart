@@ -124,4 +124,3 @@ class AccountsSummaryData {
 
   bool get hasAccounts => activeAccountsCount > 0;
 }
-
