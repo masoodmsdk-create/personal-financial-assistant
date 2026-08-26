@@ -1,3 +1,4 @@
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
 /// Represents an uncommitted parsed transaction draft extracted from free-form natural language text.
@@ -14,6 +15,16 @@ class ParsedDraftTransaction {
   final String rawText;
   final double confidence;
 
+  // Recurrence properties
+  final bool isRecurring;
+  final RecurrenceFrequency? frequency;
+  final int interval;
+  final int? dayOfMonth;
+  final int? dayOfWeek;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? ruleName;
+
   const ParsedDraftTransaction({
     required this.id,
     required this.type,
@@ -26,6 +37,14 @@ class ParsedDraftTransaction {
     required this.note,
     required this.rawText,
     this.confidence = 1.0,
+    this.isRecurring = false,
+    this.frequency,
+    this.interval = 1,
+    this.dayOfMonth,
+    this.dayOfWeek,
+    this.startDate,
+    this.endDate,
+    this.ruleName,
   });
 
   ParsedDraftTransaction copyWith({
@@ -40,6 +59,14 @@ class ParsedDraftTransaction {
     String? note,
     String? rawText,
     double? confidence,
+    bool? isRecurring,
+    RecurrenceFrequency? frequency,
+    int? interval,
+    int? dayOfMonth,
+    int? dayOfWeek,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? ruleName,
   }) {
     return ParsedDraftTransaction(
       id: id ?? this.id,
@@ -53,6 +80,14 @@ class ParsedDraftTransaction {
       note: note ?? this.note,
       rawText: rawText ?? this.rawText,
       confidence: confidence ?? this.confidence,
+      isRecurring: isRecurring ?? this.isRecurring,
+      frequency: frequency ?? this.frequency,
+      interval: interval ?? this.interval,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      ruleName: ruleName ?? this.ruleName,
     );
   }
 }

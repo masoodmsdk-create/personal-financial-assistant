@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
+import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/smart_entry/domain/models/parsed_draft_transaction.dart';
 import 'package:personal_financial_assistant/features/smart_entry/domain/services/smart_parser_service.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
@@ -103,20 +107,77 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
     state = const SmartEntryState();
   }
 
-  Future<bool> saveAll(WidgetRef ref) async {
-    if (state.drafts.isEmpty) return false;
+  Future<bool> _saveDraftItem(
+    ParsedDraftTransaction draft,
+    WidgetRef ref,
+  ) async {
+    if (draft.isRecurring) {
+      if (draft.accountId == null || draft.categoryId == null) {
+        return false;
+      }
+      final user = ref.read(currentUserProvider);
+      if (user == null) return false;
 
-    state = state.copyWith(isSaving: true, errorMessage: null);
-    final controller = ref.read(transactionControllerProvider.notifier);
+      final now = DateTime.now();
+      final startDate = draft.startDate ?? now;
+      final frequency = draft.frequency ?? RecurrenceFrequency.monthly;
+      final interval = draft.interval;
+      final dayOfMonth =
+          draft.dayOfMonth ??
+          (frequency == RecurrenceFrequency.weekly ? null : startDate.day);
+      final dayOfWeek =
+          draft.dayOfWeek ??
+          (frequency == RecurrenceFrequency.weekly ? startDate.weekday : null);
 
-    int saved = 0;
-    final remainingDrafts = <ParsedDraftTransaction>[];
+      final service = ref.read(recurringTransactionServiceProvider);
+      final initialNext =
+          service.calculateNextOccurrence(
+            fromDate: startDate.subtract(const Duration(days: 1)),
+            frequency: frequency,
+            interval: interval,
+            dayOfMonth: dayOfMonth,
+            dayOfWeek: dayOfWeek,
+            endDate: draft.endDate,
+          ) ??
+          startDate;
 
-    for (final draft in state.drafts) {
-      bool success = false;
+      final ruleName =
+          (draft.ruleName != null && draft.ruleName!.trim().isNotEmpty)
+          ? draft.ruleName!.trim()
+          : (draft.note.trim().isNotEmpty
+                ? draft.note.trim()
+                : '${draft.type.displayName} Commitment');
+
+      final rule = RecurringTransactionRule(
+        id: now.millisecondsSinceEpoch.toString(),
+        userId: user.uid,
+        createdAt: now,
+        updatedAt: now,
+        type: draft.type,
+        name: ruleName,
+        amount: draft.amount,
+        categoryId: draft.categoryId!,
+        accountId: draft.accountId!,
+        frequency: frequency,
+        interval: interval,
+        dayOfMonth: dayOfMonth,
+        dayOfWeek: dayOfWeek,
+        startDate: startDate,
+        endDate: draft.endDate,
+        active: true,
+        autoGenerate: true,
+        nextOccurrence: initialNext,
+        note: draft.note.trim().isNotEmpty ? draft.note.trim() : null,
+      );
+
+      return ref
+          .read(recurringTransactionControllerProvider.notifier)
+          .addRule(rule);
+    } else {
+      final controller = ref.read(transactionControllerProvider.notifier);
       if (draft.type == TransactionType.transfer) {
         if (draft.fromAccountId != null && draft.toAccountId != null) {
-          success = await controller.createTransferTransaction(
+          return controller.createTransferTransaction(
             amount: draft.amount,
             fromAccountId: draft.fromAccountId!,
             toAccountId: draft.toAccountId!,
@@ -126,7 +187,7 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
         }
       } else if (draft.type == TransactionType.income) {
         if (draft.accountId != null && draft.categoryId != null) {
-          success = await controller.createIncomeTransaction(
+          return controller.createIncomeTransaction(
             amount: draft.amount,
             accountId: draft.accountId!,
             categoryId: draft.categoryId!,
@@ -136,7 +197,7 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
         }
       } else {
         if (draft.accountId != null && draft.categoryId != null) {
-          success = await controller.createExpenseTransaction(
+          return controller.createExpenseTransaction(
             amount: draft.amount,
             accountId: draft.accountId!,
             categoryId: draft.categoryId!,
@@ -145,7 +206,20 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
           );
         }
       }
+      return false;
+    }
+  }
 
+  Future<bool> saveAll(WidgetRef ref) async {
+    if (state.drafts.isEmpty) return false;
+
+    state = state.copyWith(isSaving: true, errorMessage: null);
+
+    int saved = 0;
+    final remainingDrafts = <ParsedDraftTransaction>[];
+
+    for (final draft in state.drafts) {
+      final success = await _saveDraftItem(draft, ref);
       if (success) {
         saved++;
       } else {
@@ -168,40 +242,7 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
     final draft = state.drafts[index];
 
     state = state.copyWith(isSaving: true, errorMessage: null);
-    final controller = ref.read(transactionControllerProvider.notifier);
-
-    bool success = false;
-    if (draft.type == TransactionType.transfer) {
-      if (draft.fromAccountId != null && draft.toAccountId != null) {
-        success = await controller.createTransferTransaction(
-          amount: draft.amount,
-          fromAccountId: draft.fromAccountId!,
-          toAccountId: draft.toAccountId!,
-          date: draft.date,
-          note: draft.note,
-        );
-      }
-    } else if (draft.type == TransactionType.income) {
-      if (draft.accountId != null && draft.categoryId != null) {
-        success = await controller.createIncomeTransaction(
-          amount: draft.amount,
-          accountId: draft.accountId!,
-          categoryId: draft.categoryId!,
-          date: draft.date,
-          note: draft.note,
-        );
-      }
-    } else {
-      if (draft.accountId != null && draft.categoryId != null) {
-        success = await controller.createExpenseTransaction(
-          amount: draft.amount,
-          accountId: draft.accountId!,
-          categoryId: draft.categoryId!,
-          date: draft.date,
-          note: draft.note,
-        );
-      }
-    }
+    final success = await _saveDraftItem(draft, ref);
 
     if (success) {
       final updatedList = List<ParsedDraftTransaction>.from(state.drafts)

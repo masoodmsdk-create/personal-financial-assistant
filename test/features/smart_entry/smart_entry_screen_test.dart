@@ -135,6 +135,36 @@ void main() {
       expect(find.text('Confirm & Save All (1)'), findsOneWidget);
     });
 
+    testWidgets(
+      'Parses recurring prompt and renders recurring commitment card with fields',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Enter recurring salary prompt
+        final textField = find.byType(TextField);
+        await tester.enterText(textField, 'Salary 80000 every month to HDFC');
+        await tester.pumpAndSettle();
+
+        final understandBtn = find.widgetWithText(FilledButton, 'Understand');
+        await tester.ensureVisible(understandBtn);
+        await tester.tap(understandBtn);
+        await tester.pumpAndSettle();
+
+        // Verify recurring card renders
+        expect(find.text('RECURRING INCOME'), findsOneWidget);
+        expect(find.text('₹ 80000.00'), findsOneWidget);
+        expect(find.text('Frequency'), findsOneWidget);
+        expect(find.text('Interval'), findsOneWidget);
+        expect(find.text('Confirm & Save Rule'), findsOneWidget);
+      },
+    );
+
     for (final size in [
       const Size(360, 800),
       const Size(390, 844),
@@ -142,7 +172,7 @@ void main() {
       const Size(1280, 800),
     ]) {
       testWidgets(
-        'Renders cleanly without overflow on ${size.width}x${size.height}',
+        'Renders cleanly without overflow on ${size.width}x${size.height} with recurring draft',
         (tester) async {
           tester.view.physicalSize = size;
           tester.view.devicePixelRatio = 1.0;
@@ -152,8 +182,17 @@ void main() {
           await tester.pumpWidget(buildTestWidget());
           await tester.pumpAndSettle();
 
-          expect(find.text('Smart Assistant Entry'), findsOneWidget);
-          expect(find.text('Understand'), findsOneWidget);
+          final textField = find.byType(TextField);
+          await tester.enterText(textField, 'Rent 15000 every month');
+          await tester.pumpAndSettle();
+
+          final understandBtn = find.widgetWithText(FilledButton, 'Understand');
+          await tester.ensureVisible(understandBtn);
+          await tester.tap(understandBtn);
+          await tester.pumpAndSettle();
+
+          expect(find.text('RECURRING EXPENSE'), findsOneWidget);
+          expect(find.text('Confirm & Save Rule'), findsOneWidget);
           expect(tester.takeException(), isNull);
         },
       );

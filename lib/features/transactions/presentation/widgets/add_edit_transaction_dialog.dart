@@ -547,7 +547,7 @@ class _AddEditTransactionDialogState
                       }
 
                       return DropdownButtonFormField<String>(
-                        value: _selectedCategoryId,
+                        initialValue: _selectedCategoryId,
                         isExpanded: true,
                         decoration: InputDecoration(
                           labelText: '${_selectedType.displayName} Category *',
@@ -590,7 +590,7 @@ class _AddEditTransactionDialogState
                       }
 
                       return DropdownButtonFormField<String>(
-                        value: _selectedAccountId,
+                        initialValue: _selectedAccountId,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Account *',
@@ -647,7 +647,7 @@ class _AddEditTransactionDialogState
                       return Column(
                         children: [
                           DropdownButtonFormField<String>(
-                            value: _selectedFromAccountId,
+                            initialValue: _selectedFromAccountId,
                             isExpanded: true,
                             decoration: const InputDecoration(
                               labelText: 'From Account *',
@@ -675,7 +675,7 @@ class _AddEditTransactionDialogState
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _selectedToAccountId,
+                            initialValue: _selectedToAccountId,
                             isExpanded: true,
                             decoration: const InputDecoration(
                               labelText: 'To Account *',
@@ -718,7 +718,7 @@ class _AddEditTransactionDialogState
                 if (_isRecurring) ...[
                   // Frequency Dropdown
                   DropdownButtonFormField<RecurrenceFrequency>(
-                    value: _frequency,
+                    initialValue: _frequency,
                     isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Frequency *',
@@ -769,7 +769,7 @@ class _AddEditTransactionDialogState
                       _frequency == RecurrenceFrequency.halfYearly ||
                       _frequency == RecurrenceFrequency.yearly) ...[
                     DropdownButtonFormField<int>(
-                      value: _dayOfMonth ?? _startDate.day,
+                      initialValue: _dayOfMonth ?? _startDate.day,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         labelText: 'Day of the Month *',
@@ -789,7 +789,7 @@ class _AddEditTransactionDialogState
                     const SizedBox(height: 16),
                   ] else if (_frequency == RecurrenceFrequency.weekly) ...[
                     DropdownButtonFormField<int>(
-                      value: _dayOfWeek ?? _startDate.weekday,
+                      initialValue: _dayOfWeek ?? _startDate.weekday,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         labelText: 'Day of the Week *',

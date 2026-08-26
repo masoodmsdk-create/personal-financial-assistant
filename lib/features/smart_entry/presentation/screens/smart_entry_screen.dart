@@ -10,6 +10,7 @@ import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/smart_entry/domain/models/parsed_draft_transaction.dart';
 import 'package:personal_financial_assistant/features/smart_entry/presentation/providers/smart_entry_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -26,10 +27,12 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
 
   static const List<String> _samplePrompts = [
     'Paid 450 for lunch on HDFC card yesterday',
-    'Salary 75000 credited to SBI today',
-    'Transferred 5000 from SBI to HDFC',
+    'Salary 80000 every month to HDFC',
+    'Rent 15000 every month',
+    'Insurance 20000 every year',
+    'Electricity 2000 every 2 months',
     'Bought groceries 1400 cash',
-    'Electricity bill 2350 paid via ICICI',
+    'Transferred 5000 from SBI to HDFC',
   ];
 
   @override
@@ -217,8 +220,11 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           if (_textController.text.isNotEmpty)
                             TextButton.icon(
@@ -301,18 +307,18 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
 
               // Draft Review Section
               if (state.drafts.isNotEmpty) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Detected Transactions (${state.drafts.length})',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Text(
+                      'Detected Transactions (${state.drafts.length})',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: state.isSaving ? null : _recordAll,
                       icon: state.isSaving
@@ -404,7 +410,8 @@ class _DraftTransactionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: draft.type.color.withValues(alpha: 0.4),
+          color: (draft.isRecurring ? Colors.purple : draft.type.color)
+              .withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -414,46 +421,72 @@ class _DraftTransactionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Row: Type Badge + Amount + Delete button
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: 8,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: draft.type.color.withValues(alpha: 0.12),
+                    color:
+                        (draft.isRecurring ? Colors.purple : draft.type.color)
+                            .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(draft.type.icon, size: 16, color: draft.type.color),
-                      const SizedBox(width: 6),
+                      Icon(
+                        draft.isRecurring
+                            ? Icons.repeat_rounded
+                            : draft.type.icon,
+                        size: 14,
+                        color: draft.isRecurring
+                            ? Colors.purple
+                            : draft.type.color,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
-                        draft.type.displayName.toUpperCase(),
+                        draft.isRecurring
+                            ? 'RECURRING ${draft.type.displayName.toUpperCase()}'
+                            : draft.type.displayName.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: draft.type.color,
+                          color: draft.isRecurring
+                              ? Colors.purple
+                              : draft.type.color,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  '₹ ${draft.amount.toStringAsFixed(2)}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: draft.type.color,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                  tooltip: 'Remove',
-                  onPressed: onDelete,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '₹ ${draft.amount.toStringAsFixed(2)}',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: draft.isRecurring
+                            ? Colors.purple
+                            : draft.type.color,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      tooltip: 'Remove',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: onDelete,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -593,36 +626,164 @@ class _DraftTransactionCard extends StatelessWidget {
                     ),
                   ),
 
-                // Date Chip Button
-                ActionChip(
-                  avatar: const Icon(Icons.calendar_today_outlined, size: 14),
-                  label: Text(DateFormat('MMM dd, yyyy').format(draft.date)),
-                  onPressed: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: draft.date,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) {
-                      onUpdate(draft.copyWith(date: picked));
-                    }
-                  },
-                ),
+                // Recurring Fields: Frequency & Interval
+                if (draft.isRecurring) ...[
+                  SizedBox(
+                    width: 220,
+                    child: DropdownButtonFormField<RecurrenceFrequency>(
+                      isExpanded: true,
+                      initialValue:
+                          draft.frequency ?? RecurrenceFrequency.monthly,
+                      decoration: const InputDecoration(
+                        labelText: 'Frequency',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: RecurrenceFrequency.values.map((f) {
+                        return DropdownMenuItem(
+                          value: f,
+                          child: Text(f.displayName),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          onUpdate(draft.copyWith(frequency: val));
+                        }
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: TextFormField(
+                      initialValue: draft.interval.toString(),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Interval',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      onChanged: (val) {
+                        final parsed = int.tryParse(val.trim());
+                        if (parsed != null && parsed > 0) {
+                          onUpdate(draft.copyWith(interval: parsed));
+                        }
+                      },
+                    ),
+                  ),
+                  if (draft.frequency != RecurrenceFrequency.weekly)
+                    SizedBox(
+                      width: 160,
+                      child: DropdownButtonFormField<int>(
+                        isExpanded: true,
+                        initialValue:
+                            draft.dayOfMonth ??
+                            (draft.startDate?.day ?? DateTime.now().day),
+                        decoration: const InputDecoration(
+                          labelText: 'Day of Month',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: List.generate(31, (i) => i + 1).map((d) {
+                          return DropdownMenuItem(
+                            value: d,
+                            child: Text('Day $d'),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            onUpdate(draft.copyWith(dayOfMonth: val));
+                          }
+                        },
+                      ),
+                    ),
+                  if (draft.frequency == RecurrenceFrequency.weekly)
+                    SizedBox(
+                      width: 160,
+                      child: DropdownButtonFormField<int>(
+                        isExpanded: true,
+                        initialValue:
+                            draft.dayOfWeek ??
+                            (draft.startDate?.weekday ??
+                                DateTime.now().weekday),
+                        decoration: const InputDecoration(
+                          labelText: 'Day of Week',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('Monday')),
+                          DropdownMenuItem(value: 2, child: Text('Tuesday')),
+                          DropdownMenuItem(value: 3, child: Text('Wednesday')),
+                          DropdownMenuItem(value: 4, child: Text('Thursday')),
+                          DropdownMenuItem(value: 5, child: Text('Friday')),
+                          DropdownMenuItem(value: 6, child: Text('Saturday')),
+                          DropdownMenuItem(value: 7, child: Text('Sunday')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            onUpdate(draft.copyWith(dayOfWeek: val));
+                          }
+                        },
+                      ),
+                    ),
+                  ActionChip(
+                    avatar: const Icon(Icons.calendar_today_outlined, size: 14),
+                    label: Text(
+                      'Start: ${DateFormat('MMM dd, yyyy').format(draft.startDate ?? draft.date)}',
+                    ),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: draft.startDate ?? draft.date,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2040),
+                      );
+                      if (picked != null) {
+                        onUpdate(draft.copyWith(startDate: picked));
+                      }
+                    },
+                  ),
+                ],
+
+                // One-Time Date Chip Button
+                if (!draft.isRecurring)
+                  ActionChip(
+                    avatar: const Icon(Icons.calendar_today_outlined, size: 14),
+                    label: Text(DateFormat('MMM dd, yyyy').format(draft.date)),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: draft.date,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        onUpdate(draft.copyWith(date: picked));
+                      }
+                    },
+                  ),
               ],
             ),
             const SizedBox(height: 12),
 
-            // Note line
+            // Note / Rule Name line
             TextFormField(
-              initialValue: draft.note,
-              decoration: const InputDecoration(
-                labelText: 'Note / Description',
-                border: OutlineInputBorder(),
+              initialValue: draft.isRecurring
+                  ? (draft.ruleName ?? draft.note)
+                  : draft.note,
+              decoration: InputDecoration(
+                labelText: draft.isRecurring
+                    ? 'Rule Name / Description'
+                    : 'Note / Description',
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               onChanged: (val) {
-                onUpdate(draft.copyWith(note: val));
+                if (draft.isRecurring) {
+                  onUpdate(draft.copyWith(ruleName: val, note: val));
+                } else {
+                  onUpdate(draft.copyWith(note: val));
+                }
               },
             ),
             const SizedBox(height: 12),
@@ -633,7 +794,9 @@ class _DraftTransactionCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: isSaving ? null : onSave,
                 icon: const Icon(Icons.check_circle_rounded, size: 16),
-                label: const Text('Confirm & Save'),
+                label: Text(
+                  draft.isRecurring ? 'Confirm & Save Rule' : 'Confirm & Save',
+                ),
               ),
             ),
           ],

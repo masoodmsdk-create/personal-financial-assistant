@@ -1,13 +1,14 @@
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/smart_entry/domain/models/parsed_draft_transaction.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
-/// Pure deterministic natural-language parsing engine for free-form financial entries.
+/// Pure deterministic natural-language parsing engine for free-form financial entries and recurring commitments.
 class SmartParserService {
   const SmartParserService();
 
-  /// Parses unstructured multi-line or single-line text into a list of draft transactions.
+  /// Parses unstructured multi-line or single-line text into a list of draft transactions or recurring rules.
   List<ParsedDraftTransaction> parseText({
     required String rawText,
     required List<Account> accounts,
@@ -50,22 +51,27 @@ class SmartParserService {
     // 1. Extract Amount
     final amountResult = _extractAmount(lower);
     if (amountResult == null) {
-      return null; // A transaction must have an amount
+      return null; // A financial entry must have an amount
     }
     final amount = amountResult.amount;
 
-    // 2. Extract Date
-    final dateResult = _extractDate(lower);
-    final date = dateResult.date;
+    // 2. Detect Recurrence Intent BEFORE One-Time Date Fallback
+    final recurrence = _extractRecurrence(lower);
+    final isRecurring = recurrence.isRecurring;
 
-    // 3. Detect Transaction Type
-    final isTransfer = _isTransfer(lower);
+    // 3. Extract Date (only used when not recurring or as start date)
+    final dateResult = _extractDate(lower);
+    final now = DateTime.now();
+    final date = isRecurring ? now : dateResult.date;
+
+    // 4. Detect Transaction Type
+    final isTransfer = !isRecurring && _isTransfer(lower);
     final isIncome = !isTransfer && _isIncome(lower);
     final type = isTransfer
         ? TransactionType.transfer
         : (isIncome ? TransactionType.income : TransactionType.expense);
 
-    // 4. Match Accounts
+    // 5. Match Accounts
     String? accountId;
     String? fromAccountId;
     String? toAccountId;
@@ -78,7 +84,7 @@ class SmartParserService {
       accountId = _matchSingleAccount(lower, accounts, type);
     }
 
-    // 5. Match Category (only for Income / Expense)
+    // 6. Match Category (only for Income / Expense)
     String? categoryId;
     if (type != TransactionType.transfer) {
       final catType = type == TransactionType.income
@@ -87,12 +93,17 @@ class SmartParserService {
       categoryId = _matchCategory(lower, categories, catType);
     }
 
-    // 6. Generate Clean Note
+    // 7. Generate Clean Note / Rule Name
     final note = _generateCleanNote(
       line,
       amountResult.rawMatch,
       dateResult.rawMatch,
+      recurrence.rawMatch,
     );
+
+    final ruleName = isRecurring
+        ? _generateRuleName(note, type, recurrence.frequency)
+        : null;
 
     return ParsedDraftTransaction(
       id: id,
@@ -105,6 +116,13 @@ class SmartParserService {
       date: date,
       note: note,
       rawText: line,
+      isRecurring: isRecurring,
+      frequency: recurrence.frequency,
+      interval: recurrence.interval,
+      dayOfMonth: recurrence.dayOfMonth,
+      dayOfWeek: recurrence.dayOfWeek,
+      startDate: isRecurring ? now : null,
+      ruleName: ruleName,
     );
   }
 
@@ -490,10 +508,248 @@ class SmartParserService {
     return filteredCategories.first.id;
   }
 
+  _RecurrenceResult _extractRecurrence(String text) {
+    // 1. Check for specific interval patterns: "every N (days|weeks|months|years|quarters)"
+    final everyNMatch = RegExp(
+      r'\bevery\s+(\d+)\s*(days?|weeks?|months?|years?|quarters?)\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+
+    if (everyNMatch != null) {
+      final interval = int.tryParse(everyNMatch.group(1) ?? '1') ?? 1;
+      final unit = everyNMatch.group(2)!.toLowerCase();
+      RecurrenceFrequency freq = RecurrenceFrequency.monthly;
+      if (unit.startsWith('day')) {
+        freq = RecurrenceFrequency.daily;
+      } else if (unit.startsWith('week')) {
+        freq = RecurrenceFrequency.weekly;
+      } else if (unit.startsWith('month')) {
+        freq = RecurrenceFrequency.monthly;
+      } else if (unit.startsWith('year')) {
+        freq = RecurrenceFrequency.yearly;
+      } else if (unit.startsWith('quarter')) {
+        freq = RecurrenceFrequency.quarterly;
+      }
+
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: freq,
+        interval: interval,
+        dayOfMonth: _extractDayOfMonth(text),
+        dayOfWeek: _extractDayOfWeek(text),
+        rawMatch: everyNMatch.group(0) ?? '',
+      );
+    }
+
+    // 2. Multi-month/year phrase variations
+    // Every 2 months / Bi-monthly
+    if (RegExp(
+      r'\b(?:every\s+2\s+months?|every\s+two\s+months?|bimonthly|bi-monthly)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.monthly,
+        interval: 2,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'every 2 months',
+      );
+    }
+
+    // Every 3 months / Quarterly
+    if (RegExp(
+      r'\b(?:every\s+3\s+months?|every\s+three\s+months?|every\s+quarter|quarterly|each\s+quarter)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.quarterly,
+        interval: 1,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'quarterly',
+      );
+    }
+
+    // Every 6 months / Half-yearly
+    if (RegExp(
+      r'\b(?:every\s+6\s+months?|every\s+six\s+months?|half-yearly|half\s+yearly|semi-annually|semi\s+annually|biannually)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.halfYearly,
+        interval: 1,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'half-yearly',
+      );
+    }
+
+    // Every Fortnight / 2 Weeks
+    if (RegExp(
+      r'\b(?:every\s+fortnight|fortnightly|every\s+2\s+weeks?|every\s+two\s+weeks?)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.weekly,
+        interval: 2,
+        dayOfWeek: _extractDayOfWeek(text),
+        rawMatch: 'fortnightly',
+      );
+    }
+
+    // 3. Daily / Weekly / Monthly / Yearly base phrases
+    // Daily
+    if (RegExp(
+      r'\b(?:every\s+day|each\s+day|daily|per\s+day)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return const _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.daily,
+        interval: 1,
+        rawMatch: 'daily',
+      );
+    }
+
+    // Weekly
+    if (RegExp(
+      r'\b(?:every\s+week|each\s+week|weekly|per\s+week)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.weekly,
+        interval: 1,
+        dayOfWeek: _extractDayOfWeek(text),
+        rawMatch: 'weekly',
+      );
+    }
+
+    // Specific weekdays: "every monday", "every week on friday", "weekly on tuesday"
+    final dowMatch = _extractDayOfWeek(text);
+    if (dowMatch != null &&
+        RegExp(
+          r'\b(?:every|each|weekly\s+on)\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b',
+          caseSensitive: false,
+        ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.weekly,
+        interval: 1,
+        dayOfWeek: dowMatch,
+        rawMatch: 'weekly',
+      );
+    }
+
+    // Monthly
+    if (RegExp(
+      r'\b(?:every\s+month|each\s+month|monthly|per\s+month|a\s+month)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.monthly,
+        interval: 1,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'monthly',
+      );
+    }
+
+    // Yearly / Annually
+    if (RegExp(
+      r'\b(?:every\s+year|each\s+year|yearly|annually|annual|per\s+year|a\s+year)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.yearly,
+        interval: 1,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'yearly',
+      );
+    }
+
+    // 4. Contextual & Explicit "recurring" keywords
+    // e.g. "salary credited monthly", "salary comes every month", "rent paid every month", "recurring 5000 sip"
+    if (RegExp(
+      r'\b(?:recurring|subscription\s+monthly|sip\s+monthly|emi\s+monthly)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return _RecurrenceResult(
+        isRecurring: true,
+        frequency: RecurrenceFrequency.monthly,
+        interval: 1,
+        dayOfMonth: _extractDayOfMonth(text),
+        rawMatch: 'recurring',
+      );
+    }
+
+    return const _RecurrenceResult(isRecurring: false);
+  }
+
+  int? _extractDayOfMonth(String text) {
+    // Matches patterns like:
+    // "on the 1st every month", "every month on the 1st", "on 1st of every month", "on 5th of each month", "15th of every month", "every month 1st", "monthly on the 1st", "on the 5th"
+    final match = RegExp(
+      r'(?:on\s+(?:the\s+)?)?(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(?:every\s+month|each\s+month|monthly|every\s+year|yearly)|\b(?:every\s+month|each\s+month|monthly|every\s+year|yearly)\s+(?:on\s+(?:the\s+)?)?(\d{1,2})(?:st|nd|rd|th)?|\bon\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+
+    if (match != null) {
+      final dayStr = match.group(1) ?? match.group(2) ?? match.group(3);
+      if (dayStr != null) {
+        final day = int.tryParse(dayStr);
+        if (day != null && day >= 1 && day <= 31) {
+          return day;
+        }
+      }
+    }
+    return null;
+  }
+
+  int? _extractDayOfWeek(String text) {
+    final days = {
+      'monday': 1,
+      'tuesday': 2,
+      'wednesday': 3,
+      'thursday': 4,
+      'friday': 5,
+      'saturday': 6,
+      'sunday': 7,
+      'mon': 1,
+      'tue': 2,
+      'wed': 3,
+      'thu': 4,
+      'fri': 5,
+      'sat': 6,
+      'sun': 7,
+    };
+    for (final entry in days.entries) {
+      if (RegExp('\\b${entry.key}\\b', caseSensitive: false).hasMatch(text)) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  String _generateRuleName(
+    String cleanNote,
+    TransactionType type,
+    RecurrenceFrequency? frequency,
+  ) {
+    if (cleanNote.isNotEmpty && cleanNote != 'Transaction') {
+      return cleanNote;
+    }
+    final freqName = frequency?.displayName ?? 'Recurring';
+    return '$freqName ${type.displayName}';
+  }
+
   String _generateCleanNote(
     String originalLine,
     String rawAmount,
     String rawDate,
+    String rawRecurrence,
   ) {
     var clean = originalLine;
     if (rawAmount.isNotEmpty) {
@@ -508,11 +764,17 @@ class SmartParserService {
         ' ',
       );
     }
+    if (rawRecurrence.isNotEmpty) {
+      clean = clean.replaceAll(
+        RegExp(RegExp.escape(rawRecurrence), caseSensitive: false),
+        ' ',
+      );
+    }
 
-    // Remove common connecting noise words
+    // Remove common recurrence words & noise words
     clean = clean.replaceAll(
       RegExp(
-        r'\b(paid|spent|bought|for|using|via|on|from|to|in|with|of|at|rs\.?|inr|₹|yesterday|today|credited|transferred)\b',
+        r'\b(every\s+\d+\s*(?:days?|weeks?|months?|years?)|every\s+(?:day|week|month|year|fortnight|quarter|two\s+months|2\s+months)|each\s+(?:day|week|month|year)|daily|weekly|monthly|yearly|annually|quarterly|half-yearly|recurring|on\s+the\s+\d+(?:st|nd|rd|th)?|on\s+\d+(?:st|nd|rd|th)?|\d+(?:st|nd|rd|th)?\s+of\s+every\s+month|per\s+month|per\s+year|a\s+month|a\s+year|paid|spent|bought|for|using|via|on|from|to|in|with|of|at|rs\.?|inr|₹|yesterday|today|credited|transferred)\b',
         caseSensitive: false,
       ),
       ' ',
@@ -538,6 +800,24 @@ class _DateResult {
   final DateTime date;
   final String rawMatch;
   const _DateResult({required this.date, required this.rawMatch});
+}
+
+class _RecurrenceResult {
+  final bool isRecurring;
+  final RecurrenceFrequency? frequency;
+  final int interval;
+  final int? dayOfMonth;
+  final int? dayOfWeek;
+  final String rawMatch;
+
+  const _RecurrenceResult({
+    required this.isRecurring,
+    this.frequency,
+    this.interval = 1,
+    this.dayOfMonth,
+    this.dayOfWeek,
+    this.rawMatch = '',
+  });
 }
 
 class _TransferAccountsResult {
