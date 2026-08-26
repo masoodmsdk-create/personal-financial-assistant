@@ -92,14 +92,9 @@ class LoansScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    PageHeader(
+                    const PageHeader(
                       title: 'Loans & Debt Intelligence',
                       subtitle: 'Track total debt burden, interest costs, prioritization strategies, and prepayment forecasts.',
-                      action: FilledButton.icon(
-                        onPressed: () => _showAddLoanDialog(context),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add Loan'),
-                      ),
                     ),
                     const SizedBox(height: 16),
                     EmptyStateWidget(

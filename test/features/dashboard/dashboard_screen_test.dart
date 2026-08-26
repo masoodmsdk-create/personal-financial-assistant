@@ -138,13 +138,10 @@ void main() {
     // 1. Workspace Header
     expect(find.text('Family Finances'), findsOneWidget);
 
-    // 2. Section 1: Financial Situation
-    expect(find.text('Current Financial Situation'), findsOneWidget);
-    expect(find.text('Total Net Balance'), findsOneWidget);
-    expect(find.text('Monthly Income'), findsOneWidget);
-    expect(find.text('Monthly Expenses'), findsOneWidget);
-    expect(find.text('Remaining Cash Flow'), findsOneWidget);
-    expect(find.textContaining('Accounts Overview'), findsOneWidget);
+    // 2. Section 1, 2, 3: Financial Position & Cash Flow
+    expect(find.text('Financial Position'), findsOneWidget);
+    expect(find.text('This Month’s Cash Flow'), findsOneWidget);
+    expect(find.text('Available to Safely Spend'), findsOneWidget);
 
     // 3. Section 2 & 3: Financial Plans & Progress
     expect(find.text('Financial Plans'), findsOneWidget);
@@ -192,7 +189,7 @@ void main() {
     await tester.pump(Duration.zero);
     await tester.pumpAndSettle();
 
-    expect(find.text('Current Financial Situation'), findsOneWidget);
+    expect(find.text('Financial Position'), findsOneWidget);
     expect(find.text('FINAURA Suggests'), findsOneWidget);
     expect(find.text('Upcoming'), findsOneWidget);
     expect(find.text('Recent Activity'), findsOneWidget);

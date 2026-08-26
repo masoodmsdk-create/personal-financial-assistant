@@ -3,13 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/widgets/add_edit_account_dialog.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/assistant_suggestions_section.dart';
+import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/budget_dashboard_card.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/financial_plans_dashboard_section.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/financial_situation_card.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/monthly_review_dashboard_card.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/recent_activity_section.dart';
 import 'package:personal_financial_assistant/features/dashboard/presentation/widgets/upcoming_reminders_section.dart';
+import 'package:personal_financial_assistant/features/forecast/presentation/widgets/multi_horizon_forecast_card.dart';
+import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
+import 'package:personal_financial_assistant/features/goals/presentation/widgets/add_edit_goal_dialog.dart';
+import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/widgets/add_edit_recurring_transaction_dialog.dart';
+import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
+import 'package:personal_financial_assistant/features/transactions/presentation/widgets/add_edit_transaction_dialog.dart';
 import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -55,6 +66,20 @@ class DashboardScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final accounts = ref.watch(accountsStreamProvider).value ?? [];
+    final transactions = ref.watch(transactionsStreamProvider).value ?? [];
+    final recurringRules =
+        ref.watch(recurringTransactionsStreamProvider).value ?? [];
+    final loans = ref.watch(loansStreamProvider).value ?? [];
+    final goals = ref.watch(goalsStreamProvider).value ?? [];
+
+    final isNewUser =
+        accounts.isEmpty &&
+        transactions.isEmpty &&
+        recurringRules.isEmpty &&
+        loans.isEmpty &&
+        goals.isEmpty;
+
     final initial = displayName.isNotEmpty
         ? displayName
               .trim()
@@ -68,7 +93,7 @@ class DashboardScreen extends ConsumerWidget {
     return SingleChildScrollView(
       child: ResponsiveCenter(
         maxWidth: 1100,
-        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 48.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 60.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -99,20 +124,14 @@ class DashboardScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  '$greeting, $displayName 👋',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            '$greeting, $displayName 👋',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 3),
                           Row(
@@ -164,209 +183,200 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Tell FINAURA Financial Setup Hero Banner
+            // Welcoming Empty State Card (if user has no data yet)
+            if (isNewUser) ...[
+              Card(
+                elevation: 0,
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: colorScheme.primary, width: 1.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "Let's build your financial picture",
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Describe your finances naturally or add your accounts, transactions, recurring rules, and goals to unlock full financial intelligence.',
+                        style: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => context.push('/financial-setup'),
+                            icon: const Icon(
+                              Icons.psychology_alt_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('Tell FINAURA About Your Money'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => const AddEditAccountDialog(),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.account_balance_wallet_outlined,
+                              size: 16,
+                            ),
+                            label: const Text('Add Account'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) =>
+                                    const AddEditTransactionDialog(),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.receipt_long_outlined,
+                              size: 16,
+                            ),
+                            label: const Text('Add Transaction'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) =>
+                                    const AddEditRecurringTransactionDialog(),
+                              );
+                            },
+                            icon: const Icon(Icons.repeat_rounded, size: 16),
+                            label: const Text('Set Up Recurring'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => const AddEditGoalDialog(),
+                              );
+                            },
+                            icon: const Icon(Icons.flag_outlined, size: 16),
+                            label: const Text('Create Goal'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // SECTION 11 — FINAURA QUICK ACTIONS BAR
             Card(
               elevation: 0,
               color: colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.45,
+                alpha: 0.35,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: colorScheme.primary.withValues(alpha: 0.35),
-                  width: 1.2,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
                 ),
               ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => context.push('/financial-setup'),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isCompact = constraints.maxWidth < 520;
-                      if (isCompact) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.12,
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.psychology_alt_rounded,
-                                    color: colorScheme.primary,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: 8,
-                                    children: [
-                                      Text(
-                                        'Tell FINAURA About Your Money',
-                                        style: theme.textTheme.titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 1,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primaryContainer,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Setup',
-                                          style: TextStyle(
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Describe your income, loans, and goals in words to update your Financial Blueprint.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: FilledButton.tonal(
-                                onPressed: () =>
-                                    context.push('/financial-setup'),
-                                child: const Text(
-                                  'Start Setup',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                          ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: () => context.push('/smart-entry'),
+                      icon: const Icon(Icons.mic_none_rounded, size: 18),
+                      label: const Text('Smart Entry'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () => context.push('/financial-setup'),
+                      icon: const Icon(Icons.psychology_alt_rounded, size: 18),
+                      label: const Text('Tell FINAURA About Your Money'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () => context.push('/trade-off'),
+                      icon: const Icon(Icons.balance_rounded, size: 18),
+                      label: const Text('Trade-Off Intelligence'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const AddEditTransactionDialog(),
                         );
-                      }
-
-                      return Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.psychology_alt_rounded,
-                              color: colorScheme.primary,
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Tell FINAURA About Your Money',
-                                      style: theme.textTheme.titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 1,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primaryContainer,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Setup',
-                                        style: TextStyle(
-                                          color: colorScheme.onPrimaryContainer,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Describe your income, loans, and goals in words to update your Financial Blueprint.',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          FilledButton.tonal(
-                            onPressed: () => context.push('/financial-setup'),
-                            child: const Text(
-                              'Start',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                      },
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Add Transaction'),
+                    ),
+                  ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
 
-            // 1. Current Financial Situation (Live Overview & Accounts Summary)
+            // SECTIONS 1, 2, 3 — Financial Position, This Month, Available to Spend
             const RepaintBoundary(child: FinancialSituationCard()),
             const SizedBox(height: 20),
 
-            // 2 & 3. Goals & Loans Progress Portfolio (Top 1-3 Prioritized Cards)
-            const RepaintBoundary(child: FinancialPlansDashboardSection()),
-            const SizedBox(height: 20),
-
-            // 4. 🧠 FINAURA Suggests (Intelligent, Actionable Guidance)
-            const RepaintBoundary(child: AssistantSuggestionsSection()),
-            const SizedBox(height: 20),
-
-            // 5. 🔔 Upcoming (Scheduled EMIs & Planned Commitments)
+            // SECTION 4 — Scheduled Commitments in next 30 days
             const RepaintBoundary(child: UpcomingRemindersSection()),
             const SizedBox(height: 20),
 
-            // Monthly Financial Review Entry Card
+            // SECTION 7 — Budget & Cash Flow Snapshot Card
+            const RepaintBoundary(child: BudgetDashboardCard()),
+            const SizedBox(height: 20),
+
+            // SECTIONS 5 & 6 — Goals & Loans Portfolios
+            const RepaintBoundary(child: FinancialPlansDashboardSection()),
+            const SizedBox(height: 20),
+
+            // SECTION 8 — Future Financial Forecast (1M, 4M, 6M, 12M)
+            const RepaintBoundary(child: MultiHorizonForecastCard()),
+            const SizedBox(height: 20),
+
+            // SECTION 9 — FINAURA Suggests (Intelligent, Actionable Guidance)
+            const RepaintBoundary(child: AssistantSuggestionsSection()),
+            const SizedBox(height: 20),
+
+            // SECTION 10 — Monthly Financial Review Entry Card
             const RepaintBoundary(child: MonthlyReviewDashboardCard()),
             const SizedBox(height: 20),
 
-            // 6. Recent Activity (3-5 Recent Transactions)
+            // SECTION 11 — Recent Activity (3-5 Recent Transactions)
             const RepaintBoundary(child: RecentActivitySection()),
           ],
         ),

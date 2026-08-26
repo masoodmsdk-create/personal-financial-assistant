@@ -5,6 +5,7 @@ import 'package:personal_financial_assistant/core/widgets/responsive_center.dart
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/domain/models/account_type_definition.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/widgets/account_breakdown_dialog.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/widgets/add_edit_account_dialog.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/widgets/balance_info_card.dart';
 
@@ -22,6 +23,18 @@ class AccountsScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => AddEditAccountDialog(account: account),
+    );
+  }
+
+  void _showAccountBreakdownDialog(
+    BuildContext context,
+    Account account,
+    AccountTypeDefinition? typeDef,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) =>
+          AccountBreakdownDialog(account: account, typeDef: typeDef),
     );
   }
 
@@ -225,6 +238,11 @@ class AccountsScreen extends ConsumerWidget {
                       return _AccountTile(
                         account: account,
                         typeDef: typeDef,
+                        onTap: () => _showAccountBreakdownDialog(
+                          context,
+                          account,
+                          typeDef,
+                        ),
                         onEdit: () => _showEditAccountDialog(context, account),
                         onDelete: () =>
                             _confirmDeleteAccount(context, ref, account),
@@ -243,11 +261,6 @@ class AccountsScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(accountsStreamProvider),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddAccountDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Account'),
-      ),
     );
   }
 }
@@ -255,12 +268,14 @@ class AccountsScreen extends ConsumerWidget {
 class _AccountTile extends StatelessWidget {
   final Account account;
   final AccountTypeDefinition? typeDef;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _AccountTile({
     required this.account,
     this.typeDef,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
@@ -274,6 +289,7 @@ class _AccountTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.15),

@@ -34,6 +34,11 @@ USER TELLS FINAURA ABOUT THEIR MONEY
 ```
 
 ### Core Product Principles
+0. **Core Product Principle — Simplicity & Minimum Complexity**:
+   - **MSD FINAURA MUST BE AS SIMPLE AS POSSIBLE FOR THE USER**: Maximum financial usefulness with minimum user complexity.
+   - Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
+   - Always reuse existing screens, models, services, and providers before creating new components.
+   - Use progressive disclosure for advanced detail (`[View Breakdown]`, `[View Details]`) instead of cluttering primary views.
 1. **Reduce Manual Data Entry**: Shift progressively from tedious multi-step manual entry toward guided financial understanding (*"Tell me about your finances"*).
 2. **Never Trust Ambiguous Input Silently**:
    - `Natural Language → Parser → Structured Draft → Validation → Review → Confirmation → Persistence`.

@@ -55,6 +55,19 @@ class RecurringTransactionRule implements Entity {
   bool get isIncome => type == TransactionType.income;
   bool get isExpense => type == TransactionType.expense;
 
+  /// Returns the effective day of month intended by the user.
+  /// Defaults to `startDate.day` if `dayOfMonth` was not explicitly set.
+  int? get effectiveDayOfMonth {
+    if (dayOfMonth != null) return dayOfMonth;
+    if (frequency == RecurrenceFrequency.monthly ||
+        frequency == RecurrenceFrequency.quarterly ||
+        frequency == RecurrenceFrequency.halfYearly ||
+        frequency == RecurrenceFrequency.yearly) {
+      return startDate.day;
+    }
+    return null;
+  }
+
   /// Returns true if this rule has expired past its end date.
   bool get isExpired {
     if (endDate == null) return false;

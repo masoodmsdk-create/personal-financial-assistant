@@ -108,11 +108,6 @@ class _RecurringTransactionsScreenState
     final accountsAsync = ref.watch(accountsStreamProvider);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddRuleDialog(),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Recurring'),
-      ),
       body: ResponsiveCenter(
         maxWidth: 1000,
         padding: const EdgeInsets.only(

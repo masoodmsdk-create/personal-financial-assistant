@@ -32,6 +32,12 @@ STEP 7: Leave all changes uncommitted in the working tree.
 
 ## 2. CORE ARCHITECTURAL INVARIANTS
 
+0. **Core Product Principle — Simplicity & Minimum Complexity**:
+   - **MSD FINAURA MUST BE AS SIMPLE AS POSSIBLE FOR THE USER**: Maximum financial usefulness with minimum user complexity.
+   - Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
+   - Always reuse existing screens, models, services, and providers before creating new components.
+   - Use progressive disclosure for advanced detail (`[View Breakdown]`, `[View Details]`) instead of cluttering primary views.
+
 1. **Source of Truth**:
    - The actual Dart source code and config files (`pubspec.yaml`, `firestore.rules`, etc.) are the ground truth.
    - Comprehensive persistent architectural memory resides in `docs/project-dna/PROJECT_DNA.md`.

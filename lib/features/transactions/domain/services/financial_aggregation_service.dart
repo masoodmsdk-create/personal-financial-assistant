@@ -120,8 +120,8 @@ class FinancialAggregationService {
         case TransactionType.income:
           if (t.accountId != null && balances.containsKey(t.accountId)) {
             final acc = accountMap[t.accountId!];
-            if (acc != null && acc.type == AccountType.creditCard) {
-              // Income/refund on credit card reduces outstanding debt
+            if (acc != null && acc.isLiabilityAccount) {
+              // Income/refund on liability reduces outstanding debt
               balances[t.accountId!] = balances[t.accountId!]! - t.amount;
             } else {
               // Income on asset account increases asset balance
@@ -133,8 +133,8 @@ class FinancialAggregationService {
         case TransactionType.expense:
           if (t.accountId != null && balances.containsKey(t.accountId)) {
             final acc = accountMap[t.accountId!];
-            if (acc != null && acc.type == AccountType.creditCard) {
-              // Expense on credit card increases outstanding debt
+            if (acc != null && acc.isLiabilityAccount) {
+              // Expense on liability increases outstanding debt
               balances[t.accountId!] = balances[t.accountId!]! + t.amount;
             } else {
               // Expense on asset account decreases asset balance
@@ -147,8 +147,8 @@ class FinancialAggregationService {
           if (t.fromAccountId != null &&
               balances.containsKey(t.fromAccountId)) {
             final fromAcc = accountMap[t.fromAccountId!];
-            if (fromAcc != null && fromAcc.type == AccountType.creditCard) {
-              // Cash advance from credit card increases outstanding debt
+            if (fromAcc != null && fromAcc.isLiabilityAccount) {
+              // Cash advance from liability increases outstanding debt
               balances[t.fromAccountId!] =
                   balances[t.fromAccountId!]! + t.amount;
             } else {
@@ -159,8 +159,8 @@ class FinancialAggregationService {
           }
           if (t.toAccountId != null && balances.containsKey(t.toAccountId)) {
             final toAcc = accountMap[t.toAccountId!];
-            if (toAcc != null && toAcc.type == AccountType.creditCard) {
-              // Transfer in / payment to credit card decreases outstanding debt
+            if (toAcc != null && toAcc.isLiabilityAccount) {
+              // Transfer in / payment to liability decreases outstanding debt
               balances[t.toAccountId!] = balances[t.toAccountId!]! - t.amount;
             } else {
               // Transfer in to asset account increases asset balance
@@ -182,7 +182,7 @@ class FinancialAggregationService {
     for (final account in accounts) {
       if (!account.active) continue;
       final balance = calculatedBalances[account.id] ?? account.openingBalance;
-      if (account.type == AccountType.creditCard) {
+      if (account.isLiabilityAccount) {
         total -= balance;
       } else {
         total += balance;

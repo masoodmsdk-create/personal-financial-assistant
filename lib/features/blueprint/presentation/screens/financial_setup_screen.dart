@@ -4,16 +4,29 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
+import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/accounts/presentation/widgets/add_edit_account_dialog.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/blueprint/domain/models/financial_blueprint.dart';
 import 'package:personal_financial_assistant/features/blueprint/domain/services/blueprint_persistence_service.dart';
 import 'package:personal_financial_assistant/features/blueprint/presentation/providers/blueprint_providers.dart';
-
+import 'package:personal_financial_assistant/features/blueprint/presentation/widgets/edit_blueprint_item_dialogs.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/goals/goal.dart';
 import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
+import 'package:personal_financial_assistant/features/goals/presentation/widgets/add_edit_goal_dialog.dart';
+import 'package:personal_financial_assistant/features/loans/loan.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
+import 'package:personal_financial_assistant/features/loans/presentation/widgets/add_edit_loan_dialog.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/presentation/widgets/add_edit_planned_expense_dialog.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/widgets/add_edit_recurring_transaction_dialog.dart';
+import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'package:personal_financial_assistant/features/workspaces/presentation/widgets/edit_workspace_dialog.dart';
 
@@ -75,6 +88,101 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
           existingGoals: goals,
           workspaceContext: activeWorkspace.purpose,
         );
+  }
+
+  Future<bool> _confirmDelete(String itemName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Blueprint Item'),
+        content: Text('Are you sure you want to remove "$itemName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  // --- EDIT DRAFT ITEM HANDLERS ---
+  Future<void> _editIncomeItem(int index, BlueprintIncomeItem item) async {
+    final result = await showDialog(
+      context: context,
+      builder: (ctx) => EditBlueprintIncomeDialog(item: item),
+    );
+    if (result != null && mounted) {
+      if (result is BlueprintIncomeItem) {
+        ref
+            .read(blueprintControllerProvider.notifier)
+            .updateIncomeItem(index, result);
+      } else if (result is BlueprintExpenseItem) {
+        ref
+            .read(blueprintControllerProvider.notifier)
+            .convertIncomeToExpense(index, result);
+      }
+    }
+  }
+
+  Future<void> _editExpenseItem(int index, BlueprintExpenseItem item) async {
+    final result = await showDialog(
+      context: context,
+      builder: (ctx) => EditBlueprintExpenseDialog(item: item),
+    );
+    if (result != null && mounted) {
+      if (result is BlueprintExpenseItem) {
+        ref
+            .read(blueprintControllerProvider.notifier)
+            .updateExpenseItem(index, result);
+      } else if (result is BlueprintIncomeItem) {
+        ref
+            .read(blueprintControllerProvider.notifier)
+            .convertExpenseToIncome(index, result);
+      }
+    }
+  }
+
+  Future<void> _editLoanItem(int index, BlueprintLoanItem item) async {
+    final result = await showDialog<BlueprintLoanItem>(
+      context: context,
+      builder: (ctx) => EditBlueprintLoanDialog(item: item),
+    );
+    if (result != null && mounted) {
+      ref
+          .read(blueprintControllerProvider.notifier)
+          .updateLoanItem(index, result);
+    }
+  }
+
+  Future<void> _editSavingsItem(int index, BlueprintSavingsItem item) async {
+    final result = await showDialog<BlueprintSavingsItem>(
+      context: context,
+      builder: (ctx) => EditBlueprintSavingsDialog(item: item),
+    );
+    if (result != null && mounted) {
+      ref
+          .read(blueprintControllerProvider.notifier)
+          .updateSavingsItem(index, result);
+    }
+  }
+
+  Future<void> _editGoalItem(int index, BlueprintGoalItem item) async {
+    final result = await showDialog<BlueprintGoalItem>(
+      context: context,
+      builder: (ctx) => EditBlueprintGoalDialog(item: item),
+    );
+    if (result != null && mounted) {
+      ref
+          .read(blueprintControllerProvider.notifier)
+          .updateGoalItem(index, result);
+    }
   }
 
   Future<void> _showConfirmDialog(
@@ -175,6 +283,21 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final recurringRules =
+        ref.watch(recurringTransactionsStreamProvider).value ?? [];
+    final plannedExpenses =
+        ref.watch(plannedExpensesStreamProvider).value ?? [];
+    final accounts = ref.watch(accountsStreamProvider).value ?? [];
+    final loans = ref.watch(loansStreamProvider).value ?? [];
+    final goals = ref.watch(goalsStreamProvider).value ?? [];
+
+    final hasActiveBlueprint =
+        recurringRules.isNotEmpty ||
+        plannedExpenses.isNotEmpty ||
+        accounts.isNotEmpty ||
+        loans.isNotEmpty ||
+        goals.isNotEmpty;
+
     return Scaffold(
       body: SingleChildScrollView(
         child: ResponsiveCenter(
@@ -189,11 +312,11 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               PageHeader(
-                title: 'Tell FINAURA About Your Money',
-                subtitle: 'Describe your income, expenses, loans, and goals in plain language',
+                title: 'Your Money Blueprint',
+                subtitle: 'Describe, view, and manage your income, expenses, loans, accounts, and goals',
                 action: OutlinedButton.icon(
                   onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close_rounded, size: 18),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 18),
                   label: const Text('Back'),
                 ),
               ),
@@ -286,6 +409,13 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'Describe or Update Your Financial Situation',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: _inputController,
                         maxLines: 4,
@@ -315,7 +445,6 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                                 '${example.substring(0, 32)}...',
                                 style: const TextStyle(fontSize: 11),
                               ),
-
                               onPressed: () {
                                 _inputController.text = example;
                                 _triggerParse();
@@ -419,7 +548,7 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                 ),
               ],
 
-              // Live Mutable Financial Blueprint Content
+              // Live Mutable Financial Blueprint Content (DRAFT REVIEW)
               if (bp != null &&
                   bp.totalEntitiesCount > 0 &&
                   !state.isConfirmed) ...[
@@ -427,7 +556,7 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                 _BlueprintSummaryMetrics(bp: bp),
                 const SizedBox(height: 20),
 
-                // Sections Breakdown
+                // Sections Breakdown with EDIT and DELETE buttons
                 if (bp.incomes.isNotEmpty) ...[
                   _SectionHeader(
                     title: 'Income Sources',
@@ -436,9 +565,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.incomes.asMap().entries.map(
                     (e) => _IncomeItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeIncomeItem(e.key),
+                      onEdit: () => _editIncomeItem(e.key, e.value),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.label)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeIncomeItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -452,9 +586,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.loans.asMap().entries.map(
                     (e) => _LoanItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeLoanItem(e.key),
+                      onEdit: () => _editLoanItem(e.key, e.value),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.loanName)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeLoanItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -468,9 +607,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.recurringExpenses.asMap().entries.map(
                     (e) => _ExpenseItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeExpenseItem(e.key),
+                      onEdit: () => _editExpenseItem(e.key, e.value),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.categoryName)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeExpenseItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -484,9 +628,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.savings.asMap().entries.map(
                     (e) => _SavingsItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeSavingsItem(e.key),
+                      onEdit: () => _editSavingsItem(e.key, e.value),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.accountName)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeSavingsItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -500,9 +649,14 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.goals.asMap().entries.map(
                     (e) => _GoalItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeGoalItem(e.key),
+                      onEdit: () => _editGoalItem(e.key, e.value),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.goalName)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeGoalItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -516,15 +670,19 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ...bp.transactions.asMap().entries.map(
                     (e) => _TransactionItemCard(
                       item: e.value,
-                      onDelete: () => ref
-                          .read(blueprintControllerProvider.notifier)
-                          .removeTransactionItem(e.key),
+                      onDelete: () async {
+                        if (await _confirmDelete(e.value.note)) {
+                          ref
+                              .read(blueprintControllerProvider.notifier)
+                              .removeTransactionItem(e.key);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
 
-                // Explicit Confirmation Bar
+                // Explicit Confirmation Bar with visible primary Save button
                 const SizedBox(height: 24),
                 Card(
                   elevation: 2,
@@ -536,30 +694,40 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        Row(
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 16,
+                          runSpacing: 12,
                           children: [
-                            Icon(
-                              Icons.shield_outlined,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Ready to Create Financial Setup',
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    '${bp.totalEntitiesCount} records ready to be saved in ${activeWorkspace.name}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.shield_outlined,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Ready to Create Financial Setup',
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                    Text(
+                                      '${bp.totalEntitiesCount} records ready to be saved in ${activeWorkspace.name}',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                             FilledButton.icon(
                               onPressed: state.isPersisting
@@ -571,10 +739,15 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                                       height: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
+                                        color: Colors.white,
                                       ),
                                     )
                                   : const Icon(Icons.check_circle_rounded),
-                              label: const Text('Confirm & Create Setup'),
+                              label: Text(
+                                state.isPersisting
+                                    ? 'Saving Blueprint...'
+                                    : 'Confirm & Create Setup',
+                              ),
                             ),
                           ],
                         ),
@@ -583,10 +756,461 @@ class _FinancialSetupScreenState extends ConsumerState<FinancialSetupScreen> {
                   ),
                 ),
               ],
+
+              // ACTIVE BLUEPRINT MANAGEMENT (When existing entities exist)
+              if (bp == null && hasActiveBlueprint) ...[
+                const SizedBox(height: 32),
+                _buildActiveBlueprintSection(
+                  context: context,
+                  recurringRules: recurringRules,
+                  plannedExpenses: plannedExpenses,
+                  accounts: accounts,
+                  loans: loans,
+                  goals: goals,
+                ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActiveBlueprintSection({
+    required BuildContext context,
+    required List<RecurringTransactionRule> recurringRules,
+    required List<PlannedExpense> plannedExpenses,
+    required List<Account> accounts,
+    required List<Loan> loans,
+    required List<Goal> goals,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final incomeRules = recurringRules
+        .where((r) => r.type == TransactionType.income)
+        .toList();
+    final expenseRules = recurringRules
+        .where((r) => r.type == TransactionType.expense)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.account_tree_rounded,
+              color: colorScheme.primary,
+              size: 22,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Your Active Financial Blueprint',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'View, edit, or manage existing income sources, commitments, loans, accounts, and goals.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 1. Income Rules
+        if (incomeRules.isNotEmpty) ...[
+          _SectionHeader(
+            title: 'Active Income Streams',
+            count: incomeRules.length,
+          ),
+          ...incomeRules.map((rule) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.shade100,
+                  child: Icon(
+                    Icons.arrow_downward_rounded,
+                    color: Colors.green.shade800,
+                  ),
+                ),
+                title: Text(
+                  rule.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  '${rule.frequencyDescription} • ${rule.active ? "Active" : "Paused"}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${currencyFormat.format(rule.amount)}/mo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.green.shade800,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Income Rule',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              AddEditRecurringTransactionDialog(rule: rule),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Income Rule',
+                      onPressed: () async {
+                        if (await _confirmDelete(rule.name)) {
+                          await ref
+                              .read(
+                                recurringTransactionControllerProvider.notifier,
+                              )
+                              .deleteRule(rule.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // 2. Planned / Recurring Expenses
+        if (plannedExpenses.isNotEmpty || expenseRules.isNotEmpty) ...[
+          _SectionHeader(
+            title: 'Active Living & Planned Expenses',
+            count: plannedExpenses.length + expenseRules.length,
+          ),
+          ...plannedExpenses.map((plan) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.orange.shade100,
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+                title: Text(
+                  plan.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Planned Expense • ${plan.active ? "Active" : "Paused"}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${currencyFormat.format(plan.defaultAmount)}/mo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Planned Expense',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              AddEditPlannedExpenseDialog(plan: plan),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Planned Expense',
+                      onPressed: () async {
+                        if (await _confirmDelete(plan.name)) {
+                          await ref
+                              .read(plannedExpenseControllerProvider.notifier)
+                              .archivePlannedExpense(plan.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          ...expenseRules.map((rule) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.orange.shade100,
+                  child: Icon(
+                    Icons.repeat_rounded,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+                title: Text(
+                  rule.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text('Recurring Rule • ${rule.frequencyDescription}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${currencyFormat.format(rule.amount)}/mo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Recurring Expense',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              AddEditRecurringTransactionDialog(rule: rule),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Recurring Expense',
+                      onPressed: () async {
+                        if (await _confirmDelete(rule.name)) {
+                          await ref
+                              .read(
+                                recurringTransactionControllerProvider.notifier,
+                              )
+                              .deleteRule(rule.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // 3. Loans
+        if (loans.isNotEmpty) ...[
+          _SectionHeader(
+            title: 'Active Loans & Debt Commitments',
+            count: loans.length,
+          ),
+          ...loans.map((loan) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.purple.shade100,
+                  child: Icon(
+                    Icons.account_balance_outlined,
+                    color: Colors.purple.shade800,
+                  ),
+                ),
+                title: Text(
+                  loan.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Principal: ${currencyFormat.format(loan.outstandingPrincipal)} • Rate: ${loan.interestRate}%',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${currencyFormat.format(loan.emiAmount)}/mo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.purple.shade800,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Loan',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AddEditLoanDialog(loan: loan),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Loan',
+                      onPressed: () async {
+                        if (await _confirmDelete(loan.name)) {
+                          await ref
+                              .read(loanControllerProvider.notifier)
+                              .deleteLoan(loan.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // 4. Accounts & Reserves
+        if (accounts.isNotEmpty) ...[
+          _SectionHeader(
+            title: 'Accounts & Savings Reserves',
+            count: accounts.length,
+          ),
+          ...accounts.map((acc) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.blue.shade100,
+                  child: Icon(
+                    Icons.savings_outlined,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+                title: Text(
+                  acc.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(acc.type.displayName),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      currencyFormat.format(acc.effectiveBalance),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.blue.shade800,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Account',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AddEditAccountDialog(account: acc),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Account',
+                      onPressed: () async {
+                        if (await _confirmDelete(acc.name)) {
+                          await ref
+                              .read(accountControllerProvider.notifier)
+                              .deleteAccount(acc.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // 5. Goals
+        if (goals.isNotEmpty) ...[
+          _SectionHeader(title: 'Financial Goals', count: goals.length),
+          ...goals.map((goal) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.teal.shade100,
+                  child: Icon(Icons.flag_outlined, color: Colors.teal.shade800),
+                ),
+                title: Text(
+                  goal.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Target: ${currencyFormat.format(goal.targetAmount)} • Saved: ${currencyFormat.format(goal.currentAmount)}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Goal',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AddEditGoalDialog(goal: goal),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: 'Delete Goal',
+                      onPressed: () async {
+                        if (await _confirmDelete(goal.name)) {
+                          await ref
+                              .read(goalControllerProvider.notifier)
+                              .deleteGoal(goal.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+      ],
     );
   }
 }
@@ -701,41 +1325,49 @@ class _BlueprintSummaryMetrics extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'FINANCIAL PICTURE SUMMARY',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.1,
-              ),
+            Row(
+              children: [
+                Icon(Icons.analytics_outlined, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Extracted Blueprint Overview',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 24,
-              runSpacing: 12,
-              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 16,
               children: [
                 _SummaryMetricItem(
-                  label: 'Monthly Income',
+                  label: 'Total Monthly Income',
                   value: currency.format(bp.totalMonthlyIncome),
                   color: Colors.green.shade700,
                 ),
                 _SummaryMetricItem(
-                  label: 'Living Expenses',
+                  label: 'Committed Living Expenses',
                   value: currency.format(bp.totalMonthlyExpenses),
                   color: Colors.orange.shade800,
                 ),
                 _SummaryMetricItem(
-                  label: 'EMI Commitments',
+                  label: 'Monthly Loan EMIs',
                   value: currency.format(bp.totalMonthlyEmi),
                   color: Colors.purple.shade700,
                 ),
                 _SummaryMetricItem(
-                  label: 'Remaining Cash Flow',
+                  label: 'Net Monthly Cash Flow',
                   value: currency.format(bp.knownRemainingMonthlyCashFlow),
                   color: bp.knownRemainingMonthlyCashFlow >= 0
                       ? Colors.teal.shade700
                       : Colors.red.shade700,
+                ),
+                _SummaryMetricItem(
+                  label: 'Savings & Reserves',
+                  value: currency.format(bp.totalSavings),
+                  color: Colors.blue.shade700,
                 ),
               ],
             ),
@@ -793,10 +1425,12 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
       child: Row(
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -813,9 +1447,14 @@ class _SectionHeader extends StatelessWidget {
 
 class _IncomeItemCard extends StatelessWidget {
   final BlueprintIncomeItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _IncomeItemCard({required this.item, required this.onDelete});
+  const _IncomeItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -853,7 +1492,13 @@ class _IncomeItemCard extends StatelessWidget {
               ),
             ),
             IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit Item',
+              onPressed: onEdit,
+            ),
+            IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -865,9 +1510,14 @@ class _IncomeItemCard extends StatelessWidget {
 
 class _LoanItemCard extends StatelessWidget {
   final BlueprintLoanItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _LoanItemCard({required this.item, required this.onDelete});
+  const _LoanItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -909,7 +1559,13 @@ class _LoanItemCard extends StatelessWidget {
               ),
             ),
             IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit Item',
+              onPressed: onEdit,
+            ),
+            IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -921,9 +1577,14 @@ class _LoanItemCard extends StatelessWidget {
 
 class _ExpenseItemCard extends StatelessWidget {
   final BlueprintExpenseItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _ExpenseItemCard({required this.item, required this.onDelete});
+  const _ExpenseItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -961,7 +1622,13 @@ class _ExpenseItemCard extends StatelessWidget {
               ),
             ),
             IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit Item',
+              onPressed: onEdit,
+            ),
+            IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -973,9 +1640,14 @@ class _ExpenseItemCard extends StatelessWidget {
 
 class _SavingsItemCard extends StatelessWidget {
   final BlueprintSavingsItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _SavingsItemCard({required this.item, required this.onDelete});
+  const _SavingsItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1010,7 +1682,13 @@ class _SavingsItemCard extends StatelessWidget {
               ),
             ),
             IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit Item',
+              onPressed: onEdit,
+            ),
+            IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -1022,9 +1700,14 @@ class _SavingsItemCard extends StatelessWidget {
 
 class _GoalItemCard extends StatelessWidget {
   final BlueprintGoalItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _GoalItemCard({required this.item, required this.onDelete});
+  const _GoalItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1059,7 +1742,13 @@ class _GoalItemCard extends StatelessWidget {
               ),
             ),
             IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit Item',
+              onPressed: onEdit,
+            ),
+            IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -1109,6 +1798,7 @@ class _TransactionItemCard extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'Delete Item',
               onPressed: onDelete,
             ),
           ],
@@ -1153,7 +1843,7 @@ class _SuccessBanner extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Created ${result.totalRecordsCreated} record(s): ${result.expensesCreated} recurring expenses, ${result.loansCreated} loans, ${result.savingsCreated} accounts, ${result.goalsCreated} goals, ${result.transactionsCreated} transactions.',
+              'Created ${result.totalRecordsCreated} record(s): ${result.recurringIncomesCreated} income rule(s), ${result.expensesCreated} recurring expenses, ${result.loansCreated} loans, ${result.savingsCreated} accounts, ${result.goalsCreated} goals, ${result.transactionsCreated} transactions.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.green.shade800),
             ),

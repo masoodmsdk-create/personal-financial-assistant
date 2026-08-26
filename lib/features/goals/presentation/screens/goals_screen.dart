@@ -96,14 +96,9 @@ class GoalsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    PageHeader(
+                    const PageHeader(
                       title: 'Financial Goals',
                       subtitle: 'Track savings targets, emergency reserves, and major purchases.',
-                      action: FilledButton.icon(
-                        onPressed: () => _showAddGoalDialog(context),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add Goal'),
-                      ),
                     ),
                     const SizedBox(height: 16),
                     EmptyStateWidget(

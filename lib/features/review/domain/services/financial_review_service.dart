@@ -1,4 +1,5 @@
 import 'package:personal_financial_assistant/features/analytics/domain/services/financial_insights_service.dart';
+import 'package:personal_financial_assistant/features/budgets/domain/models/budget.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/goals/goal.dart';
 import 'package:personal_financial_assistant/features/loans/domain/models/loan_forecast.dart';
@@ -22,6 +23,7 @@ class FinancialReviewService {
     required List<Loan> loans,
     required List<Goal> goals,
     List<RecurringTransactionRule> recurringRules = const [],
+    List<Budget> budgets = const [],
   }) {
     final year = targetDate.year;
     final month = targetDate.month;
@@ -114,6 +116,14 @@ class FinancialReviewService {
       (r) => r.active && r.type == TransactionType.expense,
     )) {
       expectedExpenses += rule.amount;
+      plannedCount++;
+    }
+
+    // Add active category budgets for next month to expected expenses forecast
+    for (final budget in budgets.where(
+      (b) => b.active && b.year == nextYear && b.month == nextMonth,
+    )) {
+      expectedExpenses += budget.plannedAmount;
       plannedCount++;
     }
 

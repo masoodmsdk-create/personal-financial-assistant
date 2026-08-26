@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:personal_financial_assistant/features/budgets/presentation/providers/budget_providers.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
@@ -25,6 +26,7 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
   final loansAsync = ref.watch(loansStreamProvider);
   final goalsAsync = ref.watch(goalsStreamProvider);
   final recurringAsync = ref.watch(recurringTransactionsStreamProvider);
+  final budgetsAsync = ref.watch(budgetsStreamProvider);
 
   if (transactionsAsync.isLoading ||
       plansAsync.isLoading ||
@@ -32,7 +34,8 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
       categoriesAsync.isLoading ||
       loansAsync.isLoading ||
       goalsAsync.isLoading ||
-      recurringAsync.isLoading) {
+      recurringAsync.isLoading ||
+      budgetsAsync.isLoading) {
     return const AsyncLoading();
   }
 
@@ -47,6 +50,7 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
   final loans = loansAsync.value ?? [];
   final goals = goalsAsync.value ?? [];
   final recurringRules = recurringAsync.value ?? [];
+  final budgets = budgetsAsync.value ?? [];
 
   final reviewData = FinancialReviewService.buildMonthlyReview(
     targetDate: targetDate,
@@ -57,6 +61,7 @@ final monthlyReviewDataProvider = Provider<AsyncValue<MonthlyReviewData>>((
     loans: loans,
     goals: goals,
     recurringRules: recurringRules,
+    budgets: budgets,
   );
 
   return AsyncData(reviewData);

@@ -272,6 +272,17 @@ class BlueprintController extends StateNotifier<BlueprintState> {
     state = state.copyWith(blueprint: bp.copyWith(incomes: list));
   }
 
+  void convertIncomeToExpense(int index, BlueprintExpenseItem expense) {
+    final bp = state.blueprint;
+    if (bp == null || index < 0 || index >= bp.incomes.length) return;
+    final incomes = List<BlueprintIncomeItem>.from(bp.incomes)..removeAt(index);
+    final expenses = List<BlueprintExpenseItem>.from(bp.recurringExpenses)
+      ..add(expense);
+    state = state.copyWith(
+      blueprint: bp.copyWith(incomes: incomes, recurringExpenses: expenses),
+    );
+  }
+
   void updateExpenseItem(int index, BlueprintExpenseItem updated) {
     final bp = state.blueprint;
     if (bp == null || index < 0 || index >= bp.recurringExpenses.length) return;
@@ -286,6 +297,17 @@ class BlueprintController extends StateNotifier<BlueprintState> {
     final list = List<BlueprintExpenseItem>.from(bp.recurringExpenses)
       ..removeAt(index);
     state = state.copyWith(blueprint: bp.copyWith(recurringExpenses: list));
+  }
+
+  void convertExpenseToIncome(int index, BlueprintIncomeItem income) {
+    final bp = state.blueprint;
+    if (bp == null || index < 0 || index >= bp.recurringExpenses.length) return;
+    final expenses = List<BlueprintExpenseItem>.from(bp.recurringExpenses)
+      ..removeAt(index);
+    final incomes = List<BlueprintIncomeItem>.from(bp.incomes)..add(income);
+    state = state.copyWith(
+      blueprint: bp.copyWith(incomes: incomes, recurringExpenses: expenses),
+    );
   }
 
   void updateLoanItem(int index, BlueprintLoanItem updated) {

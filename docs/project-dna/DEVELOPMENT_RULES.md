@@ -1,9 +1,11 @@
 # Development Rules & Principles
 
 ## 1. Golden Rule
-Do not build complexity that we do not currently need.
-The application begins with 5–10 users.
-Build cleanly, securely, and deterministically now; scale later.
+- **MSD FINAURA MUST BE AS SIMPLE AS POSSIBLE FOR THE USER**: Maximum financial usefulness with minimum user complexity.
+- Do not build complexity that we do not currently need.
+- Prefer simple over complex, one obvious action over multiple duplicate actions, connected workflows over isolated features, and user-friendly language over technical jargon.
+- Always reuse existing screens, models, services, and providers before creating new components.
+- The application begins with 5–10 users. Build cleanly, securely, and deterministically now; scale later.
 
 ---
 

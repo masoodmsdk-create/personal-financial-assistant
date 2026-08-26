@@ -162,7 +162,7 @@ class RecurringTransactionService {
         fromDate: current,
         frequency: rule.frequency,
         interval: rule.interval,
-        dayOfMonth: rule.dayOfMonth,
+        dayOfMonth: rule.effectiveDayOfMonth,
         dayOfWeek: rule.dayOfWeek,
         endDate: rule.endDate,
       );
@@ -233,7 +233,7 @@ class RecurringTransactionService {
       fromDate: lastDate,
       frequency: rule.frequency,
       interval: rule.interval,
-      dayOfMonth: rule.dayOfMonth,
+      dayOfMonth: rule.effectiveDayOfMonth,
       dayOfWeek: rule.dayOfWeek,
       endDate: rule.endDate,
     );

@@ -7,9 +7,11 @@
 - **Phase 2 — Loan & Debt Intelligence Module**: COMPLETED.
 - **Phase 3A — Financial Plans & Progress**: COMPLETED.
 - **Phase 3B — Home / Financial Command Center**: COMPLETED.
-- **Phase 4 — Category Budgets & Variance**: UPCOMING.
-- **Phase 5 — Financial Intelligence & Goal Trade-Offs**: UPCOMING.
-- **Phase 6 — Ask FINAURA (Conversational Assistant Layer)**: UPCOMING.
+- **Phase 4 — Category Budgets & Cash-Flow Planning**: COMPLETED.
+- **Phase 5 — Master Product Integration & Command Center**: COMPLETED.
+- **Phase 6 — Multi-Horizon Forecasting Engine (1M, 4M, 6M, 12M)**: COMPLETED.
+- **Phase 7 — Financial Intelligence & Goal Trade-Offs**: COMPLETED.
+- **Phase 8 — Ask FINAURA (Conversational Assistant Layer)**: UPCOMING.
 
 ---
 
@@ -25,6 +27,34 @@ Build a Personal Financial Assistant for:
 ---
 
 ## Completed Milestones
+
+- **Master Product Integration & Home Financial Command Center**:
+  - Unified Dashboard into a true Financial Command Center with all 11 prioritized sections.
+  - Section 1: Net Financial Position (Assets vs Liabilities with `[View Breakdown]` modal).
+  - Section 2: This Month Cash Flow (Actual recorded vs Expected commitments with `[View Analytics]`).
+  - Section 3: Available to Safely Spend (Explainable formula with `[View Budget]`).
+  - Section 4: Upcoming Scheduled Commitments (Next 30 days with `[View Recurring]`).
+  - Section 5 & 6: Goals and Loans Portfolios (`[View Goals]`, `[View Loans]`).
+  - Section 7: Budget Tracking & Utilization (`[View Budget]`).
+  - Section 8: Multi-Horizon Forecast Engine (`[View Forecast & Scenarios]`).
+  - Section 9: Actionable Financial Insights & Warnings.
+  - Section 10: Monthly Financial Review (`[View Review]`).
+  - Section 11: FINAURA Actions Quick Bar (`[Smart Entry]`, `[Tell FINAURA About Your Money]`, `[Trade-Off Intelligence]`, `[Add Transaction]`).
+  - Welcoming Empty State Card: "Let's build your financial picture" with instant entity creation actions.
+- **Multi-Horizon Deterministic Forecasting (1M, 4M, 6M, 12M)**:
+  - `MultiHorizonForecastService` and `MultiHorizonForecastCard`.
+  - Deterministic projections for Net Cash Flow, Savings Accumulation, Loan Amortization, and Net Worth.
+  - What-If Scenario comparisons (+₹5,000 extra savings, +₹10,000 aggressive savings, loan prepayments).
+  - Dedicated `ForecastScreen` (`/forecast`) and `ForecastBreakdownDialog`.
+- **Account Breakdown & Traceability**:
+  - `AccountBreakdownDialog` displaying Opening Balance, Income Inflows, Expense Outflows, Net Transfers, Dynamic Balance, and recent transactions with `[Edit Account]` and `[Close]` actions.
+- **Blueprint UX & Editability**:
+  - Modal editors with bidirectional Type Toggle (Income <-> Expense) in `edit_blueprint_item_dialogs.dart`.
+  - Active Blueprint item management with confirmation modals for deletions.
+- **Calendar Edge-Case Protection**:
+  - Deterministic clamping for month-end dates (29th, 30th, 31st, leap years).
+- **Mandatory Action Buttons Rule**:
+  - Visible primary and secondary action buttons across every form, dialog, and review interface.
 
 - **Core Infrastructure & Performance**:
   - Flutter 3.x with Dart 3.13+, Material 3 design system.

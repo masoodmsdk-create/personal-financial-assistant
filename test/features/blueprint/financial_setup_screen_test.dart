@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:personal_financial_assistant/features/accounts/domain/repositories/account_repository.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/blueprint/domain/services/blueprint_persistence_service.dart';
 import 'package:personal_financial_assistant/features/blueprint/domain/services/financial_situation_parser.dart';
 import 'package:personal_financial_assistant/features/blueprint/presentation/providers/blueprint_providers.dart';
@@ -14,9 +16,18 @@ import 'package:personal_financial_assistant/features/goals/presentation/provide
 import 'package:personal_financial_assistant/features/loans/domain/repositories/loan_repository.dart';
 import 'package:personal_financial_assistant/features/loans/presentation/providers/loan_providers.dart';
 import 'package:personal_financial_assistant/features/planned_expenses/domain/repositories/planned_expense_repository.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/presentation/providers/planned_expense_providers.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
 import 'package:personal_financial_assistant/features/workspaces/workspace.dart';
+
+class _FakeUser extends Fake implements User {
+  @override
+  String get uid => 'user_1';
+  @override
+  String? get email => 'test@example.com';
+}
 
 class _FakePlannedExpenseRepo implements PlannedExpenseRepository {
   @override
@@ -69,12 +80,19 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            currentUserProvider.overrideWith((ref) => _FakeUser()),
             accountsStreamProvider.overrideWith((ref) => Stream.value([])),
             categoriesStreamProvider.overrideWith(
               (ref) => Stream.value(Category.generateDefaults('user_1')),
             ),
             loansStreamProvider.overrideWith((ref) => Stream.value([])),
             goalsStreamProvider.overrideWith((ref) => Stream.value([])),
+            recurringTransactionsStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            plannedExpensesStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
             workspacesStreamProvider.overrideWith(
               (ref) => Stream.value([mockWorkspace]),
             ),
@@ -95,7 +113,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Tell FINAURA About Your Money'), findsOneWidget);
+      expect(find.text('Your Money Blueprint'), findsOneWidget);
       expect(find.text('Parse & Build Blueprint'), findsOneWidget);
       expect(find.textContaining('Workspace Context:'), findsOneWidget);
     },

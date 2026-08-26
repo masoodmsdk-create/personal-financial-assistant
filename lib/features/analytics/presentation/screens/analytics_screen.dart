@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/widgets/financial_widgets.dart';
 import 'package:personal_financial_assistant/core/widgets/responsive_center.dart';
@@ -138,11 +139,22 @@ class AnalyticsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Planned vs Actual (Monthly)',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Planned vs Actual (Monthly)',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          FilledButton.tonalIcon(
+                            onPressed: () => context.push('/budgets'),
+                            icon: const Icon(Icons.savings_rounded, size: 16),
+                            label: const Text('Manage Budget'),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       Wrap(
