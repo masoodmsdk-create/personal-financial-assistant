@@ -2,7 +2,9 @@ import 'package:personal_financial_assistant/features/recurring_transactions/dom
 
 abstract class RecurringTransactionRepository {
   /// Streams all recurring transaction rules for [userId].
-  Stream<List<RecurringTransactionRule>> getRecurringTransactions(String userId);
+  Stream<List<RecurringTransactionRule>> getRecurringTransactions(
+    String userId,
+  );
 
   /// Fetches a single recurring transaction rule by [id].
   Future<RecurringTransactionRule?> getRecurringTransactionById(
@@ -26,4 +28,3 @@ abstract class RecurringTransactionRepository {
     bool active,
   );
 }
-

@@ -37,6 +37,9 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
     super.initState();
     final initialText = ref.read(smartEntryControllerProvider).rawInput;
     _textController = TextEditingController(text: initialText);
+    _textController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -177,9 +180,29 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
                       TextField(
                         controller: _textController,
                         maxLines: 4,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (val) {
+                          if (val.trim().isNotEmpty && !state.isParsing) {
+                            _triggerParse();
+                          }
+                        },
                         decoration: InputDecoration(
                           hintText: 'Enter one or multiple lines, e.g.:\n• Lunch 350 at cafe yesterday\n• Salary 80000 into SBI\n• Transferred 2000 from SBI to HDFC\n• Bought groceries 850 cash',
-                          border: InputBorder.none,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: colorScheme.outline.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: colorScheme.primary,
+                              width: 1.8,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerLowest,
                           hintStyle: TextStyle(
                             color: colorScheme.onSurfaceVariant.withValues(
                               alpha: 0.6,
@@ -195,24 +218,50 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
                       ),
                       const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (_textController.text.isNotEmpty)
                             TextButton.icon(
                               icon: const Icon(Icons.clear_rounded, size: 16),
                               label: const Text('Clear'),
-                              onPressed: () {
-                                _textController.clear();
-                                ref
-                                    .read(smartEntryControllerProvider.notifier)
-                                    .clearAll();
-                              },
-                            ),
-                          const SizedBox(width: 8),
+                              onPressed: state.isParsing
+                                  ? null
+                                  : () {
+                                      _textController.clear();
+                                      ref
+                                          .read(
+                                            smartEntryControllerProvider
+                                                .notifier,
+                                          )
+                                          .clearAll();
+                                    },
+                            )
+                          else
+                            const SizedBox.shrink(),
                           FilledButton.icon(
-                            onPressed: _triggerParse,
-                            icon: const Icon(Icons.auto_awesome_rounded),
-                            label: const Text('Analyze & Parse'),
+                            onPressed:
+                                _textController.text.trim().isEmpty ||
+                                    state.isParsing
+                                ? null
+                                : _triggerParse,
+                            icon: state.isParsing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.auto_awesome_rounded,
+                                    size: 18,
+                                  ),
+                            label: Text(
+                              state.isParsing
+                                  ? 'Understanding...'
+                                  : 'Understand',
+                            ),
                           ),
                         ],
                       ),
@@ -255,22 +304,30 @@ class _SmartEntryScreenState extends ConsumerState<SmartEntryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Detected Transactions (${state.drafts.length})',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'Detected Transactions (${state.drafts.length})',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    FilledButton.tonalIcon(
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
                       onPressed: state.isSaving ? null : _recordAll,
                       icon: state.isSaving
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
-                          : const Icon(Icons.done_all_rounded),
-                      label: Text('Record All (${state.drafts.length})'),
+                          : const Icon(Icons.done_all_rounded, size: 18),
+                      label: Text(
+                        'Confirm & Save All (${state.drafts.length})',
+                      ),
                     ),
                   ],
                 ),
@@ -575,8 +632,8 @@ class _DraftTransactionCard extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: FilledButton.icon(
                 onPressed: isSaving ? null : onSave,
-                icon: const Icon(Icons.check_rounded, size: 16),
-                label: const Text('Record Transaction'),
+                icon: const Icon(Icons.check_circle_rounded, size: 16),
+                label: const Text('Confirm & Save'),
               ),
             ),
           ],

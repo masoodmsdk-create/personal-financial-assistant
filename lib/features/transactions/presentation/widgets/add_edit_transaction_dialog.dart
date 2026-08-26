@@ -4,15 +4,24 @@ import 'package:intl/intl.dart';
 import 'package:personal_financial_assistant/core/errors/app_exception.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
+import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
+import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
+import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
 
 class AddEditTransactionDialog extends ConsumerStatefulWidget {
   final Transaction? transaction;
+  final bool initialIsRecurring;
 
-  const AddEditTransactionDialog({super.key, this.transaction});
+  const AddEditTransactionDialog({
+    super.key,
+    this.transaction,
+    this.initialIsRecurring = false,
+  });
 
   @override
   ConsumerState<AddEditTransactionDialog> createState() =>
@@ -22,15 +31,28 @@ class AddEditTransactionDialog extends ConsumerStatefulWidget {
 class _AddEditTransactionDialogState
     extends ConsumerState<AddEditTransactionDialog> {
   final _formKey = GlobalKey<FormState>();
+
+  late bool _isRecurring;
   late TransactionType _selectedType;
   late final TextEditingController _amountController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _intervalController;
   late final TextEditingController _noteController;
+
   late DateTime _selectedDate;
+  late DateTime _startDate;
+  DateTime? _endDate;
 
   String? _selectedAccountId;
   String? _selectedCategoryId;
   String? _selectedFromAccountId;
   String? _selectedToAccountId;
+
+  RecurrenceFrequency _frequency = RecurrenceFrequency.monthly;
+  int? _dayOfMonth;
+  int? _dayOfWeek;
+
+  bool _isSavingRecurring = false;
 
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
@@ -38,12 +60,18 @@ class _AddEditTransactionDialogState
   void initState() {
     super.initState();
     final t = widget.transaction;
+    _isRecurring = widget.initialIsRecurring;
     _selectedType = t?.type ?? TransactionType.expense;
     _amountController = TextEditingController(
       text: t != null ? t.amount.toStringAsFixed(2) : '',
     );
+    _nameController = TextEditingController();
+    _intervalController = TextEditingController(text: '1');
     _noteController = TextEditingController(text: t?.note ?? '');
     _selectedDate = t?.date ?? DateTime.now();
+    _startDate = DateTime.now();
+    _dayOfMonth = _startDate.day;
+    _dayOfWeek = _startDate.weekday;
 
     _selectedAccountId = t?.accountId;
     _selectedCategoryId = t?.categoryId;
@@ -54,6 +82,8 @@ class _AddEditTransactionDialogState
   @override
   void dispose() {
     _amountController.dispose();
+    _nameController.dispose();
+    _intervalController.dispose();
     _noteController.dispose();
     super.dispose();
   }
@@ -78,7 +108,43 @@ class _AddEditTransactionDialogState
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _pickStartDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      setState(() {
+        _startDate = picked;
+        if (_frequency == RecurrenceFrequency.monthly ||
+            _frequency == RecurrenceFrequency.quarterly ||
+            _frequency == RecurrenceFrequency.halfYearly ||
+            _frequency == RecurrenceFrequency.yearly) {
+          _dayOfMonth = picked.day;
+        } else if (_frequency == RecurrenceFrequency.weekly) {
+          _dayOfWeek = picked.weekday;
+        }
+      });
+    }
+  }
+
+  Future<void> _pickEndDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _startDate.add(const Duration(days: 365)),
+      firstDate: _startDate,
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      setState(() {
+        _endDate = picked;
+      });
+    }
+  }
+
+  Future<void> _saveOneTime() async {
     if (!_formKey.currentState!.validate()) return;
     final amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
     final note = _noteController.text.trim();
@@ -173,7 +239,7 @@ class _AddEditTransactionDialogState
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
         messenger.showSnackBar(
           SnackBar(
             content: Text(
@@ -199,10 +265,119 @@ class _AddEditTransactionDialogState
     }
   }
 
+  Future<void> _saveRecurring() async {
+    if (!_formKey.currentState!.validate()) return;
+    final user = ref.read(currentUserProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (user == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in first'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedCategoryId == null || _selectedCategoryId!.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedAccountId == null || _selectedAccountId!.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Please select an account'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSavingRecurring = true);
+
+    final amount =
+        double.tryParse(_amountController.text.trim().replaceAll(',', '')) ??
+        0.0;
+    final interval = int.tryParse(_intervalController.text.trim()) ?? 1;
+    final now = DateTime.now();
+
+    final service = ref.read(recurringTransactionServiceProvider);
+    final initialNext =
+        service.calculateNextOccurrence(
+          fromDate: _startDate.subtract(const Duration(days: 1)),
+          frequency: _frequency,
+          interval: interval,
+          dayOfMonth: _dayOfMonth,
+          dayOfWeek: _dayOfWeek,
+          endDate: _endDate,
+        ) ??
+        _startDate;
+
+    final ruleName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : '${_selectedType.displayName} Commitment';
+
+    final rule = RecurringTransactionRule(
+      id: now.millisecondsSinceEpoch.toString(),
+      userId: user.uid,
+      createdAt: now,
+      updatedAt: now,
+      type: _selectedType,
+      name: ruleName,
+      amount: amount,
+      categoryId: _selectedCategoryId!,
+      accountId: _selectedAccountId!,
+      frequency: _frequency,
+      interval: interval,
+      dayOfMonth: _dayOfMonth,
+      dayOfWeek: _dayOfWeek,
+      startDate: _startDate,
+      endDate: _endDate,
+      active: true,
+      autoGenerate: true,
+      nextOccurrence: initialNext,
+      note: _noteController.text.trim().isNotEmpty
+          ? _noteController.text.trim()
+          : null,
+    );
+
+    final success = await ref
+        .read(recurringTransactionControllerProvider.notifier)
+        .addRule(rule);
+
+    if (mounted) {
+      setState(() => _isSavingRecurring = false);
+      if (success) {
+        Navigator.of(context).pop(true);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Recurring rule "$ruleName" saved successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: const Text('Failed to save recurring rule'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controllerState = ref.watch(transactionControllerProvider);
-    final isLoading = controllerState.isLoading;
+    final isLoading = controllerState.isLoading || _isSavingRecurring;
     final isEditing = widget.transaction != null;
 
     final accountsAsync = ref.watch(accountsStreamProvider);
@@ -211,35 +386,73 @@ class _AddEditTransactionDialogState
         : ref.watch(expenseCategoriesProvider);
 
     return AlertDialog(
-      title: Text(isEditing ? 'Edit Transaction' : 'Record Transaction'),
+      title: Text(
+        isEditing
+            ? 'Edit Transaction'
+            : (_isRecurring ? 'Add Recurring Rule' : 'Record Transaction'),
+      ),
       content: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
+          constraints: const BoxConstraints(maxWidth: 460),
           child: Form(
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Segmented Button Type Selector
+                // 1. One-time vs Recurring Selector (Only when creating new)
+                if (!isEditing) ...[
+                  Center(
+                    child: SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(
+                          value: false,
+                          label: Text('One-time'),
+                          icon: Icon(Icons.receipt_outlined),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text('Recurring'),
+                          icon: Icon(Icons.repeat_rounded),
+                        ),
+                      ],
+                      selected: {_isRecurring},
+                      onSelectionChanged: isLoading
+                          ? null
+                          : (Set<bool> selection) {
+                              setState(() {
+                                _isRecurring = selection.first;
+                                if (_isRecurring &&
+                                    _selectedType == TransactionType.transfer) {
+                                  _selectedType = TransactionType.expense;
+                                }
+                              });
+                            },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // 2. Transaction / Commitment Type Selector
                 Center(
                   child: SegmentedButton<TransactionType>(
-                    segments: const [
-                      ButtonSegment(
+                    segments: [
+                      const ButtonSegment(
                         value: TransactionType.income,
                         label: Text('Income'),
                         icon: Icon(Icons.arrow_downward_rounded),
                       ),
-                      ButtonSegment(
+                      const ButtonSegment(
                         value: TransactionType.expense,
                         label: Text('Expense'),
                         icon: Icon(Icons.arrow_upward_rounded),
                       ),
-                      ButtonSegment(
-                        value: TransactionType.transfer,
-                        label: Text('Transfer'),
-                        icon: Icon(Icons.swap_horiz_rounded),
-                      ),
+                      if (!_isRecurring)
+                        const ButtonSegment(
+                          value: TransactionType.transfer,
+                          label: Text('Transfer'),
+                          icon: Icon(Icons.swap_horiz_rounded),
+                        ),
                     ],
                     selected: {_selectedType},
                     onSelectionChanged: isLoading
@@ -252,9 +465,30 @@ class _AddEditTransactionDialogState
                           },
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Amount
+                // 3. Recurring Rule Name / Title
+                if (_isRecurring) ...[
+                  TextFormField(
+                    controller: _nameController,
+                    enabled: !isLoading,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Rule Title / Description *',
+                      hintText: 'e.g. Monthly Salary, House Rent, Netflix',
+                      prefixIcon: Icon(Icons.title_rounded),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a rule title';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // 4. Amount
                 TextFormField(
                   controller: _amountController,
                   enabled: !isLoading,
@@ -263,7 +497,7 @@ class _AddEditTransactionDialogState
                   ),
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Amount',
+                    labelText: 'Amount *',
                     prefixText: '₹ ',
                     prefixIcon: Icon(Icons.payments_outlined),
                   ),
@@ -271,7 +505,9 @@ class _AddEditTransactionDialogState
                     if (value == null || value.trim().isEmpty) {
                       return 'Amount is required';
                     }
-                    final parsed = double.tryParse(value.trim());
+                    final parsed = double.tryParse(
+                      value.trim().replaceAll(',', ''),
+                    );
                     if (parsed == null || parsed <= 0) {
                       return 'Amount must be greater than zero';
                     }
@@ -280,8 +516,9 @@ class _AddEditTransactionDialogState
                 ),
                 const SizedBox(height: 16),
 
-                // Fields for Income / Expense
-                if (_selectedType != TransactionType.transfer) ...[
+                // 5. Category & Account Dropdowns (for Income / Expense / Recurring)
+                if (_selectedType != TransactionType.transfer ||
+                    _isRecurring) ...[
                   // Category Dropdown
                   Builder(
                     builder: (context) {
@@ -310,15 +547,19 @@ class _AddEditTransactionDialogState
                       }
 
                       return DropdownButtonFormField<String>(
-                        initialValue: _selectedCategoryId,
+                        value: _selectedCategoryId,
+                        isExpanded: true,
                         decoration: InputDecoration(
-                          labelText: '${_selectedType.displayName} Category',
+                          labelText: '${_selectedType.displayName} Category *',
                           prefixIcon: const Icon(Icons.category_outlined),
                         ),
                         items: activeCategories.map((c) {
                           return DropdownMenuItem(
                             value: c.id,
-                            child: Text(c.name),
+                            child: Text(
+                              c.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           );
                         }).toList(),
                         onChanged: (isLoading || activeCategories.isEmpty)
@@ -333,7 +574,6 @@ class _AddEditTransactionDialogState
                       );
                     },
                   ),
-
                   const SizedBox(height: 16),
 
                   // Account Dropdown
@@ -350,15 +590,19 @@ class _AddEditTransactionDialogState
                       }
 
                       return DropdownButtonFormField<String>(
-                        initialValue: _selectedAccountId,
+                        value: _selectedAccountId,
+                        isExpanded: true,
                         decoration: const InputDecoration(
-                          labelText: 'Account',
+                          labelText: 'Account *',
                           prefixIcon: Icon(Icons.account_balance_outlined),
                         ),
                         items: activeAccounts.map((a) {
                           return DropdownMenuItem(
                             value: a.id,
-                            child: Text('${a.name} (${a.type.displayName})'),
+                            child: Text(
+                              '${a.name} (${a.type.displayName})',
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           );
                         }).toList(),
                         onChanged: (isLoading || activeAccounts.isEmpty)
@@ -376,8 +620,9 @@ class _AddEditTransactionDialogState
                   const SizedBox(height: 16),
                 ],
 
-                // Fields for Transfer
-                if (_selectedType == TransactionType.transfer) ...[
+                // 6. Transfer From/To Accounts (Only for One-Time Transfer)
+                if (!_isRecurring &&
+                    _selectedType == TransactionType.transfer) ...[
                   Builder(
                     builder: (context) {
                       final accounts = accountsAsync.value ?? [];
@@ -401,11 +646,11 @@ class _AddEditTransactionDialogState
 
                       return Column(
                         children: [
-                          // From Account
                           DropdownButtonFormField<String>(
-                            initialValue: _selectedFromAccountId,
+                            value: _selectedFromAccountId,
+                            isExpanded: true,
                             decoration: const InputDecoration(
-                              labelText: 'From Account',
+                              labelText: 'From Account *',
                               prefixIcon: Icon(Icons.call_made_rounded),
                             ),
                             items: activeAccounts.map((a) {
@@ -413,6 +658,7 @@ class _AddEditTransactionDialogState
                                 value: a.id,
                                 child: Text(
                                   '${a.name} (${a.type.displayName})',
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               );
                             }).toList(),
@@ -428,12 +674,11 @@ class _AddEditTransactionDialogState
                                 : null,
                           ),
                           const SizedBox(height: 16),
-
-                          // To Account
                           DropdownButtonFormField<String>(
-                            initialValue: _selectedToAccountId,
+                            value: _selectedToAccountId,
+                            isExpanded: true,
                             decoration: const InputDecoration(
-                              labelText: 'To Account',
+                              labelText: 'To Account *',
                               prefixIcon: Icon(Icons.call_received_rounded),
                             ),
                             items: activeAccounts.map((a) {
@@ -441,6 +686,7 @@ class _AddEditTransactionDialogState
                                 value: a.id,
                                 child: Text(
                                   '${a.name} (${a.type.displayName})',
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               );
                             }).toList(),
@@ -465,24 +711,161 @@ class _AddEditTransactionDialogState
                       );
                     },
                   ),
-
                   const SizedBox(height: 16),
                 ],
 
-                // Date Picker Input Decorator
-                InkWell(
-                  onTap: isLoading ? null : _pickDate,
-                  child: InputDecorator(
+                // 7. Recurring Schedule Fields
+                if (_isRecurring) ...[
+                  // Frequency Dropdown
+                  DropdownButtonFormField<RecurrenceFrequency>(
+                    value: _frequency,
+                    isExpanded: true,
                     decoration: const InputDecoration(
-                      labelText: 'Transaction Date',
-                      prefixIcon: Icon(Icons.calendar_today_rounded),
+                      labelText: 'Frequency *',
+                      prefixIcon: Icon(Icons.timelapse_rounded),
                     ),
-                    child: Text(_dateFormat.format(_selectedDate)),
+                    items: RecurrenceFrequency.values.map((f) {
+                      return DropdownMenuItem(
+                        value: f,
+                        child: Text(
+                          f.displayName,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: isLoading
+                        ? null
+                        : (val) {
+                            if (val != null) {
+                              setState(() {
+                                _frequency = val;
+                              });
+                            }
+                          },
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Note
+                  // Interval TextFormField
+                  TextFormField(
+                    controller: _intervalController,
+                    enabled: !isLoading,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Interval',
+                      hintText: '1 (Every cycle)',
+                      prefixIcon: Icon(Icons.numbers_rounded),
+                    ),
+                    validator: (val) {
+                      final p = int.tryParse(val ?? '');
+                      if (p == null || p <= 0) return 'Must be >= 1';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Day of Month / Day of Week selector
+                  if (_frequency == RecurrenceFrequency.monthly ||
+                      _frequency == RecurrenceFrequency.quarterly ||
+                      _frequency == RecurrenceFrequency.halfYearly ||
+                      _frequency == RecurrenceFrequency.yearly) ...[
+                    DropdownButtonFormField<int>(
+                      value: _dayOfMonth ?? _startDate.day,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Day of the Month *',
+                        prefixIcon: Icon(Icons.calendar_month_rounded),
+                        helperText: 'Safe handling for month-ends (e.g. 31st)',
+                      ),
+                      items: List.generate(31, (i) => i + 1).map((d) {
+                        return DropdownMenuItem(
+                          value: d,
+                          child: Text('Day $d of month'),
+                        );
+                      }).toList(),
+                      onChanged: isLoading
+                          ? null
+                          : (val) => setState(() => _dayOfMonth = val),
+                    ),
+                    const SizedBox(height: 16),
+                  ] else if (_frequency == RecurrenceFrequency.weekly) ...[
+                    DropdownButtonFormField<int>(
+                      value: _dayOfWeek ?? _startDate.weekday,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Day of the Week *',
+                        prefixIcon: Icon(Icons.calendar_view_week_rounded),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 1, child: Text('Monday')),
+                        DropdownMenuItem(value: 2, child: Text('Tuesday')),
+                        DropdownMenuItem(value: 3, child: Text('Wednesday')),
+                        DropdownMenuItem(value: 4, child: Text('Thursday')),
+                        DropdownMenuItem(value: 5, child: Text('Friday')),
+                        DropdownMenuItem(value: 6, child: Text('Saturday')),
+                        DropdownMenuItem(value: 7, child: Text('Sunday')),
+                      ],
+                      onChanged: isLoading
+                          ? null
+                          : (val) => setState(() => _dayOfWeek = val),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Start Date Picker
+                  InkWell(
+                    onTap: isLoading ? null : _pickStartDate,
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Start Date *',
+                        prefixIcon: Icon(Icons.calendar_today_rounded),
+                      ),
+                      child: Text(_dateFormat.format(_startDate)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Optional End Date Picker
+                  InkWell(
+                    onTap: isLoading ? null : _pickEndDate,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'End Date (Optional)',
+                        prefixIcon: const Icon(Icons.event_busy_rounded),
+                        suffixIcon: _endDate != null
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 16),
+                                onPressed: isLoading
+                                    ? null
+                                    : () => setState(() => _endDate = null),
+                              )
+                            : null,
+                      ),
+                      child: Text(
+                        _endDate != null
+                            ? _dateFormat.format(_endDate!)
+                            : 'No end date (Indefinite)',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // 8. One-time Date Picker
+                if (!_isRecurring) ...[
+                  InkWell(
+                    onTap: isLoading ? null : _pickDate,
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Transaction Date *',
+                        prefixIcon: Icon(Icons.calendar_today_rounded),
+                      ),
+                      child: Text(_dateFormat.format(_selectedDate)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // 9. Note / Description
                 TextFormField(
                   controller: _noteController,
                   enabled: !isLoading,
@@ -510,7 +893,9 @@ class _AddEditTransactionDialogState
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: isLoading ? null : _save,
+          onPressed: isLoading
+              ? null
+              : (_isRecurring ? _saveRecurring : _saveOneTime),
           child: isLoading
               ? const SizedBox(
                   width: 20,
@@ -520,7 +905,13 @@ class _AddEditTransactionDialogState
                     color: Colors.white,
                   ),
                 )
-              : Text(isEditing ? 'Save Changes' : 'Record Transaction'),
+              : Text(
+                  isEditing
+                      ? 'Save Changes'
+                      : (_isRecurring
+                            ? 'Save Recurring Rule'
+                            : 'Save Transaction'),
+                ),
         ),
       ],
     );

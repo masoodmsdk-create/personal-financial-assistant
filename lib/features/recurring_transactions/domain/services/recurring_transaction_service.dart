@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:personal_financial_assistant/features/planned_expenses/planned_expense.dart';
 import 'package:personal_financial_assistant/features/recurring_transactions/domain/models/recurring_transaction_rule.dart';
 import 'package:personal_financial_assistant/features/transactions/transaction.dart';
@@ -141,15 +142,20 @@ class RecurringTransactionService {
   }) {
     if (!rule.active) return [];
 
-    final today = DateTime(asOfDate.year, asOfDate.month, asOfDate.day, 23, 59, 59);
+    final today = DateTime(
+      asOfDate.year,
+      asOfDate.month,
+      asOfDate.day,
+      23,
+      59,
+      59,
+    );
     final dueList = <DateTime>[];
     var current = rule.nextOccurrence;
 
-    while (
-      !current.isAfter(today) &&
-      (rule.endDate == null || !current.isAfter(rule.endDate!)) &&
-      dueList.length < maxCatchUpCount
-    ) {
+    while (!current.isAfter(today) &&
+        (rule.endDate == null || !current.isAfter(rule.endDate!)) &&
+        dueList.length < maxCatchUpCount) {
       dueList.add(current);
 
       final next = calculateNextOccurrence(
@@ -161,7 +167,9 @@ class RecurringTransactionService {
         endDate: rule.endDate,
       );
 
-      if (next == null || next.isAtSameMomentAs(current) || next.isBefore(current)) {
+      if (next == null ||
+          next.isAtSameMomentAs(current) ||
+          next.isBefore(current)) {
         break;
       }
       current = next;
@@ -239,4 +247,3 @@ class RecurringTransactionService {
     return (transactions: generated, updatedRule: updated);
   }
 }
-

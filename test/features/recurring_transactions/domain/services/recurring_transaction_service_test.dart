@@ -87,43 +87,49 @@ void main() {
       expect(nextMonth, DateTime(2027, 1, 1));
     });
 
-    test('Month-end safe clamping (31st in Jan -> Feb 28 -> Mar 31 -> Apr 30)', () {
-      final jan31 = DateTime(2026, 1, 31);
-      final feb = service.calculateNextOccurrence(
-        fromDate: jan31,
-        frequency: RecurrenceFrequency.monthly,
-        interval: 1,
-        dayOfMonth: 31,
-      );
-      expect(feb, DateTime(2026, 2, 28)); // 2026 is non-leap year
+    test(
+      'Month-end safe clamping (31st in Jan -> Feb 28 -> Mar 31 -> Apr 30)',
+      () {
+        final jan31 = DateTime(2026, 1, 31);
+        final feb = service.calculateNextOccurrence(
+          fromDate: jan31,
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: 31,
+        );
+        expect(feb, DateTime(2026, 2, 28)); // 2026 is non-leap year
 
-      final mar = service.calculateNextOccurrence(
-        fromDate: feb!,
-        frequency: RecurrenceFrequency.monthly,
-        interval: 1,
-        dayOfMonth: 31,
-      );
-      expect(mar, DateTime(2026, 3, 31));
+        final mar = service.calculateNextOccurrence(
+          fromDate: feb!,
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: 31,
+        );
+        expect(mar, DateTime(2026, 3, 31));
 
-      final apr = service.calculateNextOccurrence(
-        fromDate: mar!,
-        frequency: RecurrenceFrequency.monthly,
-        interval: 1,
-        dayOfMonth: 31,
-      );
-      expect(apr, DateTime(2026, 4, 30));
-    });
+        final apr = service.calculateNextOccurrence(
+          fromDate: mar!,
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: 31,
+        );
+        expect(apr, DateTime(2026, 4, 30));
+      },
+    );
 
-    test('Month-end safe clamping in leap year (Jan 31, 2024 -> Feb 29, 2024)', () {
-      final jan31_2024 = DateTime(2024, 1, 31);
-      final feb2024 = service.calculateNextOccurrence(
-        fromDate: jan31_2024,
-        frequency: RecurrenceFrequency.monthly,
-        interval: 1,
-        dayOfMonth: 31,
-      );
-      expect(feb2024, DateTime(2024, 2, 29));
-    });
+    test(
+      'Month-end safe clamping in leap year (Jan 31, 2024 -> Feb 29, 2024)',
+      () {
+        final jan31_2024 = DateTime(2024, 1, 31);
+        final feb2024 = service.calculateNextOccurrence(
+          fromDate: jan31_2024,
+          frequency: RecurrenceFrequency.monthly,
+          interval: 1,
+          dayOfMonth: 31,
+        );
+        expect(feb2024, DateTime(2024, 2, 29));
+      },
+    );
 
     test('Quarterly and Half-Yearly recurrence intervals', () {
       final start = DateTime(2026, 1, 15);
@@ -263,58 +269,60 @@ void main() {
   });
 
   group('RecurringTransactionService — processRuleOccurrences & Linkage', () {
-    test('Generates transactions and advances rule correctly (Salary example)', () {
-      final rule = RecurringTransactionRule(
-        id: 'rule_salary_hdfc',
-        userId: 'u_masood',
-        createdAt: DateTime(2026, 8, 1),
-        updatedAt: DateTime(2026, 8, 1),
-        type: TransactionType.income,
-        name: 'Monthly Salary',
-        amount: 80000.0,
-        categoryId: 'cat_salary',
-        accountId: 'acc_hdfc',
-        frequency: RecurrenceFrequency.monthly,
-        startDate: DateTime(2026, 8, 1),
-        nextOccurrence: DateTime(2026, 8, 1),
-        dayOfMonth: 1,
-        active: true,
-      );
+    test(
+      'Generates transactions and advances rule correctly (Salary example)',
+      () {
+        final rule = RecurringTransactionRule(
+          id: 'rule_salary_hdfc',
+          userId: 'u_masood',
+          createdAt: DateTime(2026, 8, 1),
+          updatedAt: DateTime(2026, 8, 1),
+          type: TransactionType.income,
+          name: 'Monthly Salary',
+          amount: 80000.0,
+          categoryId: 'cat_salary',
+          accountId: 'acc_hdfc',
+          frequency: RecurrenceFrequency.monthly,
+          startDate: DateTime(2026, 8, 1),
+          nextOccurrence: DateTime(2026, 8, 1),
+          dayOfMonth: 1,
+          active: true,
+        );
 
-      int idCounter = 1;
-      final result = service.processRuleOccurrences(
-        rule: rule,
-        asOfDate: DateTime(2026, 8, 15),
-        idGenerator: () => 'tx_${idCounter++}',
-      );
+        int idCounter = 1;
+        final result = service.processRuleOccurrences(
+          rule: rule,
+          asOfDate: DateTime(2026, 8, 15),
+          idGenerator: () => 'tx_${idCounter++}',
+        );
 
-      // Verify generated transaction
-      expect(result.transactions.length, 1);
-      final tx = result.transactions.first;
-      expect(tx.id, 'tx_1');
-      expect(tx.userId, 'u_masood');
-      expect(tx.type, TransactionType.income);
-      expect(tx.amount, 80000.0);
-      expect(tx.accountId, 'acc_hdfc');
-      expect(tx.categoryId, 'cat_salary');
-      expect(tx.date, DateTime(2026, 8, 1));
-      expect(tx.recurringRuleId, 'rule_salary_hdfc');
-      expect(tx.note, contains('Monthly Salary'));
+        // Verify generated transaction
+        expect(result.transactions.length, 1);
+        final tx = result.transactions.first;
+        expect(tx.id, 'tx_1');
+        expect(tx.userId, 'u_masood');
+        expect(tx.type, TransactionType.income);
+        expect(tx.amount, 80000.0);
+        expect(tx.accountId, 'acc_hdfc');
+        expect(tx.categoryId, 'cat_salary');
+        expect(tx.date, DateTime(2026, 8, 1));
+        expect(tx.recurringRuleId, 'rule_salary_hdfc');
+        expect(tx.note, contains('Monthly Salary'));
 
-      // Verify updated rule next occurrence is advanced to 2026-09-01
-      final updated = result.updatedRule;
-      expect(updated.lastGeneratedDate, DateTime(2026, 8, 1));
-      expect(updated.nextOccurrence, DateTime(2026, 9, 1));
+        // Verify updated rule next occurrence is advanced to 2026-09-01
+        final updated = result.updatedRule;
+        expect(updated.lastGeneratedDate, DateTime(2026, 8, 1));
+        expect(updated.nextOccurrence, DateTime(2026, 9, 1));
 
-      // Duplicate protection: Processing again immediately generates 0 transactions
-      final rerun = service.processRuleOccurrences(
-        rule: updated,
-        asOfDate: DateTime(2026, 8, 15),
-        idGenerator: () => 'tx_${idCounter++}',
-      );
-      expect(rerun.transactions, isEmpty);
-      expect(rerun.updatedRule.nextOccurrence, DateTime(2026, 9, 1));
-    });
+        // Duplicate protection: Processing again immediately generates 0 transactions
+        final rerun = service.processRuleOccurrences(
+          rule: updated,
+          asOfDate: DateTime(2026, 8, 15),
+          idGenerator: () => 'tx_${idCounter++}',
+        );
+        expect(rerun.transactions, isEmpty);
+        expect(rerun.updatedRule.nextOccurrence, DateTime(2026, 9, 1));
+      },
+    );
   });
 }
-

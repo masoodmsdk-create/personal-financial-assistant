@@ -85,9 +85,7 @@ void main() {
     ),
   ];
 
-  Widget createWidgetToTest({
-    List<RecurringTransactionRule> rules = const [],
-  }) {
+  Widget createWidgetToTest({List<RecurringTransactionRule> rules = const []}) {
     return ProviderScope(
       overrides: [
         currentUserProvider.overrideWith((ref) => null),
@@ -101,95 +99,94 @@ void main() {
           (ref) => Stream.value(rules),
         ),
       ],
-      child: const MaterialApp(
-        home: RecurringTransactionsScreen(),
-      ),
+      child: const MaterialApp(home: RecurringTransactionsScreen()),
     );
   }
 
   group('RecurringTransactionsScreen Widget Tests', () {
-    testWidgets('Renders empty state with action buttons when rules are empty', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(1000, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Renders empty state with action buttons when rules are empty',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(createWidgetToTest(rules: []));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetToTest(rules: []));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Recurring Transactions'), findsOneWidget);
-      expect(find.text('No Recurring Rules Configured'), findsOneWidget);
-      expect(find.text('Add Recurring Rule'), findsWidgets);
-      expect(find.text('Add Salary'), findsOneWidget);
-      expect(find.byType(FloatingActionButton), findsOneWidget);
-    });
+        expect(find.text('Recurring Transactions'), findsOneWidget);
+        expect(find.text('No Recurring Rules Configured'), findsOneWidget);
+        expect(find.text('Add Recurring Rule'), findsWidgets);
+        expect(find.text('Add Salary'), findsOneWidget);
+        expect(find.byType(FloatingActionButton), findsOneWidget);
+      },
+    );
 
-    testWidgets('Renders rules, summary metrics, and filter chips when populated', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(1000, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Renders rules, summary metrics, and filter chips when populated',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(createWidgetToTest(rules: testRules));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetToTest(rules: testRules));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Recurring Transactions'), findsOneWidget);
-      expect(find.text('Active Recurring Commitments'), findsOneWidget);
-      expect(find.text('Monthly Salary'), findsOneWidget);
-      expect(find.text('Apartment Rent'), findsOneWidget);
+        expect(find.text('Recurring Transactions'), findsOneWidget);
+        expect(find.text('Active Recurring Commitments'), findsOneWidget);
+        expect(find.text('Monthly Salary'), findsOneWidget);
+        expect(find.text('Apartment Rent'), findsOneWidget);
 
-      // Verify filter chips exist
-      expect(find.text('All (2)'), findsOneWidget);
-      expect(find.text('Income (1)'), findsOneWidget);
-      expect(find.text('Expenses (1)'), findsOneWidget);
+        // Verify filter chips exist
+        expect(find.text('All (2)'), findsOneWidget);
+        expect(find.text('Income (1)'), findsOneWidget);
+        expect(find.text('Expenses (1)'), findsOneWidget);
 
-      // Tap Income filter chip
-      await tester.tap(find.text('Income (1)'));
-      await tester.pumpAndSettle();
-      expect(find.text('Monthly Salary'), findsOneWidget);
-      expect(find.text('Apartment Rent'), findsNothing);
-    });
+        // Tap Income filter chip
+        await tester.tap(find.text('Income (1)'));
+        await tester.pumpAndSettle();
+        expect(find.text('Monthly Salary'), findsOneWidget);
+        expect(find.text('Apartment Rent'), findsNothing);
+      },
+    );
 
-    testWidgets('AddEditRecurringTransactionDialog renders mandatory visible buttons', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(1000, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'AddEditRecurringTransactionDialog renders mandatory visible buttons',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            categoriesStreamProvider.overrideWith(
-              (ref) => Stream.value(testCategories),
-            ),
-            accountsStreamProvider.overrideWith(
-              (ref) => Stream.value(testAccounts),
-            ),
-          ],
-          child: const MaterialApp(
-            home: Scaffold(
-              body: AddEditRecurringTransactionDialog(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              categoriesStreamProvider.overrideWith(
+                (ref) => Stream.value(testCategories),
+              ),
+              accountsStreamProvider.overrideWith(
+                (ref) => Stream.value(testAccounts),
+              ),
+            ],
+            child: const MaterialApp(
+              home: Scaffold(body: AddEditRecurringTransactionDialog()),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('New Recurring Transaction'), findsOneWidget);
-      expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Save Recurring Rule'), findsOneWidget);
+        expect(find.text('New Recurring Transaction'), findsOneWidget);
+        expect(find.text('Cancel'), findsOneWidget);
+        expect(find.text('Save Recurring Rule'), findsOneWidget);
 
-      // Tap Save without input to verify validation triggers
-      await tester.tap(find.text('Save Recurring Rule'));
-      await tester.pumpAndSettle();
-      expect(find.text('Please enter a name'), findsOneWidget);
-    });
+        // Tap Save without input to verify validation triggers
+        await tester.tap(find.text('Save Recurring Rule'));
+        await tester.pumpAndSettle();
+        expect(find.text('Please enter a name'), findsOneWidget);
+      },
+    );
 
     testWidgets('DueOccurrencesBanner renders when rules are due', (
       tester,
@@ -218,9 +215,7 @@ void main() {
             ),
           ],
           child: const MaterialApp(
-            home: Scaffold(
-              body: DueOccurrencesBanner(),
-            ),
+            home: Scaffold(body: DueOccurrencesBanner()),
           ),
         ),
       );

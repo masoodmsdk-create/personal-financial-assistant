@@ -57,6 +57,11 @@ class UpcomingRemindersSection extends ConsumerWidget {
                 ],
               ),
             ),
+            TextButton.icon(
+              onPressed: () => context.push('/recurring-transactions'),
+              icon: const Icon(Icons.repeat_rounded, size: 16),
+              label: const Text('Recurring', style: TextStyle(fontSize: 12)),
+            ),
           ],
         ),
         const SizedBox(height: 12),

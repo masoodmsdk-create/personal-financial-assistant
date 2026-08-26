@@ -13,6 +13,7 @@ final smartParserServiceProvider = Provider<SmartParserService>((ref) {
 class SmartEntryState {
   final String rawInput;
   final List<ParsedDraftTransaction> drafts;
+  final bool isParsing;
   final bool isSaving;
   final String? errorMessage;
   final int savedCount;
@@ -20,6 +21,7 @@ class SmartEntryState {
   const SmartEntryState({
     this.rawInput = '',
     this.drafts = const [],
+    this.isParsing = false,
     this.isSaving = false,
     this.errorMessage,
     this.savedCount = 0,
@@ -28,6 +30,7 @@ class SmartEntryState {
   SmartEntryState copyWith({
     String? rawInput,
     List<ParsedDraftTransaction>? drafts,
+    bool? isParsing,
     bool? isSaving,
     String? errorMessage,
     int? savedCount,
@@ -35,6 +38,7 @@ class SmartEntryState {
     return SmartEntryState(
       rawInput: rawInput ?? this.rawInput,
       drafts: drafts ?? this.drafts,
+      isParsing: isParsing ?? this.isParsing,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: errorMessage,
       savedCount: savedCount ?? this.savedCount,
@@ -51,11 +55,20 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
     state = state.copyWith(rawInput: text);
   }
 
-  void parse(List<Account> accounts, List<Category> categories) {
+  Future<void> parse(List<Account> accounts, List<Category> categories) async {
     if (state.rawInput.trim().isEmpty) {
-      state = state.copyWith(drafts: [], errorMessage: null);
+      state = state.copyWith(
+        drafts: [],
+        errorMessage: 'Please enter details about your transaction first.',
+        isParsing: false,
+      );
       return;
     }
+
+    state = state.copyWith(isParsing: true, errorMessage: null);
+
+    // Brief async yield for smooth UI feedback
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     final parsed = _parserService.parseText(
       rawText: state.rawInput,
@@ -64,6 +77,7 @@ class SmartEntryController extends StateNotifier<SmartEntryState> {
     );
 
     state = state.copyWith(
+      isParsing: false,
       drafts: parsed,
       errorMessage: parsed.isEmpty
           ? 'No transactions could be detected. Please include an amount (e.g. "Lunch 450").'

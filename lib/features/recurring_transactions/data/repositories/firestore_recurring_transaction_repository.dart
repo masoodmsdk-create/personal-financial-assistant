@@ -32,9 +32,7 @@ class FirestoreRecurringTransactionRepository
       throw const ValidationException('Rule name is required');
     }
     if (name.length > maxNameLength) {
-      throw const ValidationException(
-        'Rule name cannot exceed 60 characters',
-      );
+      throw const ValidationException('Rule name cannot exceed 60 characters');
     }
     if (rule.amount <= 0) {
       throw const ValidationException(
@@ -56,7 +54,9 @@ class FirestoreRecurringTransactionRepository
   }
 
   @override
-  Stream<List<RecurringTransactionRule>> getRecurringTransactions(String userId) {
+  Stream<List<RecurringTransactionRule>> getRecurringTransactions(
+    String userId,
+  ) {
     final currentUid = _requireCurrentUserId();
     return _firestoreService
         .watchCollection(
