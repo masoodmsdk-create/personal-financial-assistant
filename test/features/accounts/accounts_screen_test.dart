@@ -52,7 +52,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No Accounts Yet'), findsOneWidget);
-      expect(find.text('Add Account'), findsNWidgets(2));
+      expect(find.text('Add Account'), findsOneWidget);
     },
   );
 

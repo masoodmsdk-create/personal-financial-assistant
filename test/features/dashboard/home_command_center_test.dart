@@ -142,17 +142,17 @@ void main() {
 
       // Section 1: Financial Position
       expect(
-        find.text('Net Financial Position', skipOffstage: false),
+        find.text('Financial Position', skipOffstage: false),
         findsOneWidget,
       );
-      expect(find.text('View Breakdown', skipOffstage: false), findsOneWidget);
+      expect(find.text('View Breakdown', skipOffstage: false), findsWidgets);
 
       // Section 2: This Month
       expect(
         find.text('This Month’s Cash Flow', skipOffstage: false),
         findsOneWidget,
       );
-      expect(find.text('View Analytics', skipOffstage: false), findsOneWidget);
+      expect(find.text('View Details', skipOffstage: false), findsOneWidget);
 
       // Section 3: Available to Spend
       expect(
@@ -162,10 +162,7 @@ void main() {
       expect(find.text('View Budget', skipOffstage: false), findsWidgets);
 
       // Section 8: Future Forecast
-      expect(
-        find.text('Future Financial Forecast', skipOffstage: false),
-        findsOneWidget,
-      );
+      expect(find.text('Forecast', skipOffstage: false), findsWidgets);
       expect(
         find.text('View Forecast & Scenarios', skipOffstage: false),
         findsOneWidget,

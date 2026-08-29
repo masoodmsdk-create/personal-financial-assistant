@@ -26,7 +26,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
 
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: '/home',
     refreshListenable: _RiverpodRefreshListenable(
       ref,
       authStateChangesProvider,
@@ -46,7 +46,41 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (isLoggedIn && isAuthRoute) {
-        return '/dashboard';
+        return '/home';
+      }
+
+      // Canonical redirect: /dashboard -> /home
+      if (state.matchedLocation == '/dashboard') {
+        return '/home';
+      }
+
+      // Legacy standalone route redirects into the five-pillar shell with tab query parameters
+      if (state.matchedLocation == '/accounts') {
+        return '/money?tab=0';
+      }
+      if (state.matchedLocation == '/transactions') {
+        return '/money?tab=1';
+      }
+      if (state.matchedLocation == '/recurring-transactions') {
+        return '/money?tab=2';
+      }
+      if (state.matchedLocation == '/budgets') {
+        return '/plans?tab=0';
+      }
+      if (state.matchedLocation == '/goals') {
+        return '/plans?tab=1';
+      }
+      if (state.matchedLocation == '/loans') {
+        return '/plans?tab=2';
+      }
+      if (state.matchedLocation == '/analytics') {
+        return '/insights?tab=0';
+      }
+      if (state.matchedLocation == '/monthly-review') {
+        return '/insights?tab=1';
+      }
+      if (state.matchedLocation == '/forecast') {
+        return '/insights?tab=2';
       }
 
       return null;
@@ -63,6 +97,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const RegisterScreen(),
       ),
 
+      // Canonical redirect routes for direct navigation
+      GoRoute(path: '/dashboard', redirect: (context, state) => '/home'),
+      GoRoute(path: '/accounts', redirect: (context, state) => '/money?tab=0'),
+      GoRoute(
+        path: '/transactions',
+        redirect: (context, state) => '/money?tab=1',
+      ),
+      GoRoute(
+        path: '/recurring-transactions',
+        redirect: (context, state) => '/money?tab=2',
+      ),
+      GoRoute(path: '/budgets', redirect: (context, state) => '/plans?tab=0'),
+      GoRoute(path: '/goals', redirect: (context, state) => '/plans?tab=1'),
+      GoRoute(path: '/loans', redirect: (context, state) => '/plans?tab=2'),
+      GoRoute(
+        path: '/analytics',
+        redirect: (context, state) => '/insights?tab=0',
+      ),
+      GoRoute(
+        path: '/monthly-review',
+        redirect: (context, state) => '/insights?tab=1',
+      ),
+      GoRoute(
+        path: '/forecast',
+        redirect: (context, state) => '/insights?tab=2',
+      ),
+
       // Core Stateful Navigation Shell for 5 Primary Hub Destinations
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -72,8 +133,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/dashboard',
-                name: 'dashboard',
+                path: '/home',
+                name: 'home',
                 builder: (context, state) => const DashboardScreen(),
               ),
             ],
@@ -83,7 +144,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/money',
                 name: 'money',
-                builder: (context, state) => const MoneyHubScreen(),
+                builder: (context, state) {
+                  final tabStr = state.uri.queryParameters['tab'];
+                  final tabIndex = int.tryParse(tabStr ?? '') ?? 0;
+                  return MoneyHubScreen(initialTabIndex: tabIndex);
+                },
               ),
             ],
           ),
@@ -92,7 +157,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/plans',
                 name: 'plans',
-                builder: (context, state) => const PlansHubScreen(),
+                builder: (context, state) {
+                  final tabStr = state.uri.queryParameters['tab'];
+                  final tabIndex = int.tryParse(tabStr ?? '') ?? 0;
+                  return PlansHubScreen(initialTabIndex: tabIndex);
+                },
               ),
             ],
           ),
@@ -101,7 +170,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/insights',
                 name: 'insights',
-                builder: (context, state) => const InsightsHubScreen(),
+                builder: (context, state) {
+                  final tabStr = state.uri.queryParameters['tab'];
+                  final tabIndex = int.tryParse(tabStr ?? '') ?? 0;
+                  return InsightsHubScreen(initialTabIndex: tabIndex);
+                },
               ),
             ],
           ),
@@ -115,56 +188,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
-      ),
-
-      // Secondary Feature & Utility Routes
-      GoRoute(
-        path: '/accounts',
-        name: 'accounts',
-        builder: (context, state) => const MoneyHubScreen(initialTabIndex: 0),
-      ),
-      GoRoute(
-        path: '/transactions',
-        name: 'transactions',
-        builder: (context, state) => const MoneyHubScreen(initialTabIndex: 1),
-      ),
-      GoRoute(
-        path: '/recurring-transactions',
-        name: 'recurring-transactions',
-        builder: (context, state) => const MoneyHubScreen(initialTabIndex: 2),
-      ),
-      GoRoute(
-        path: '/budgets',
-        name: 'budgets',
-        builder: (context, state) => const PlansHubScreen(initialTabIndex: 0),
-      ),
-      GoRoute(
-        path: '/goals',
-        name: 'goals',
-        builder: (context, state) => const PlansHubScreen(initialTabIndex: 1),
-      ),
-      GoRoute(
-        path: '/loans',
-        name: 'loans',
-        builder: (context, state) => const PlansHubScreen(initialTabIndex: 2),
-      ),
-      GoRoute(
-        path: '/analytics',
-        name: 'analytics',
-        builder: (context, state) =>
-            const InsightsHubScreen(initialTabIndex: 0),
-      ),
-      GoRoute(
-        path: '/monthly-review',
-        name: 'monthly-review',
-        builder: (context, state) =>
-            const InsightsHubScreen(initialTabIndex: 1),
-      ),
-      GoRoute(
-        path: '/forecast',
-        name: 'forecast',
-        builder: (context, state) =>
-            const InsightsHubScreen(initialTabIndex: 2),
       ),
 
       // Secondary Feature & Utility Routes

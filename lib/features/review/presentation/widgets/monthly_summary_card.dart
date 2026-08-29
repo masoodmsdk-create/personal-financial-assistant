@@ -171,16 +171,14 @@ class MonthlySummaryCard extends StatelessWidget {
                         color: diffColor,
                       ),
                       const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          diffText,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: diffColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        diffText,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: diffColor,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

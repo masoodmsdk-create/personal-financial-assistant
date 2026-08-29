@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_financial_assistant/core/routing/app_router.dart';
 import 'package:personal_financial_assistant/features/accounts/account.dart';
 import 'package:personal_financial_assistant/features/accounts/domain/models/account_type_definition.dart';
 import 'package:personal_financial_assistant/features/accounts/presentation/providers/account_providers.dart';
 import 'package:personal_financial_assistant/features/auth/presentation/providers/auth_providers.dart';
 import 'package:personal_financial_assistant/features/budgets/presentation/providers/budget_providers.dart';
+import 'package:personal_financial_assistant/features/categories/category.dart';
 import 'package:personal_financial_assistant/features/categories/presentation/providers/category_providers.dart';
 import 'package:personal_financial_assistant/features/goals/presentation/providers/goal_providers.dart';
 import 'package:personal_financial_assistant/features/insights/presentation/screens/insights_hub_screen.dart';
@@ -15,9 +17,22 @@ import 'package:personal_financial_assistant/features/planned_expenses/presentat
 import 'package:personal_financial_assistant/features/plans/presentation/screens/plans_hub_screen.dart';
 import 'package:personal_financial_assistant/features/recurring_transactions/presentation/providers/recurring_transaction_providers.dart';
 import 'package:personal_financial_assistant/features/transactions/presentation/providers/transaction_providers.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:personal_financial_assistant/features/workspaces/presentation/providers/workspace_providers.dart';
+import 'package:personal_financial_assistant/features/workspaces/workspace.dart';
+
+class _FakeUser extends Fake implements User {
+  @override
+  String get uid => 'user_1';
+  @override
+  String? get email => 'test@finaura.com';
+  @override
+  String? get displayName => 'Test User';
+}
 
 void main() {
   final now = DateTime(2026, 1, 1);
+  final fakeUser = _FakeUser();
 
   final testAccount = Account(
     id: 'acc_salary',
@@ -110,6 +125,178 @@ void main() {
         expect(find.text('Analytics'), findsWidgets);
         expect(find.text('Monthly Review'), findsWidgets);
         expect(find.text('Forecast'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      'AppShell renders 5 primary destinations (Home, Money, Plans, Insights, Settings) on Mobile (390x844)',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final mockWorkspace = Workspace.createDefault('user_1');
+
+        final container = ProviderContainer(
+          overrides: [
+            authStateChangesProvider.overrideWith(
+              (ref) => Stream.value(fakeUser),
+            ),
+            currentUserProvider.overrideWith((ref) => fakeUser),
+            workspacesStreamProvider.overrideWith(
+              (ref) => Stream.value([mockWorkspace]),
+            ),
+            activeWorkspaceProvider.overrideWithValue(mockWorkspace),
+            accountsStreamProvider.overrideWith(
+              (ref) => Stream.value([testAccount]),
+            ),
+            accountTypesStreamProvider.overrideWith(
+              (ref) => Stream.value(AccountTypeDefinition.defaultTypes),
+            ),
+            categoriesStreamProvider.overrideWith((ref) => Stream.value([])),
+            incomeCategoriesProvider.overrideWith(
+              (ref) => const AsyncValue.data(<Category>[]),
+            ),
+            expenseCategoriesProvider.overrideWith(
+              (ref) => const AsyncValue.data(<Category>[]),
+            ),
+            recurringTransactionsStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            loansStreamProvider.overrideWith((ref) => Stream.value([])),
+            goalsStreamProvider.overrideWith((ref) => Stream.value([])),
+            plannedExpensesStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            monthlyOverridesStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            budgetsStreamProvider.overrideWith((ref) => Stream.value([])),
+            transactionsStreamProvider.overrideWith((ref) => Stream.value([])),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final router = container.read(routerProvider);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 1. Initial State: Home is selected/default
+        expect(find.byType(NavigationBar), findsOneWidget);
+        expect(find.text('Home'), findsWidgets);
+        expect(find.text('Money'), findsOneWidget);
+        expect(find.text('Plans'), findsOneWidget);
+        expect(find.text('Insights'), findsOneWidget);
+        expect(find.text('Settings'), findsOneWidget);
+
+        // 2. Tap Money -> switches to MoneyHubScreen
+        await tester.tap(find.text('Money'));
+        await tester.pumpAndSettle();
+        expect(router.routerDelegate.currentConfiguration.uri.path, '/money');
+        expect(find.byType(MoneyHubScreen), findsOneWidget);
+
+        // 3. Tap Plans -> switches to PlansHubScreen
+        await tester.tap(find.text('Plans'));
+        await tester.pumpAndSettle();
+        expect(router.routerDelegate.currentConfiguration.uri.path, '/plans');
+        expect(find.byType(PlansHubScreen), findsOneWidget);
+
+        // 4. Tap Insights -> switches to InsightsHubScreen
+        await tester.tap(find.text('Insights'));
+        await tester.pumpAndSettle();
+        expect(
+          router.routerDelegate.currentConfiguration.uri.path,
+          '/insights',
+        );
+        expect(find.byType(InsightsHubScreen), findsOneWidget);
+
+        // 5. Tap Settings -> switches to SettingsScreen
+        await tester.tap(find.text('Settings'));
+        await tester.pumpAndSettle();
+        expect(
+          router.routerDelegate.currentConfiguration.uri.path,
+          '/settings',
+        );
+
+        // 6. Tap Home -> returns to Home
+        await tester.tap(find.text('Home').first);
+        await tester.pumpAndSettle();
+        expect(router.routerDelegate.currentConfiguration.uri.path, '/home');
+      },
+    );
+
+    testWidgets(
+      'AppShell renders 5 primary destinations on Desktop (1280x1000) via NavigationRail',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 1000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final mockWorkspace = Workspace.createDefault('user_1');
+
+        final container = ProviderContainer(
+          overrides: [
+            authStateChangesProvider.overrideWith(
+              (ref) => Stream.value(fakeUser),
+            ),
+            currentUserProvider.overrideWith((ref) => fakeUser),
+            workspacesStreamProvider.overrideWith(
+              (ref) => Stream.value([mockWorkspace]),
+            ),
+            activeWorkspaceProvider.overrideWithValue(mockWorkspace),
+            accountsStreamProvider.overrideWith(
+              (ref) => Stream.value([testAccount]),
+            ),
+            accountTypesStreamProvider.overrideWith(
+              (ref) => Stream.value(AccountTypeDefinition.defaultTypes),
+            ),
+            categoriesStreamProvider.overrideWith((ref) => Stream.value([])),
+            incomeCategoriesProvider.overrideWith(
+              (ref) => const AsyncValue.data(<Category>[]),
+            ),
+            expenseCategoriesProvider.overrideWith(
+              (ref) => const AsyncValue.data(<Category>[]),
+            ),
+            recurringTransactionsStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            loansStreamProvider.overrideWith((ref) => Stream.value([])),
+            goalsStreamProvider.overrideWith((ref) => Stream.value([])),
+            plannedExpensesStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            monthlyOverridesStreamProvider.overrideWith(
+              (ref) => Stream.value([]),
+            ),
+            budgetsStreamProvider.overrideWith((ref) => Stream.value([])),
+            transactionsStreamProvider.overrideWith((ref) => Stream.value([])),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final router = container.read(routerProvider);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Check Desktop NavigationRail has 5 destinations
+        expect(find.byType(NavigationRail), findsOneWidget);
+        expect(find.text('Home'), findsWidgets);
+        expect(find.text('Money'), findsOneWidget);
+        expect(find.text('Plans'), findsOneWidget);
+        expect(find.text('Insights'), findsOneWidget);
+        expect(find.text('Settings'), findsOneWidget);
       },
     );
   });

@@ -139,57 +139,110 @@ class AnalyticsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Planned vs Actual (Monthly)',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isNarrow = constraints.maxWidth < 480;
+                          final titleWidget = Text(
+                            'Planned vs Actual (Monthly)',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          FilledButton.tonalIcon(
+                          );
+                          final actionWidget = FilledButton.tonalIcon(
                             onPressed: () => context.push('/budgets'),
                             icon: const Icon(Icons.savings_rounded, size: 16),
                             label: const Text('Manage Budget'),
-                          ),
-                        ],
+                          );
+
+                          if (isNarrow) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                titleWidget,
+                                const SizedBox(height: 8),
+                                actionWidget,
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: titleWidget),
+                              const SizedBox(width: 12),
+                              actionWidget,
+                            ],
+                          );
+                        },
                       ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        spacing: 12,
-                        runSpacing: 8,
-                        children: [
-                          _PlannedMetric(
+                      const SizedBox(height: 14),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isNarrow = constraints.maxWidth < 480;
+                          final isAbovePlan =
+                              plannedVsActual.totalActualExpense >
+                              plannedVsActual.totalPlannedAmount;
+
+                          final plannedTile = _PlannedMetricTile(
                             label: 'Planned',
                             amount: currencyFormat.format(
                               plannedVsActual.totalPlannedAmount,
                             ),
-                          ),
-                          _PlannedMetric(
+                            icon: Icons.assignment_outlined,
+                            color: colorScheme.primary,
+                          );
+                          final actualTile = _PlannedMetricTile(
                             label: 'Actual',
                             amount: currencyFormat.format(
                               plannedVsActual.totalActualExpense,
                             ),
-                          ),
-                          _PlannedMetric(
-                            label:
-                                plannedVsActual.totalActualExpense >
-                                    plannedVsActual.totalPlannedAmount
-                                ? 'Above Plan'
-                                : 'Difference',
+                            icon: Icons.receipt_outlined,
+                            color: isAbovePlan
+                                ? colorScheme.error
+                                : Colors.teal.shade700,
+                          );
+                          final diffTile = _PlannedMetricTile(
+                            label: isAbovePlan ? 'Above Plan' : 'Difference',
                             amount: currencyFormat.format(
                               (plannedVsActual.totalPlannedAmount -
                                       plannedVsActual.totalActualExpense)
                                   .abs(),
                             ),
-                            isWarning:
-                                plannedVsActual.totalActualExpense >
-                                plannedVsActual.totalPlannedAmount,
-                          ),
-                        ],
+                            icon: isAbovePlan
+                                ? Icons.warning_amber_rounded
+                                : Icons.check_circle_outline_rounded,
+                            color: isAbovePlan
+                                ? colorScheme.error
+                                : Colors.green.shade700,
+                            isWarning: isAbovePlan,
+                          );
+
+                          if (isNarrow) {
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(child: plannedTile),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: actualTile),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                diffTile,
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              Expanded(child: plannedTile),
+                              const SizedBox(width: 12),
+                              Expanded(child: actualTile),
+                              const SizedBox(width: 12),
+                              Expanded(child: diffTile),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -385,14 +438,18 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _PlannedMetric extends StatelessWidget {
+class _PlannedMetricTile extends StatelessWidget {
   final String label;
   final String amount;
+  final IconData icon;
+  final Color color;
   final bool isWarning;
 
-  const _PlannedMetric({
+  const _PlannedMetricTile({
     required this.label,
     required this.amount,
+    required this.icon,
+    required this.color,
     this.isWarning = false,
   });
 
@@ -400,26 +457,50 @@ class _PlannedMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color = isWarning ? colorScheme.error : colorScheme.onSurface;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          amount,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              amount,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isWarning ? colorScheme.error : colorScheme.onSurface,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

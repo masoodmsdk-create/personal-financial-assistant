@@ -1748,9 +1748,9 @@ class _SuccessBanner extends StatelessWidget {
               runSpacing: 8,
               children: [
                 FilledButton.icon(
-                  onPressed: () => context.go('/dashboard'),
-                  icon: const Icon(Icons.dashboard_rounded, size: 18),
-                  label: const Text('Go to Dashboard'),
+                  onPressed: () => context.go('/home'),
+                  icon: const Icon(Icons.home_rounded, size: 18),
+                  label: const Text('Go to Home'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => context.push('/monthly-review'),

@@ -221,4 +221,69 @@ void main() {
       expect(find.textContaining('No transactions recorded'), findsOneWidget);
     },
   );
+
+  group('AnalyticsScreen Responsive & Layout Constraint Tests', () {
+    const viewports = <String, Size>{
+      '360px (Small Mobile)': Size(360, 780),
+      '390px (Standard Mobile)': Size(390, 844),
+      '430px (Large Mobile)': Size(430, 932),
+      '600px (Tablet Portrait)': Size(600, 900),
+      '1024px (Tablet Landscape)': Size(1024, 768),
+      '1280px (Desktop HD)': Size(1280, 800),
+      '1440px (Desktop Widescreen)': Size(1440, 900),
+    };
+
+    for (final entry in viewports.entries) {
+      testWidgets('Renders Planned vs Actual card correctly on ${entry.key}', (
+        WidgetTester tester,
+      ) async {
+        tester.view.physicalSize = entry.value;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              transactionsStreamProvider.overrideWith(
+                (ref) => Stream.value(testTransactions),
+              ),
+              accountsStreamProvider.overrideWith(
+                (ref) => Stream.value(testAccounts),
+              ),
+              categoriesStreamProvider.overrideWith(
+                (ref) => Stream.value(testCategories),
+              ),
+              plannedExpensesStreamProvider.overrideWith(
+                (ref) => Stream.value(testPlans),
+              ),
+              monthlyOverridesStreamProvider.overrideWith(
+                (ref) => Stream.value([]),
+              ),
+            ],
+            child: const MaterialApp(home: AnalyticsScreen()),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // 1. Verify Planned vs Actual title exists and is NOT collapsed
+        final titleFinder = find.text('Planned vs Actual (Monthly)');
+        expect(titleFinder, findsOneWidget);
+
+        final titleSize = tester.getSize(titleFinder);
+        // Verify width is substantial (greater than 120px) and not collapsed to ~15px character width
+        expect(titleSize.width, greaterThan(120.0));
+        // Verify height is normal single/two-line height (less than 60px) and not multi-character vertical stack
+        expect(titleSize.height, lessThan(60.0));
+
+        // 2. Verify metric tiles exist with readable dimensions
+        expect(find.text('Planned'), findsOneWidget);
+        expect(find.text('Actual'), findsOneWidget);
+        expect(find.text('Manage Budget'), findsOneWidget);
+
+        // 3. Verify zero exceptions / overflow errors
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
 }
